@@ -114,7 +114,7 @@ a { color: inherit; text-decoration: none; }
   }
 }  
 
-@media (max-width: 375px) {
+@media (max-width: 400px) {
   .card {
     background-image: url(../../public/images/375.png);
     background-position:center;
