@@ -38,11 +38,12 @@ a { color: inherit; text-decoration: none; }
 
 @font-face {
   font-family: "Gotham Rounded";
-  src: url("/fonts/GothamRounded-Bold.woff2") format("woff2"),
-       url("/fonts/GothamRounded-Bold.woff") format("woff");
-  font-weight: bold;
+  src: url("/fonts/GothamRounded-Regular.woff2") format("woff2"),
+       url("/fonts/GothamRounded-Regular.woff") format("woff");
+  font-weight: normal;
   font-style: normal;
 }
+
 
 @media (max-width: 720px) {
   .links { display: none; }
@@ -67,7 +68,7 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   font-size: 58px;
   color: #ffff;
-  font-family: "Gotham Rounded", "Gotham Rounded Bold", sans-serif;
+  font-family: "Gotham Rounded", sans-serif;
   font-weight: 700;
 }
 
@@ -127,7 +128,7 @@ a { color: inherit; text-decoration: none; }
     font-size:19px;
   }
   .icon{
-    height: 70px;;
+    height: 60px;;
     
   }
   .icon img{
