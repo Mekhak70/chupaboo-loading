@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Chupaboo loading",
+  title: "Chupaboo",
   description: "A minimal responsive Next.js starter with header, footer, and 3 pages.",
 };
 
