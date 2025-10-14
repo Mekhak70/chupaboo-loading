@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     icon: "/logo.png",
   },
   openGraph: {
-    title: "Քո կայքի անունը",
+    title: "Chupaboo",
     description: "Coming soon.",
     url: "https://www.chupaboo.com/",
     siteName: "Chupaboo",
