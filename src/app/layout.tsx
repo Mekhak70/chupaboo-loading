@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "Chupaboo",
     images: [
       {
-        url: "/logo.png",
+        url: "/logo-1.png",
         width: 1200,
         height: 630,
         alt: "Preview image",
