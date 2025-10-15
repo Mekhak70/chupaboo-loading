@@ -7,7 +7,15 @@ export const metadata: Metadata = {
   title: "Chupaboo",
   description: "Coming soon.",
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/logo.png" }, // ✅ հիմնական favicon
+      { url: "/logo.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo.png", sizes: "180x180" },
+    ],
+    shortcut: ["/logo.png"],
   },
   openGraph: {
     title: "Chupaboo",
@@ -27,11 +35,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "https://www.chupaboo.com/",
+    title: "Chupaboo",
     description: "Coming soon.",
     images: ["/logo.png"],
   },
 };
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
