@@ -49,15 +49,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap"
           rel="stylesheet"
         />
-        {/* Android Chrome */}
-        <meta name="theme-color" content="#2436c1" />
-        {/* iOS Safari */}
+        <meta name="theme-color" content="#033387" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <style>{`
           /* iOS Safari համար լիովին գունավորված ֆոն */
           body {
-            background-color: #2436c1;
+            background-color: #033387;
           }
         `}</style>
       </head>
