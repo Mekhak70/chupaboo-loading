@@ -6,14 +6,12 @@ export const metadata: Metadata = {
   description: "Coming soon.",
   icons: {
     icon: [
-      { url: "/logo-1.png" }, 
+      { url: "/logo-1.png" },
       { url: "/logo.png", sizes: "32x32", type: "image/png" },
       { url: "/logo.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180" }, // ✅ Apple devices
-    ],
-    shortcut: ["/logo-1.png"], 
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: ["/logo-1.png"],
   },
   openGraph: {
     title: "Chupaboo",
@@ -51,10 +49,17 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap"
           rel="stylesheet"
         />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-          <meta name="theme-color" content="#2436c1" />
-
+        {/* Android Chrome */}
+        <meta name="theme-color" content="#2436c1" />
+        {/* iOS Safari */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <style>{`
+          /* iOS Safari համար լիովին գունավորված ֆոն */
+          body {
+            background-color: #2436c1;
+          }
+        `}</style>
       </head>
       <body>
         <main className="container main">{children}</main>
