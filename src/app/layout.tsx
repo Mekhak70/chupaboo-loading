@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Chupaboo",
-  description: "Coming soon.",
+  description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
   icons: {
     icon: [
       { url: "/logo-1.png" },
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Chupaboo",
-    description: "Coming soon.",
+    description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
     url: "https://www.chupaboo.com/",
     siteName: "Chupaboo",
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Chupaboo",
-    description: "Coming soon.",
+    description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
     images: ["/logo-1.png"],
   },
 };
@@ -53,7 +53,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <style>{`
-          /* iOS Safari համար լիովին գունավորված ֆոն */
           body {
             background-color: #033387;
           }
