@@ -32,8 +32,16 @@
   flex-direction: column;
   gap: 32px;
   grid-row-start: 2;
-  overflow: hidden; 
+
+  overflow: auto;
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
 }
+
+.main::-webkit-scrollbar {
+  display: none;
+}
+
 
 
 .main ol {
