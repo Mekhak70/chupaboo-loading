@@ -49,9 +49,18 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap"
           rel="stylesheet"
         />
+
+        <link rel="icon" href="/logo.png" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
         <meta name="theme-color" content="#033387" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+
         <style>{`
           body {
             background-color: #033387;
