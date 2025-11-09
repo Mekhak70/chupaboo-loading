@@ -188,4 +188,60 @@
       height: 80px;
     }
   }
+
+
+  /* Modal overlay */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    opacity: 0;
+    animation: fadeIn 0.2s forwards;
+  }
+  
+  /* Modal box */
+  .modalContent {
+    background: white;
+    padding: 24px 32px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+    position: relative;
+    transform: scale(0.9);
+    animation: scaleIn 0.2s forwards;
+    color:#e29a2c;
+  }
+  
+  /* Close button */
+  .modalClose {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes scaleIn {
+    to {
+      transform: scale(1);
+    }
+  }
   
