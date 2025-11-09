@@ -38,7 +38,7 @@ a {
 }
 
 .container {
-  height: 100vh;
+  height: max-content;
   display: flex;
   align-items: center;
 }
