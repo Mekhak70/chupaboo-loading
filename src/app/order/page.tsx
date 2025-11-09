@@ -158,7 +158,11 @@ export default function DogCakeOrderForm() {
         }
 
         setShowModal(true);
-        audioRef.current?.play();
+        if (typeof window !== 'undefined') {
+            const sound = new Audio('/sounds/dog-bark.mp3');
+            sound.play();
+          }
+          
 
 
         e.currentTarget.reset();
@@ -258,7 +262,7 @@ export default function DogCakeOrderForm() {
                     <button type="submit" className={styles.submitBtn}>
                         {t[lang].send}
                     </button>
-                    <audio ref={audioRef} src={'sounds/dog-bark.mp3'} />
+                  
 
                 </form>
             </div>
