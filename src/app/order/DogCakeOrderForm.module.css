@@ -197,9 +197,7 @@
     }
 
     /* Inputs, textarea, file input */
-    .input,
-    .textarea,
-    .fileInput {
+    .input[data-type] {
         font-size: 14px;
         padding: 10px;
         /* հավասարizing padding */
