@@ -175,19 +175,37 @@
   }
   
   /* Small responsive tweaks */
-  @media (max-width: 520px) {
+ /* Small responsive tweaks */
+@media (max-width: 520px) {
     .container {
       padding: 18px;
       border-radius: 16px;
     }
+  
     .title {
       font-size: 22px;
     }
+  
+    /* Image preview */
     .preview {
       width: 80px;
       height: 80px;
     }
+  
+    /* Inputs, textarea, file input */
+    .input,
+    .textarea,
+    .fileInput {
+      font-size: 14px;
+      padding: 10px; /* հավասարizing padding */
+    }
+  
+    /* Textarea height small screen */
+    .textarea {
+      min-height: 64px;
+    }
   }
+  
 
 
   /* Modal overlay */
