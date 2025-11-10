@@ -7,8 +7,12 @@ export async function POST(req: Request) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    if (!token || !chatId)
-      return NextResponse.json({ success: false, error: "Missing token or chatId" }, { status: 500 });
+    if (!token || !chatId) {
+      return NextResponse.json(
+        { success: false, error: "Missing token or chatId" },
+        { status: 500 }
+      );
+    }
 
     // 📩 Եթե գալիս է multipart form (նկարով)
     if (contentType.includes("multipart/form-data")) {
@@ -16,7 +20,7 @@ export async function POST(req: Request) {
       const message = formData.get("message") as string;
       const file = formData.get("photo") as File | null;
 
-      // 🖼️ եթե կա ֆայլ՝ ուղարկում ենք որպես `sendPhoto`
+      // 🖼️ Եթե կա ֆայլ՝ ուղարկում ենք որպես `sendPhoto`
       if (file) {
         const form = new FormData();
         form.append("chat_id", chatId);
@@ -27,26 +31,33 @@ export async function POST(req: Request) {
           method: "POST",
           body: form,
         });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.description);
+
+        const data = (await res.json()) as { ok: boolean; description?: string };
+        if (!data.ok) throw new Error(data.description || "Failed to send photo");
       } else {
-        // 💬 եթե ֆայլ չկա՝ ուղարկում ենք տեքստային հաղորդագրություն
+        // 💬 Եթե ֆայլ չկա՝ ուղարկում ենք տեքստային հաղորդագրություն
         const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: chatId, text: message }),
         });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.description);
+
+        const data = (await res.json()) as { ok: boolean; description?: string };
+        if (!data.ok) throw new Error(data.description || "Failed to send message");
       }
 
       return NextResponse.json({ success: true });
     }
 
     // ⚠️ Եթե ֆորմատը սխալ է
-    return NextResponse.json({ success: false, error: "Invalid request type" }, { status: 400 });
-  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: "Invalid request type" },
+      { status: 400 }
+    );
+  } catch (err: unknown) {
     console.error("Telegram send error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const errorMessage =
+      err instanceof Error ? err.message : "Unknown error occurred";
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
