@@ -132,39 +132,41 @@ export default function DogCakeOrderForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-
+  
     const summary: Record<string, string> = {};
     form.forEach((v, k) => {
-      summary[k] = typeof v === "string" ? v : (v as File).name ?? "";
+      if (typeof v === "string") summary[k] = v;
     });
-
+  
+    const textMessage = Object.entries(summary)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n");
+  
+    // նոր formData Telegram-ի համար
+    const sendData = new FormData();
+    sendData.append("message", textMessage);
+  
+    const file = form.get("photo");
+    if (file instanceof File && file.size > 0) {
+      sendData.append("photo", file);
+    }
+  
     try {
       await fetch("/api/sendTelegram", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: Object.entries(summary)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join("\n"),
-        }),
+        body: sendData, // ⚡ առանց headers
       });
     } catch (err) {
-      console.error(err);
+      console.error("Send error:", err);
     }
-
+  
     setShowModal(true);
-
-    // 🎵 Play sound client-side only
-    if (audioRef.current) {
-      audioRef.current.play().catch(console.error);
-    }
-
+    if (audioRef.current) audioRef.current.play().catch(console.error);
+  
     e.currentTarget.reset();
-    const now = new Date();
-    setDateValue(now.toISOString().slice(0, 10));
-    setTimeValue(now.toTimeString().slice(0, 5));
     setPreviewSrc(null);
   }
+  
 
   const sections = [
     { title: t[lang].customer, fields: ["fullName", "phone", "email"] },
