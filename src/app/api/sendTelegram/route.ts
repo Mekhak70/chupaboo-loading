@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs"; // ✅ правильное значение
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -46,8 +46,13 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: false, error: "Invalid request type" }, { status: 400 });
-  } catch (err: any) {
+  } catch (err: unknown) { // ✅ вместо any используем unknown
+    const errorMessage =
+      err instanceof Error ? err.message : "Unknown error occurred";
     console.error("Telegram send error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: 500 }
+    );
   }
 }
