@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "form-data": "^4.0.4",
     "framer-motion": "^12.23.24",
     "next": "15.5.4",
+    "node-fetch": "^3.3.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/form-data": "^2.2.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
