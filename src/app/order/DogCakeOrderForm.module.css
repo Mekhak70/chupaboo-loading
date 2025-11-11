@@ -134,11 +134,16 @@
 /* ✅ Delivery date/time specific */
 .input[type="date"],
 .input[type="time"] {
-    max-width: 220px;
-    min-width: 160px;
-    padding: 8px 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 6px 10px;
+    height: 36px; /* small but touchable */
     font-size: 14px;
+    border-radius: 10px;
+    box-sizing: border-box;
 }
+
 
 /* Textarea specifics */
 .textarea {
@@ -191,6 +196,14 @@
     .title {
         font-size: 22px;
     }
+    .input[type="date"],
+    .input[type="time"] {
+        width: 100%;
+        max-width: 160px;
+        height: 36px;
+        font-size: 13px;
+    }
+  
 
     .input,
     .textarea,
