@@ -144,6 +144,13 @@
     box-sizing: border-box;
 }
 
+.input[type="date"]::-webkit-inner-spin-button,
+.input[type="time"]::-webkit-inner-spin-button,
+.input[type="date"]::-webkit-clear-button,
+.input[type="time"]::-webkit-clear-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
 /* Textarea specifics */
 .textarea {
