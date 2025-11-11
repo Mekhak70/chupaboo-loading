@@ -4,11 +4,9 @@
     min-height: 120vh;
     padding: 48px 16px;
     background-color: #033387;
-    /* requested background */
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    /* box-sizing: border-box; */
 }
 
 /* Card container */
@@ -20,7 +18,6 @@
     padding: 28px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(226, 154, 44, 0.25);
-    /* subtle border with #e29a2c */
     box-sizing: border-box;
 }
 
@@ -49,7 +46,6 @@
 
 .langActive {
     background: #e29a2c;
-    /* gold-like */
     color: white;
     box-shadow: 0 8px 22px rgba(226, 154, 44, 0.22);
 }
@@ -93,7 +89,6 @@
     gap: 12px;
 }
 
-/* On medium screens and up use two columns */
 @media (min-width: 720px) {
     .grid {
         grid-template-columns: 1fr 1fr;
@@ -121,7 +116,6 @@
     padding: 10px 12px;
     border-radius: 12px;
     border: 2px solid #e29a2c;
-    /* requested input border color */
     outline: none;
     font-size: 14px;
     color: #0b1220;
@@ -135,6 +129,15 @@
 .fileInput:focus {
     box-shadow: 0 6px 18px rgba(226, 154, 44, 0.18);
     transform: translateY(-1px);
+}
+
+/* ✅ Delivery date/time specific */
+.input[type="date"],
+.input[type="time"] {
+    max-width: 220px;
+    min-width: 160px;
+    padding: 8px 10px;
+    font-size: 14px;
 }
 
 /* Textarea specifics */
@@ -178,8 +181,7 @@
     opacity: 0.98;
 }
 
-/* Small responsive tweaks */
-/* Small responsive tweaks */
+/* 📱 Small responsive tweaks */
 @media (max-width: 520px) {
     .container {
         padding: 18px;
@@ -190,21 +192,30 @@
         font-size: 22px;
     }
 
-    /* Image preview */
+    .input,
+    .textarea,
+    .fileInput {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .input[type="date"],
+    .input[type="time"] {
+        width: 100%;
+        max-width: none;
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
     .preview {
         width: 80px;
         height: 80px;
     }
 
-    
-
-    /* Textarea height small screen */
     .textarea {
         min-height: 64px;
     }
 }
-
-
 
 /* Modal overlay */
 .modal {

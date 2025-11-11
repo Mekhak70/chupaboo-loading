@@ -27,7 +27,7 @@ export default function DogCakeOrderForm() {
     }
   > = {
     hy: {
-      title: "🎂 Շան տորթի պատվերի ձև",
+      title: "🎂 Տորթի պատվեր",
       customer: "👤 Հաճախորդի տվյալներ",
       dogInfo: "🐶 Շան մասին",
       cakeInfo: "🍰 Տորթի տվյալներ",
@@ -55,7 +55,7 @@ export default function DogCakeOrderForm() {
       },
     },
     en: {
-      title: "🎂 Dog Cake Order Form",
+      title: "🎂 Cake Order",
       customer: "👤 Customer Details",
       dogInfo: "🐶 About the Dog",
       cakeInfo: "🍰 Cake Details",
@@ -83,7 +83,7 @@ export default function DogCakeOrderForm() {
       },
     },
     ru: {
-      title: "🎂 Форма заказа торта для собаки",
+      title: "🎂 Заказ торта",
       customer: "👤 Данные клиента",
       dogInfo: "🐶 О собаке",
       cakeInfo: "🍰 О торте",
@@ -132,41 +132,58 @@ export default function DogCakeOrderForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-  
+
+    // ✅ validation
+    const requiredFields = ["fullName", "phone", "dogName", "cakeType", "cakeSize", "address"];
+    for (const f of requiredFields) {
+      const val = form.get(f)?.toString().trim();
+      if (!val) {
+        alert("Խնդրում ենք լրացնել պարտադիր դաշտերը՝ նշված * նշանով։");
+        return;
+      }
+    }
+
+    const phone = form.get("phone")?.toString().trim();
+    if (phone && !/^\+?\d{6,15}$/.test(phone)) {
+      alert("Հեռախոսահամարը սխալ է․ օրինակ՝ +37499111222");
+      return;
+    }
+
+    const email = form.get("email")?.toString().trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Էլ․ հասցեն սխալ է։");
+      return;
+    }
+
     const summary: Record<string, string> = {};
     form.forEach((v, k) => {
       if (typeof v === "string") summary[k] = v;
     });
-  
+
     const textMessage = Object.entries(summary)
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n");
-  
-    // նոր formData Telegram-ի համար
+
     const sendData = new FormData();
     sendData.append("message", textMessage);
-  
+
     const file = form.get("photo");
     if (file instanceof File && file.size > 0) {
       sendData.append("photo", file);
     }
-  
+
     try {
-      await fetch("/api/sendTelegram", {
-        method: "POST",
-        body: sendData, // ⚡ առանց headers
-      });
+      await fetch("/api/sendTelegram", { method: "POST", body: sendData });
     } catch (err) {
       console.error("Send error:", err);
     }
-  
+
     setShowModal(true);
-    if (audioRef.current) audioRef.current.play().catch(console.error);
-  
+    audioRef.current?.play().catch(console.error);
+
     e.currentTarget.reset();
     setPreviewSrc(null);
   }
-  
 
   const sections = [
     { title: t[lang].customer, fields: ["fullName", "phone", "email"] },
@@ -261,7 +278,7 @@ export default function DogCakeOrderForm() {
         </form>
       </div>
 
-      {/* Audio element */}
+      {/* Audio */}
       <audio ref={audioRef} src="/sounds/dog-bark.mp3" />
 
       {/* Modal */}
