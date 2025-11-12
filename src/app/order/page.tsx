@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import styles from "./DogCakeOrderForm.module.css";
 
 type Lang = "hy" | "en" | "ru";
@@ -9,16 +11,18 @@ export default function DogCakeOrderForm() {
   const [lang, setLang] = useState<Lang>("hy");
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [dateValue, setDateValue] = useState("");
   const [timeValue, setTimeValue] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const t: Record<
     Lang,
     {
       title: string;
       customer: string;
-      dogInfo: string;
+      animalInfo: string;
       cakeInfo: string;
       delivery: string;
       send: string;
@@ -29,24 +33,24 @@ export default function DogCakeOrderForm() {
     hy: {
       title: "🎂 Տորթի պատվեր",
       customer: "👤 Հաճախորդի տվյալներ",
-      dogInfo: "🐶 Շան մասին",
+      animalInfo: "🐾 Կենդանու մասին",
       cakeInfo: "🍰 Տորթի տվյալներ",
       delivery: "🚚 Առաքման ինֆորմացիա",
       send: "Ուղարկել պատվերը",
-      confirmation: "Ձեր պատվերն հաջողությամբ ուղարկվել է!",
+      confirmation: "Ձեր պատվերն հաջողությամբ ուղարկվել է! 🐶",
       labels: {
         fullName: "Անուն, ազգանուն *",
         phone: "Հեռախոսահամար *",
         email: "Էլ. հասցե",
-        dogName: "Շան անունը *",
-        dogAge: "Շան տարիքը կամ տարեդարձի օրը",
+        animalName: "Կենդանու անունը *",
+        animalAge: "Տարիքը կամ տարեդարձի օրը",
         allergies: "Ալերգիաներ (օր. չի կարող ուտել հավ)",
         health: "Առողջական խնդիրներ կամ զգայունություններ",
         preferences: "Սննդային նախընտրություններ կամ արգելքներ",
-        breed: "Շան ցեղը կամ չափսը",
-        photo: "Նկար (շան կամ տորթի օրինակ)",
-        cakeType: "Տորթի ձև / տեսակը *",
-        cakeSize: "Տորթի քաշը կամ չափը *",
+        species: "Տեսակը / ցեղը",
+        photo: "Նկար (կենդանու կամ տորթի օրինակ)",
+        cakeType: "Տորթի տեսակը *",
+        cakeSize: "Տորթի չափը *",
         notes: "Նշումներ (գույն, գրություն և այլն)",
         address: "Առաքման հասցե *",
         deliveryDate: "Առաքման օր",
@@ -57,25 +61,25 @@ export default function DogCakeOrderForm() {
     en: {
       title: "🎂 Cake Order",
       customer: "👤 Customer Details",
-      dogInfo: "🐶 About the Dog",
+      animalInfo: "🐾 About the Animal",
       cakeInfo: "🍰 Cake Details",
       delivery: "🚚 Delivery Info",
       send: "Submit Order",
-      confirmation: "Your order has been successfully sent!",
+      confirmation: "Your order has been successfully sent! 🐶",
       labels: {
         fullName: "Full Name *",
         phone: "Phone Number *",
         email: "Email",
-        dogName: "Dog’s Name *",
-        dogAge: "Dog’s Age or Birthday",
+        animalName: "Animal’s Name *",
+        animalAge: "Age or Birthday",
         allergies: "Allergies (e.g. cannot eat chicken)",
         health: "Health Issues or Sensitivities",
         preferences: "Dietary Preferences or Restrictions",
-        breed: "Dog’s Breed or Size",
-        photo: "Photo (dog or cake example)",
-        cakeType: "Cake Shape / Type *",
-        cakeSize: "Cake Weight / Size *",
-        notes: "Notes (color, text, candles, etc.)",
+        species: "Species / Breed",
+        photo: "Photo (animal or cake example)",
+        cakeType: "Cake Type *",
+        cakeSize: "Cake Size *",
+        notes: "Notes (color, text, etc.)",
         address: "Delivery Address *",
         deliveryDate: "Delivery Date",
         deliveryTime: "Delivery Time",
@@ -85,24 +89,24 @@ export default function DogCakeOrderForm() {
     ru: {
       title: "🎂 Заказ торта",
       customer: "👤 Данные клиента",
-      dogInfo: "🐶 О собаке",
+      animalInfo: "🐾 О животном",
       cakeInfo: "🍰 О торте",
       delivery: "🚚 Доставка",
       send: "Отправить заказ",
-      confirmation: "Ваш заказ успешно отправлен!",
+      confirmation: "Ваш заказ успешно отправлен! 🐶",
       labels: {
         fullName: "Имя и фамилия *",
         phone: "Телефон *",
         email: "Эл. почта",
-        dogName: "Имя собаки *",
-        dogAge: "Возраст или день рождения",
+        animalName: "Имя животного *",
+        animalAge: "Возраст или день рождения",
         allergies: "Аллергии (например, нельзя курицу)",
         health: "Проблемы со здоровьем или чувствительность",
         preferences: "Пищевые предпочтения или ограничения",
-        breed: "Порода или размер собаки",
-        photo: "Фото (собаки или торта)",
-        cakeType: "Тип / форма торта *",
-        cakeSize: "Вес / размер торта *",
+        species: "Вид / порода",
+        photo: "Фото (животного или торта)",
+        cakeType: "Тип торта *",
+        cakeSize: "Размер торта *",
         notes: "Примечания (цвет, надпись и т.д.)",
         address: "Адрес доставки *",
         deliveryDate: "Дата доставки",
@@ -110,6 +114,19 @@ export default function DogCakeOrderForm() {
         extra: "Дополнительные примечания",
       },
     },
+  };
+
+  // Տորթի տեսակներ և չափեր
+  const cakeTypes: Record<Lang, string[]> = {
+    hy: ["Մրգային", "Բանջարեղենային", "Մսով"],
+    en: ["Fruit", "Vegetable", "Meat"],
+    ru: ["Фруктовый", "Овощной", "Мясной"],
+  };
+
+  const cakeSizes: Record<Lang, string[]> = {
+    hy: ["12x12", "16x16"],
+    en: ["12x12", "16x16"],
+    ru: ["12x12", "16x16"],
   };
 
   useEffect(() => {
@@ -124,6 +141,18 @@ export default function DogCakeOrderForm() {
       setPreviewSrc(null);
       return;
     }
+    if (!file.type.startsWith("image/")) {
+      toast.error(
+        lang === "hy"
+          ? "Խնդրում ենք ընտրել միայն նկար ֆայլ (jpg, png, webp, gif):"
+          : lang === "en"
+          ? "Please select an image file (jpg, png, webp, gif)."
+          : "Пожалуйста, выберите изображение (jpg, png, webp, gif)."
+      );
+      e.target.value = "";
+      setPreviewSrc(null);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => setPreviewSrc(String(reader.result));
     reader.readAsDataURL(file);
@@ -131,29 +160,50 @@ export default function DogCakeOrderForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
 
-    // ✅ validation
-    const requiredFields = ["fullName", "phone", "dogName", "cakeType", "cakeSize", "address"];
+    const requiredFields = ["fullName", "phone", "animalName", "cakeType", "cakeSize", "address"];
     for (const f of requiredFields) {
       const val = form.get(f)?.toString().trim();
       if (!val) {
-        alert("Խնդրում ենք լրացնել պարտադիր դաշտերը՝ նշված * նշանով։");
+        toast.error(
+          lang === "hy"
+            ? "Խնդրում ենք լրացնել պարտադիր դաշտերը՝ նշված * նշանով։"
+            : lang === "en"
+            ? "Please fill in all required fields marked with *."
+            : "Пожалуйста, заполните все обязательные поля, отмеченные *."
+        );
         return;
       }
     }
 
-    const phone = form.get("phone")?.toString().trim();
-    if (phone && !/^\+?\d{6,15}$/.test(phone)) {
-      alert("Հեռախոսահամարը սխալ է․ օրինակ՝ +37499111222");
+    const email = form.get("email")?.toString().trim() || "";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error(
+        lang === "hy"
+          ? "Էլ․ հասցեն սխալ է։"
+          : lang === "en"
+          ? "Invalid email address."
+          : "Неверный адрес электронной почты."
+      );
       return;
     }
 
-    const email = form.get("email")?.toString().trim();
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Էլ․ հասցեն սխալ է։");
+    const file = form.get("photo");
+    if (file instanceof File && file.size > 0 && !file.type.startsWith("image/")) {
+      toast.error(
+        lang === "hy"
+          ? "Կցված ֆայլը պետք է լինի նկար։"
+          : lang === "en"
+          ? "Attached file must be an image."
+          : "Прикрепленный файл должен быть изображением."
+      );
       return;
     }
+
+    // Loading սկսում
+    setIsSubmitting(true);
 
     const summary: Record<string, string> = {};
     form.forEach((v, k) => {
@@ -166,30 +216,36 @@ export default function DogCakeOrderForm() {
 
     const sendData = new FormData();
     sendData.append("message", textMessage);
-
-    const file = form.get("photo");
-    if (file instanceof File && file.size > 0) {
-      sendData.append("photo", file);
-    }
+    if (file instanceof File && file.size > 0) sendData.append("photo", file);
 
     try {
       await fetch("/api/sendTelegram", { method: "POST", body: sendData });
     } catch (err) {
       console.error("Send error:", err);
+    } finally {
+      setIsSubmitting(false);
     }
 
+    formEl.reset();
+    setPreviewSrc(null);
+    setDateValue("");
+    setTimeValue("");
+    setEmailError(null);
+
+    toast.success(t[lang].confirmation);
     setShowModal(true);
     audioRef.current?.play().catch(console.error);
 
-    e.currentTarget.reset();
-    setPreviewSrc(null);
+    setTimeout(() => {
+      window.location.href = "https://www.instagram.com/chupabooo/";
+    }, 3000);
   }
 
   const sections = [
     { title: t[lang].customer, fields: ["fullName", "phone", "email"] },
     {
-      title: t[lang].dogInfo,
-      fields: ["dogName", "dogAge", "allergies", "health", "preferences", "breed", "photo"],
+      title: t[lang].animalInfo,
+      fields: ["animalName", "animalAge", "allergies", "health", "preferences", "species", "photo"],
     },
     { title: t[lang].cakeInfo, fields: ["cakeType", "cakeSize", "notes"] },
     { title: t[lang].delivery, fields: ["address", "deliveryDate", "deliveryTime", "extra"] },
@@ -197,8 +253,8 @@ export default function DogCakeOrderForm() {
 
   return (
     <div className={styles.pageWrapper}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       <div className={styles.container}>
-        {/* Language switcher */}
         <div className={styles.langRow}>
           {["hy", "en", "ru"].map((l) => (
             <button
@@ -231,6 +287,8 @@ export default function DogCakeOrderForm() {
                       ? "time"
                       : f === "photo"
                       ? "file"
+                      : f === "phone"
+                      ? "tel"
                       : "text";
 
                   return (
@@ -238,8 +296,31 @@ export default function DogCakeOrderForm() {
                       <label className={styles.label} htmlFor={f}>
                         {label}
                       </label>
+
                       {isTextarea ? (
                         <textarea id={f} name={f} rows={3} className={styles.textarea} />
+                      ) : f === "cakeType" ? (
+                        <select id={f} name={f} className={styles.input} required defaultValue="">
+                          <option value="" disabled>
+                            {lang === "hy" ? "Ընտրեք տեսակը" : lang === "en" ? "Select type" : "Выберите тип"}
+                          </option>
+                          {cakeTypes[lang].map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      ) : f === "cakeSize" ? (
+                        <select id={f} name={f} className={styles.input} required defaultValue="">
+                          <option value="" disabled>
+                            {lang === "hy" ? "Ընտրեք չափը" : lang === "en" ? "Select size" : "Выберите размер"}
+                          </option>
+                          {cakeSizes[lang].map((size) => (
+                            <option key={size} value={size}>
+                              {size}
+                            </option>
+                          ))}
+                        </select>
                       ) : inputType === "file" ? (
                         <>
                           <input
@@ -261,27 +342,55 @@ export default function DogCakeOrderForm() {
                           onChange={(e) => {
                             if (f === "deliveryDate") setDateValue(e.target.value);
                             if (f === "deliveryTime") setTimeValue(e.target.value);
+                            if (f === "email") {
+                              const val = e.target.value;
+                              setEmailError(
+                                val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+                                  ? lang === "hy"
+                                    ? "Էլ․ հասցեն սխալ է"
+                                    : lang === "en"
+                                    ? "Invalid email address"
+                                    : "Неверный адрес электронной почты"
+                                  : null
+                              );
+                            }
+                          }}
+                          onInput={(e) => {
+                            const input = e.currentTarget;
+                            if (["fullName", "animalName", "cakeType", "address"].includes(f)) {
+                              input.value = input.value.replace(/[^ա-ֆԱ-Ֆa-zA-Z\s-]/g, "");
+                              input.value = input.value.replace(/^\s+|\s+$/g, "");
+                              input.value = input.value.replace(/\s+/g, " ");
+                            }
+                            if (f === "phone") input.value = input.value.replace(/[^0-9+]/g, "");
+                            if (f === "cakeSize") input.value = input.value.replace(/[^0-9.]/g, "");
                           }}
                           className={styles.input}
-                          required={["fullName", "phone", "dogName", "cakeType", "cakeSize", "address"].includes(f)}
+                          required={["fullName", "phone", "animalName", "cakeType", "cakeSize", "address"].includes(f)}
                         />
                       )}
+
+                      {f === "email" && emailError && <small className={styles.errorText}>{emailError}</small>}
                     </div>
                   );
                 })}
               </div>
             </section>
           ))}
-          <button type="submit" className={styles.submitBtn}>
-            {t[lang].send}
+          <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+            {isSubmitting
+              ? lang === "hy"
+                ? "Ուղարկվում է..."
+                : lang === "en"
+                ? "Submitting..."
+                : "Отправка..."
+              : t[lang].send}
           </button>
         </form>
       </div>
 
-      {/* Audio */}
       <audio ref={audioRef} src="/sounds/dog-bark.mp3" />
 
-      {/* Modal */}
       {showModal && (
         <div className={styles.modal} onClick={() => setShowModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
