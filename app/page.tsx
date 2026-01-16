@@ -39,7 +39,7 @@ export default function HomePage() {
 
     setSelectedImage(image.src)
   }
-  const SITE_URL = "https://pet-cake-website.vercel.app"
+  const SITE_URL = "https://www.chupaboo.com"
   
 
   const whatsappMessage = selectedImage
