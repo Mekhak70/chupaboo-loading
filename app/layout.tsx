@@ -86,11 +86,6 @@
 
 
 
-
-
-
-
-
 import type { Metadata } from "next"
 import { RootLayoutContent } from "@/components/RootLayoutContent"
 import { Nunito } from "next/font/google"
