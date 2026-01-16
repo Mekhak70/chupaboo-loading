@@ -16,7 +16,12 @@ export function CheckoutForm() {
       productId: item.product.id,
       quantity: item.quantity,
     }))
-    return startCheckoutSession(cartItems)
+    return startCheckoutSession(cartItems).then((result) => {
+      if (result === null) {
+        throw new Error("Failed to fetch client secret");
+      }
+      return result;
+    });
   }, [items])
 
   return (

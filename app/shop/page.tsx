@@ -8,7 +8,7 @@ import { ProductCard } from "@/components/product-card"
 import { useLanguage } from "@/components/language-provider"
 import { PRODUCTS } from "@/lib/products"
 
-type Filter = "all" | "dog" | "cat"
+type Filter = "all" | "vegetable" | "fruit" | "meat" | "dog" | "cat"
 
 export default function ShopPage() {
   const { t } = useLanguage()
