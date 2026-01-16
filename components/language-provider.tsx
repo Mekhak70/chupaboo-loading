@@ -74,13 +74,13 @@ export const translations: Translations = {
   },
   CONTACTS: {
     hy: "ԿԱՐԾԻՔՆԵՐ",
-    en: "CONTACTS",
-    ru: "КОНТАКТЫ"
+    en: "REVIEWS",
+    ru: "ОТЗЫВЫ"
   },
   chupabooIdea: {
     hy: "Chupaboo–ն ստեղծվել է մի պարզ, բայց շատ կարևոր գաղափարի շուրջ",
-    en: "Chupaboo was created around a simple but very important idea",
-    ru: "Chupaboo был создан вокруг простой, но очень важной идеи"
+    en: "Chupaboo was created around a simple yet deeply important idea —",
+    ru: "Chupaboo был создан вокруг простой, но очень важной идеи - "
   },
   loveAndCare: {
     hy: "սեր և հոգատարություն կենդանիների հանդեպ։",
@@ -89,53 +89,53 @@ export const translations: Translations = {
   },
   ideaThatInspiredUs: {
     hy: "Սա այն գաղափարն է, որը մեզ դրդեց ստեղծել մի բան,",
-    en: "This is the idea that inspired us to create something,",
-    ru: "Это та идея, которая вдохновила нас создать что-то,"
+    en: "This idea inspired us to create something",
+    ru: "Именно эта идея вдохновила нас на создание чего-то",
   }, 
   joyOnly: {
     hy: "որը միայն ուրախության մասին է։",
-    en: "that is all about joy.",
-    ru: "которое посвящено только радости."
+    en: "that is purely about joy.",
+    ru: "что существует исключительно ради радости."
   },  
   everywhereLoveAndCare: {
     hy: "Թե՛ տանը, թե՛ դրսում, մեր փոքրիկ ընկերները ունեն նույն սիրո և ուշադրության",
-    en: "Whether at home or outside, our little friends receive the same love and attention.",
-    ru: "Будь то дома или на улице, наши маленькие друзья получают одинаковую любовь и внимание."
+    en: "Whether at home or outdoors, our little friends need the same love and attention",
+    ru: "Дома или на улице, наши маленькие друзья нуждаютсяв той же любви и внимании,  "
   }, 
   dailyJoyAndBirth: {
     hy: "կարիքը, որը նրանք մեզ տալիս են ամեն օր։ Հենց այդ պատճառով էլ ծնվեց",
-    en: "the joy they give us every day. That’s why it was created",
-    ru: "радость, которую они дарят нам каждый день. Именно поэтому было создано"
+    en: "they give us every day. That is why Chupaboo was born -",
+    ru: "которые они дарят нам каждый день. Именно поэтому появился "
   },
   chupabooFillsTheGap: {
     hy: "Chupaboo–ն՝ լրացնելու այդ բացը։",
-    en: "Chupaboo-to fill that gap.",
-    ru: "Chupaboo-чтобы заполнить этот пробел."
+    en: "to fill that need.",
+    ru: "Chupaboo — чтобы восполнить эту потребность."
   },
   ourCaringTeam: {
     hy: "Մեր հոգատար թիմը պատրաստում է կենդանիների համար նախատեսված",
-    en: "Our caring team prepares products designed for animals",
-    ru: "Наша заботливая команда готовит продукты, предназначенные для животных"
+    en: "Our caring team creates cakes and treats for animals",
+    ru: "Наша заботливая команда готовит торты и лакомства для животных"
   },    
   cakesAndTreats: {
     hy: "տորթեր և համովիկներ՝ ամբողջությամբ բնական բաղադրիչներից, առանց",
-    en: "cakes and treats made entirely from natural ingredients, without",
-    ru: "торты и лакомства, полностью из натуральных ингредиентов, без"
+    en: "using only natural ingredients, ",
+    ru: "исключительно из натуральных ингредиентов,"
   },  
   sugarAndAdditiveFree: {
     hy: "շաքարի և առանց հավելումների։",
-    en: "sugar-free and additive-free.",
-    ru: "без сахара и без добавок."
+    en: "with no sugar and no additives.",
+    ru: "без сахара и без каких-либо добавок."
   },  
   everyAnimalDeservesLove: {
     hy: "Մենք հավատում ենք, որ յուրաքանչյուր կենդանի արժանի է սիրո,",
     en: "We believe that every animal deserves love,",
-    ru: "Мы верим, что каждое животное заслуживает любви,"
+    ru: "Мы верим, что каждое животное заслуживает"
   },  
   careAndWarmth: {
     hy: "ուշադրության և ընտանիքի ջերմությանը։",
     en: "care, and the warmth of a family.",
-    ru: "внимания и тепла семьи."
+    ru: "любви, заботы и тепла семьи."
   },  
   ourHappyFriends: {
     hy: "ՄԵՐ ԵՐՋԱՆԻԿ ԸՆԿԵՐՆԵՐԸ",
