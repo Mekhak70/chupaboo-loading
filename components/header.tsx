@@ -91,7 +91,7 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMenuOpen(true)}
                   className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors
                     ${
                       isActive

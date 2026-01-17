@@ -77,7 +77,7 @@ export default function HomePage() {
               priority
             />
 
-            <div className="relative mx-auto aspect-square w-full max-w-md">
+            <div className="relative mx-auto  w-full max-w-md">
               <PetSlider />
             </div>
           </div>
@@ -208,9 +208,9 @@ export default function HomePage() {
     <style jsx>{`
       @media (max-width: 450px) {
         .responsive-text {
-          font-size: 14px !important;
+          font-size: 10.5px !important;
           line-height: 1.2;
-          gap: 8px !important;
+          gap: 6px !important;
         }
       }
     `}</style>
