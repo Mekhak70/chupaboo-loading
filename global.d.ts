@@ -3,3 +3,7 @@ declare module "*.mp3" {
     export default src;
   }
   
+interface Window {
+    gtag?: (...args: any[]) => void
+  }
+  

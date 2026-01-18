@@ -1,138 +1,188 @@
-// 'use client'
-
-// import type React from "react"
-// import type { Metadata } from "next"
-// import { Nunito } from "next/font/google"
-// import { Analytics } from "@vercel/analytics/next"
-// import "./globals.css"
-// import { LanguageProvider } from "@/components/language-provider"
-// import { Header } from "@/components/header"
-// import { Footer } from "@/components/footer"
-// import { CartProvider } from "@/components/cart-provider"
-// import LoadingVideo from "@/components/LoadingVideo"
-// import { useState } from "react"
-
-// const nunito = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800"] })
-
-// export const metadata: Metadata = {
-//   title: "Chupaboo",
-//   description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-//   icons: {
-//     icon: [
-//       { url: "/logo-1.png" },
-//       { url: "/logo.png", sizes: "32x32", type: "image/png" },
-//       { url: "/logo.png", sizes: "16x16", type: "image/png" },
-//     ],
-//     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-//     shortcut: ["/logo-1.png"],
-//   },
-//   openGraph: {
-//     title: "Chupaboo",
-//     description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-//     url: "https://www.chupaboo.com/",
-//     siteName: "Chupaboo",
-//     images: [
-//       {
-//         url: "/logo-1.png",
-//         width: 1200,
-//         height: 630,
-//         alt: "Chupaboo Preview",
-//       },
-//     ],
-//     locale: "en_US",
-//     type: "website",
-//   },
-//   twitter: {
-//     card: "summary_large_image",
-//     title: "Chupaboo",
-//     description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-//     images: ["/logo-1.png"],
-//   },
-// };
-
-// export default function RootLayout({
-//   children,
-// }: Readonly<{
-//   children: React.ReactNode
-// }>) {
-//   const [showVideo, setShowVideo] = useState(true)
-
-//   return (
-//     <html lang="en">
-//       <body className={`font-sans antialiased`}>
-//         <LanguageProvider>
-//           <CartProvider>
-//           {showVideo && <LoadingVideo onFinish={() => setShowVideo(false)} />}
-       
-//             <div className="flex min-h-screen flex-col">
-//               <Header />
-//               <main className="flex-1">{children}</main>
-//               <Footer />
-//             </div>
-//           </CartProvider>
-//         </LanguageProvider>
-//         <Analytics />
-//       </body>
-//     </html>
-//   )
-// }
-
-
-
-
-
-
-
-
-
-
 import type { Metadata } from "next"
 import { RootLayoutContent } from "@/components/RootLayoutContent"
 import { Nunito } from "next/font/google"
 import "./globals.css"
+import Script from "next/script" // Google Analytics
 import { Analytics } from "@vercel/analytics/next"
 
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800"] })
 
-export const metadata: Metadata = {
-  title: "Chupaboo",
-  description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-  icons: {
-    icon: [
-      { url: "/logo-1.png" },
-      { url: "/logo.png", sizes: "32x32", type: "image/png" },
-      { url: "/logo.png", sizes: "16x16", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    shortcut: ["/logo-1.png"],
-  },
-  openGraph: {
-    title: "Chupaboo",
-    description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-    url: "https://www.chupaboo.com/",
-    siteName: "Chupaboo",
-    images: [
-      {
-        url: "/logo-1.png",
-        width: 1200,
-        height: 630,
-        alt: "Chupaboo Preview",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Chupaboo",
-    description: "Chupaboo makes pet-safe cakes and treats for birthdays and special occasions.",
-    images: ["/logo-1.png"],
-  },
-};
+export const generateMetadata = ({ params }: { params: { locale: string } }): Metadata => {
+  const seo = {
+    en: {
+      title: "Pet Cakes & Dog Birthday Cakes | Chupaboo",
+      description:
+        "Pet-safe cakes and treats for dogs and pets. Dog birthday cakes, custom pet cakes for birthdays and special occasions by Chupaboo.",
+      keywords: [
+        "cake",
+        "pet cakes",
+        "dog cakes",
+        "dog birthday cake",
+        "cakes for dogs",
+        "pet birthday cake",
+        "custom pet cakes",
+        "animal cakes",
+        "puppy cakes",
+        "healthy dog treats",
+        "special occasion pet cakes",
+        "dog party treats",
+        "dog celebration cake",
+        "homemade dog cake",
+        "birthday cake for pets",
+        "pet-friendly desserts",
+        "pet cake delivery",
+        "organic dog cake",
+        "birthday treats for dogs",
+        "custom dog cakes",
+        "dog cake online",
+      ],
+    },
+    hy: {
+      title: "Կենդանիների տորթեր և շների ծննդյան տորթեր | Chupaboo",
+      description:
+        "Անվտանգ և համեղ տորթեր շների և կենդանիների համար։ Շան ծննդյան տորթեր հատուկ առիթների համար։",
+      keywords: [
+        "տորթ",
+        "կենդանիների տորթեր",
+        "շների տորթեր",
+        "շան ծնունդ",
+        "շան ծննդյան տորթ",
+        "տորթեր կենդանիների համար",
+        "հատուկ պատվերի տորթեր",
+        "տորթ շների համար",
+        "տորթ տարիքի առիթներով",
+        "ընտանի կենդանու տորթ",
+        "տորթեր կենդանիների համար Երևան",
+        "տորթ շունկանի համար",
+        "տորթ պատվերով շների",
+        "շների համար տորթ առաքում",
+        "համեղ տորթեր շների",
+        "տորթեր ընտանի կենդանիների համար",
+        "տորթ շների ծննդյան",
+        "հատուկ տորթեր կենդանիների համար",
+      ],
+    },
+    ru: {
+      title: "Торты для собак и животных | Chupaboo",
+      description:
+        "Безопасные торты и лакомства для собак. Торты на день рождения для собак и особых случаев.",
+      keywords: [
+        "торт",
+        "торты для собак",
+        "торт для животных",
+        "день рождения собаки",
+        "торт на заказ для собак",
+        "праздничные торты для животных",
+        "торт для щенка",
+        "здоровые лакомства для собак",
+        "торты на особые случаи",
+        "торты для питомцев",
+        "собачий торт на день рождения",
+        "торт для домашних животных",
+        "торт для собаки доставка",
+        "домашние торты для собак",
+        "торт для любимца",
+        "подарочные торты для собак",
+        "органические торты для собак",
+        "собачьи сладости",
+        "вкусы тортов",
+      ],
+    },
+    pl: {
+      title: "Torty dla psów i zwierząt | Chupaboo",
+      description:
+        "Bezpieczne torty dla psów i zwierząt. Torty urodzinowe dla psów na specjalne okazje.",
+      keywords: [
+        "tort",
+        "torty dla psów",
+        "tort urodzinowy dla psa",
+        "torty dla zwierząt",
+        "bezpieczne torty dla psów",
+        "tort dla szczeniaka",
+        "tort dla pupila",
+        "torty na specjalne okazje",
+        "urodzinowy tort dla psa",
+        "tort dla zwierząt domowych",
+        "domowe torty dla psów",
+        "zdrowe smakołyki dla psów",
+        "torty na zamówienie dla psa",
+        "torty na przyjęcie psa",
+        "słodkości dla psa",
+        "tort dla zwierząt na prezent",
+        "tort organiczny dla psa",
+        "torty dla psów online",
+        "smaki tortów",
+      ],
+    },
+  }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = seo[params.locale as keyof typeof seo] ?? seo.en
+
+  return {
+    title: lang.title,
+    description: lang.description,
+    keywords: lang.keywords,
+    openGraph: {
+      title: lang.title,
+      description: lang.description,
+      url: `https://www.chupaboo.com/${params.locale}`,
+      siteName: "Chupaboo",
+      type: "website",
+      images: [
+        {
+          url: "/logo-1.png",
+          width: 1200,
+          height: 630,
+          alt: lang.title,
+        },
+      ],
+      locale:
+        params.locale === "en"
+          ? "en_US"
+          : params.locale === "hy"
+          ? "hy_AM"
+          : params.locale === "ru"
+          ? "ru_RU"
+          : "pl_PL",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: lang.title,
+      description: lang.description,
+      images: ["/logo-1.png"],
+    },
+    alternates: {
+      languages: {
+        en: "https://www.chupaboo.com/en",
+        hy: "https://www.chupaboo.com/hy",
+        ru: "https://www.chupaboo.com/ru",
+        pl: "https://www.chupaboo.com/pl",
+      },
+    },
+  }
+}
+
+export default function RootLayout({ children, params }: { children: React.ReactNode; params: { locale: string } }) {
   return (
-    <html lang="en" className={nunito.className}>
+    <html lang={params.locale} className={nunito.className}>
+      <head>
+        {/* Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=G-9PTJYM3JSR`}
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+        >
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-9PTJYM3JSR', { page_path: window.location.pathname });
+          `}
+        </Script>
+      </head>
       <body className="font-sans antialiased">
         <RootLayoutContent>{children}</RootLayoutContent>
         <Analytics />
