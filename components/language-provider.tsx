@@ -60,18 +60,20 @@ export const translations: Translations = {
   
   // Shop
   shopTitle: { 
-    hy: "Մեր տորթերը", 
-    en: "Shop Our Cakes", 
-    ru: "Наши торты",
-    pl: "Nasze torty" 
+    hy: "ՄԵՐ ՏՈՐԹԵՐԸ", 
+    en: "SHOP OUR CAKES", 
+    ru: "НАШИ ТОРТЫ",
+    pl: "NASZE TORTY" 
   },
   
+  
   shopDesc: {
-    hy: "Մեր տորթերը ստեղծված են հատուկ կենդանիների համար՝ անվտանգ բաղադրությամբ և սիրով պատրաստված։",
-    en: "Browse our selection of handmade, pet-safe cakes for your furry friends.",
-    ru: "Просмотрите наш выбор домашних тортов для ваших питомцев.",
-    pl: "Przeglądaj naszą ofertę ręcznie robionych, bezpiecznych dla zwierząt tortów dla Twoich futrzastych przyjaciół."
+    hy: "Մեր տորթերը ստեղծված են հատուկ կենդանիների համար՝ առանց շաքարի և հավելումների։",
+    en: "Our cakes are specially made for pets, with no sugar or additives.",
+    ru: "Наши торты созданы специально для животных, без сахара и добавок.",
+    pl: "Nasze torty są tworzone specjalnie dla zwierząt, bez cukru i dodatków."
   },
+  
   
   addToCart: { 
     hy: "Ավելացնել զամբյուղում", 
@@ -125,11 +127,11 @@ export const translations: Translations = {
   },
   
   customOrdersDesc: {
-    hy: "Ցանկանո՞ւմ եք յուրահատուկ տորթ։ Մենք սիրով պատրաստում ենք անհատական տորթեր ծննդյան օրերի, «gotcha day»-երի և այլ տոնակատարությունների համար։ Կապնվեք մեզ հետ ձեր գաղափարները քննարկելու համար։",
+    hy: "Ցանկանո՞ւմ եք յուրահատուկ տորթ։ Մենք սիրով պատրաստում ենք անհատական տորթեր յուրաքանչյուր առիթի համար՝ ցանկացած բաղադրությամբ և դիզայնով։ Կապվե՛ք մեզ հետ՝ ձեր գաղափարները քննարկելու համար։",
     en: "Looking for something special? We love creating custom cakes for birthdays, gotcha days, and other celebrations. Contact us to discuss your ideas!",
     ru: "Ищете что-то особенное? Мы с удовольствием создадим торт на заказ для дней рождения и других праздников.",
     pl: "Szukasz czegoś wyjątkowego? Z przyjemnością tworzymy torty na zamówienie na urodziny, 'gotcha day' i inne okazje. Skontaktuj się z nami, aby omówić swoje pomysły!"
-  },
+  },  
   
   contactUs: { 
     hy: "ԿԱՊ ՀԱՍՏԱՏԵՔ ՄԵԶ ՀԵՏ", 
