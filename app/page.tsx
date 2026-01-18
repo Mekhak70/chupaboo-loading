@@ -88,8 +88,8 @@ export default function HomePage() {
 
       {/* WAVE */}
       <div
-        className="relative w-full overflow-hidden"
-        style={{ backgroundColor: "#fff", height: "120px" }}
+        className="mt-0 [@media(max-width:648px)]:mt-[-1px]"
+        style={{ backgroundColor: "#fff", height: "120px", }}
       >
         <svg
           viewBox="0 0 1200 120"
