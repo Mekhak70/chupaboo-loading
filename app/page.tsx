@@ -8,6 +8,7 @@ import { PRODUCTS } from "@/lib/products"
 import MainImgAm from "@/public/home-arm.png"
 import MainImgRu from "@/public/home-rus.png"
 import MainImgEn from "@/public/home-eng.png"
+import MainImgPl from "@/public/home-pl.png"
 import PetSlider from "@/components/PetSlider"
 import Arrow from "@/public/arrow.png"
 
@@ -67,7 +68,8 @@ export default function HomePage() {
                 language === "ru"
                   ? MainImgRu
                   : language === "en"
-                    ? MainImgEn
+                    ? MainImgEn: language === "pl"
+                      ? MainImgPl
                     : MainImgAm
               }
               alt="Pet cake hero"
