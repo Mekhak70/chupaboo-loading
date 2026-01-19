@@ -1,11 +1,11 @@
 "use client"
 
+import { useRouter, usePathname } from "next/navigation"
 import { Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useLanguage } from "@/components/language-provider"
 
-// Ավելացրու լեհերենը
 const languages = [
   { code: "hy" as const, label: "Հայերեն", flag: "🇦🇲" },
   { code: "en" as const, label: "English", flag: "🇬🇧" },
@@ -15,8 +15,29 @@ const languages = [
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const currentLanguage = languages.find((l) => l.code === language)
+
+  // --- Պահանջվող ֆունկցիան --- 
+  const changeLanguage = (code: typeof languages[number]["code"]) => {
+    setLanguage(code)
+
+    // բաժանել pathname-ը մասերի
+    const parts = pathname.split("/").filter(Boolean)
+
+    // եթե առաջին մասը լեզվի կոդ է, փոխել այն, եթե ոչ՝ ավելացնել
+    if (languages.some(l => l.code === parts[0])) {
+      parts[0] = code
+    } else {
+      parts.unshift(code)
+    }
+
+    const newUrl = "/" + parts.join("/") // օրինակ /en/about
+    router.push(newUrl)
+  }
+  // --- Ֆունկցիան ավարտվեց --- 
 
   return (
     <DropdownMenu>
@@ -30,7 +51,7 @@ export function LanguageSwitcher() {
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => setLanguage(lang.code)}
+            onClick={() => changeLanguage(lang.code)}
             className={language === lang.code ? "bg-muted font-semibold" : ""}
           >
             <span className="mr-2">{lang.flag}</span>

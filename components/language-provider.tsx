@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { usePathname } from "next/navigation"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
 type Language = "hy" | "en" | "ru" | "pl"
 
@@ -508,21 +509,41 @@ type LanguageContextType = {
   t: (key: string) => string
 }
 
+
+
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("hy")
+  const pathname = usePathname()
+
+  const getLangFromPath = (): Language => {
+    const firstSegment = pathname.split("/")[1]
+    if (firstSegment === "en" || firstSegment === "ru" || firstSegment === "pl") {
+      return firstSegment
+    }
+    return "hy"
+  }
+
+  const [language, setLanguage] = useState<Language>(getLangFromPath)
+
+  useEffect(() => {
+    setLanguage(getLangFromPath())
+  }, [pathname])
 
   const t = (key: string): string => {
     return translations[key]?.[language] || key
   }
 
-  return <LanguageContext.Provider value={{ language, setLanguage, t }}>{children}</LanguageContext.Provider>
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  )
 }
 
 export function useLanguage() {
   const context = useContext(LanguageContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useLanguage must be used within a LanguageProvider")
   }
   return context

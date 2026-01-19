@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, ReactNode } from "react"
 import { Header } from "./header"
 import { Footer } from "./footer"
 import LoadingVideo from "./LoadingVideo"
@@ -28,7 +28,13 @@ function AnalyticsTracker() {
   return null
 }
 
-export function RootLayoutContent({ children }: { children: React.ReactNode }) {
+export function RootLayoutContent({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: { locale: string };
+}) {
   const [showVideo, setShowVideo] = useState(true)
 
   return (
