@@ -239,12 +239,41 @@ export const translations: Translations = {
     ru: "любви, заботы и тепла семьи.",
     pl: "troskę i ciepło rodziny."
   },
-  
+   orderModalTitle: {
+    hy: "Ցանկանո՞ւմ եք պատվիրել այս տորթը",
+    en: "Do you want to order this cake?",
+    ru: "Хотите заказать этот торт?",
+    pl: "Czy chcesz zamówić ten tort?"
+  },
+  mainCake: {
+    hy: "Հիմնական բաղադրիչը",
+    en: "Main Cake",
+    ru: "Основной торт",
+    pl: "Główny tort"
+  },
+  creamType: {
+    hy: "Կրեմի տեսակը",
+    en: "Cream Type",
+    ru: "Тип крема",
+    pl: "Rodzaj kremu"
+  },
   ourHappyFriends: {
     hy: "ՄԵՐ ԵՐՋԱՆԻԿ ԸՆԿԵՐՆԵՐԸ",
     en: "OUR HAPPY FRIENDS",
     ru: "НАШИ СЧАСТЛИВЫЕ ДРУЗЬЯ",
     pl: "NASI SZCZĘŚLIWI PRZYJACIELE"
+  },
+  yes: {
+    hy: "Այո",
+    en: "Yes",
+    ru: "Да",
+    pl: "Tak"
+  },
+  no: {
+    hy: "Ոչ",
+    en: "No",
+    ru: "Нет",
+    pl: "Nie"
   },
   
   
@@ -254,6 +283,30 @@ export const translations: Translations = {
     ru: "Есть вопросы или индивидуальные заказы? Свяжитесь с нами!",
     pl: "Masz pytania lub indywidualne zamówienia? Skontaktuj się z nami!"
   },
+   whatsappMessageText : {
+    hy: "Բարև, ուզում եմ պատվիրել տորթ",
+    en: "Hi, I want to order a cake",
+    ru: "Привет, хочу заказать торт",
+    pl: "Cześć, chcę zamówić ciasto"
+  },
+  whatsappMessageTextOne: {
+    hy: "Բարև, ուզում եմ պատվիրել այս տորթը լինի",
+    en: "Hi, I want to order this cake",
+    ru: "Привет, хочу заказать этот торт",
+    pl: "Cześć, chcę zamówić to ciasto"
+  },  
+  andWord: {
+    hy: "և",
+    en: "and",
+    ru: "и",
+    pl: "i"
+  },  
+  imageLabel: {
+    hy: "Նկարը՝",
+    en: "Image:",
+    ru: "Изображение:",
+    pl: "Obrazek:"
+  },  
   
   name: { hy: "Անուն", en: "Name", ru: "Имя", pl: "Imię" },
   email: { hy: "Էլ. հասցե", en: "Email", ru: "Эл. почта", pl: "Email" },
