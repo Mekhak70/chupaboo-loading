@@ -37,7 +37,6 @@ export default function HomePage() {
       )
 
   const handleSelectImage = (image: any) => {
-    console.log(image, "selected image");
 
     setSelectedImage(image.src)
   }
