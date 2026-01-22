@@ -127,6 +127,11 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
     title: lang.title,
     description: lang.description,
     keywords: lang.keywords,
+    icons: {
+      icon: "/logo.png",          
+      shortcut: "/logo.png",     
+      apple: "/logo.png" 
+    },
     openGraph: {
       title: lang.title,
       description: lang.description,

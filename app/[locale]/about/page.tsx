@@ -1,9 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
 import { Heart, Award, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
 import Shun from "@/public/shun.png"
 import Cake from "@/public/cake.png"
