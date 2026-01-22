@@ -3,6 +3,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+* {
+  cursor: url("/cursor.png") 8 8, auto;
+}
+
+button:hover,
+a:hover {
+  cursor: url("/cursor-hover.png") 8 8, pointer !important;
+}
+
 /* Updated color tokens to use pet cake brand colors */
 :root {
   --background: oklch(0.99 0 0);
