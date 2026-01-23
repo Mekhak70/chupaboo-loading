@@ -116,19 +116,22 @@ export default function HomePage() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center', alignItems: 'center', paddingTop: '4px' }}>
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }} className="responsive-text">
-                  <div className="responsive-text" style={{ background: '#ef4f27', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('MEAT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('MEAT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('MEAT') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('MEAT')}</div></div>
-                  <div className="responsive-text" style={{ background: '#f4a2c6', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('FRUIT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('FRUIT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('FRUIT') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('FRUIT')}</div></div>
-                  <div className="responsive-text" style={{ background: '#aed137', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('VEGETABLES'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('VEGETABLES') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('VEGETABLES') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('VEGETABLES')}</div></div>
+                  <div className="responsive-text" style={{ background: '#ef4f27', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('MEAT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('MEAT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('MEAT') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer' }}>{t('MEAT')}</div></div>
+                  <div className="responsive-text" style={{ background: '#f4a2c6', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('FRUIT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('FRUIT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('FRUIT') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('FRUIT')}</div></div>
+                  <div className="responsive-text" style={{ background: '#aed137', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('VEGETABLES'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('VEGETABLES') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('VEGETABLES') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('VEGETABLES')}</div></div>
                 </div>
 
                 <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
 
                 <p className="text-lg text-[#69429a]">{t('choosecream')}</p>
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }} className="responsive-text">
-                  <div className="responsive-text" style={{ background: '#1e439b', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('DAIRY'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('DAIRY') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('DAIRY') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('DAIRY')}</div></div>
-                  <div className="responsive-text" style={{ background: '#72bfe9', borderRadius: '16px', fontSize: '20px', color: '#fff', whiteSpace: 'nowrap', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASEDMILK'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASEDMILK') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASEDMILK') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('PLANTBASEDMILK')}</div></div>
-                  <div className="responsive-text" style={{ background: '#008042', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASED'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASED') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASED') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('PLANTBASED')}</div></div>
+                  <div className="responsive-text" style={{ background: '#1e439b', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('DAIRY'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('DAIRY') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('DAIRY') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('DAIRY')}</div></div>
+                  <div className="responsive-text" style={{ background: '#72bfe9', borderRadius: '16px', fontSize: '20px', color: '#fff', whiteSpace: 'nowrap', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASEDMILK'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASEDMILK') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASEDMILK') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASEDMILK')}</div></div>
+                  <div className="responsive-text" style={{ background: '#008042', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASED'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASED') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASED') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASED')}</div></div>
                 </div>
+                <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
+
+                <p className="text-lg text-[#69429a]">{t('chooseshape')}</p>
               </div>
             </div>
 
@@ -183,14 +186,28 @@ export default function HomePage() {
       {/* 🔥 MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full text-center">
+          <div className="bg-white rounded-xl p-6  w-auto text-center">
             <h3 className="text-lg font-semibold mb-3 text-[#69429a]">{t('orderModalTitle')}</h3>
             {pendingImage && (
               <Image src={pendingImage} alt="Selected cake" width={220} height={220} className="mx-auto rounded-lg mb-4" />
             )}
             <div className="text-sm text-gray-700 mb-4 space-y-1">
-              {type && <p><strong>{t('mainCake')}:</strong> <span style={{color:'#69429A'}}>{type.toLowerCase() || "-"}</span></p>}
-              {creamType && <p><strong>{t('creamType')}:</strong> <span style={{color:'#69429A'}}>{creamType.toLowerCase() || "-"}</span></p>
+              {type ? <p><strong>{t('mainCake')}:</strong> <span style={{color:'#69429A'}}>{type.toLowerCase() || "-"}</span>:</p> :  <>
+              <p className="text-lg text-[#69429a]">
+                {t('choosemaincake')}
+              </p>
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }} className="responsive-text">
+                  <div className="responsive-text" style={{ background: '#ef4f27', fontSize: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('MEAT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('MEAT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('MEAT') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer' }}>{t('MEAT')}</div></div>
+                  <div className="responsive-text" style={{ background: '#f4a2c6', fontSize: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('FRUIT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('FRUIT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('FRUIT') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('FRUIT')}</div></div>
+                  <div className="responsive-text" style={{ background: '#aed137', fontSize: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('VEGETABLES'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('VEGETABLES') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('VEGETABLES') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('VEGETABLES')}</div></div>
+                </div> </> }
+              {creamType ? <p><strong>{t('creamType')}:</strong> <span style={{color:'#69429A'}}>{creamType.toLowerCase() || "-"}</span></p> : <> <p className="text-lg text-[#69429a]">{t('choosecream')}</p>
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }} className="responsive-text">
+                  <div className="responsive-text" style={{ background: '#1e439b', borderRadius: '16px', fontSize: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('DAIRY'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('DAIRY') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('DAIRY') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('DAIRY')}</div></div>
+                  <div className="responsive-text" style={{ background: '#72bfe9', borderRadius: '16px', fontSize: '10px', color: '#fff', whiteSpace: 'nowrap', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASEDMILK'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASEDMILK') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASEDMILK') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASEDMILK')}</div></div>
+                  <div className="responsive-text" style={{ background: '#008042', borderRadius: '16px', fontSize: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASED'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASED') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASED') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASED')}</div></div>
+                </div>
+                </>
               }            </div>
             <div className="flex justify-center gap-4">
               <a
