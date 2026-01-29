@@ -18,12 +18,15 @@ import clent9 from '@/public/clent9.png';
 import clent10 from '@/public/clent10.png';
 import clent11 from '@/public/clent11.png';
 import clent12 from '@/public/clent12.png';
-
+import clent13 from '@/public/clent13.jpg';
+import clent14 from '@/public/clent14.jpg';
+import clent15 from '@/public/clent15.png';
+import clent16 from '@/public/clent16.png';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-const images = [
+const images = [clent13, clent14, clent15, clent16,
   clent1, clent2, clent3, clent4, clent5, clent6,
   clent7, clent8, clent9, clent10, clent11, clent12
 ];

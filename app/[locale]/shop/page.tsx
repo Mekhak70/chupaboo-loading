@@ -51,13 +51,13 @@ export default function ShopPage() {
     <>
       <div className="flex flex-col">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10 py-16 md:py-24">
+        <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10 py-16 md:py-24" style={{ background: '#69429a' }}>
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
-              <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl" style={{ color: '#69429a' }}>
+              <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl" style={{ color: '#fff' }}>
                 {t("shopTitle")}
               </h1>
-              <p className="text-lg text-muted-foreground md:text-xl" style={{ color: '#69429a' }}>{t("shopDesc")}</p>
+              <p className="text-lg text-muted-foreground md:text-xl" style={{ color: '#fff' }}>{t("shopDesc")}</p>
             </div>
           </div>
         </section>
