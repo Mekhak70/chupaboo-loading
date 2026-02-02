@@ -174,7 +174,7 @@ to-secondary/10
                     className="h-12 w-12 flex items-center justify-center rounded-full text-white"
                     style={{ backgroundColor: "#69429a" }}
                   >
-                    <info.icon />
+                    <info.icon  size={18}/>
                   </div>
                   <div>
                     <div className="font-semibold">{info.label}</div>
