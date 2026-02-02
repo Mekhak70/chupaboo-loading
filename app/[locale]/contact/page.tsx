@@ -75,13 +75,12 @@ export default function ContactPage() {
       {/* HERO */}
       <section className="py-16 text-center bg-gradient-to-br 
 from-primary/5 
-via-background 
-to-secondary/10
-">
-        <h1 className="text-4xl font-extrabold" style={{ color: "#69429a" }}>
+
+" style={{ backgroundColor: "#69429a" }}>
+        <h1 className="text-4xl font-extrabold" style={{ color: "#fff" }}>
           {t("contactTitle")}
         </h1>
-        <p className="mt-4 text-muted-foreground" style={{ color: "#69429a" }}>{t("contactText")}</p>
+        <p className="mt-4 text-muted-foreground" style={{ color: "#fff" }}>{t("contactText")}</p>
       </section>
 
       {/* CONTENT */}
@@ -174,7 +173,7 @@ to-secondary/10
                     className="h-12 w-12 flex items-center justify-center rounded-full text-white"
                     style={{ backgroundColor: "#69429a" }}
                   >
-                    <info.icon  size={18}/>
+                    <info.icon size={18} />
                   </div>
                   <div>
                     <div className="font-semibold">{info.label}</div>
