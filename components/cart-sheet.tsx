@@ -56,6 +56,7 @@ export function CartSheet() {
                         alt={item.product.name}
                         fill
                         className="object-cover"
+                        priority
                       />
                     </div>
                     <div className="flex flex-1 flex-col gap-1">

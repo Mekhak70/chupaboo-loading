@@ -59,7 +59,7 @@ export default function AboutPage() {
             <span>{t('joyOnly')}</span>
           </div>
 
-          <Image src={Shun} alt="Shun" width={100} height={25} className="shun-image" />
+          <Image src={Shun} alt="Shun" width={100} height={25} className="shun-image" priority/>
 
           <div className="text-block">
             <span>{t('everywhereLoveAndCare')} </span>
@@ -83,20 +83,20 @@ export default function AboutPage() {
       {/* Happy Section */}
       <section className="happy-section big">
         <div className="happy-container">
-          <Image src={Cake} alt="Cake" width={70} height={56} className="happy-img" />
+          <Image src={Cake} alt="Cake" width={70} height={56} className="happy-img" priority/>
           <div className="happy-text">
           <span>{t('ourHappyFriends')}</span>
           </div>
-          <Image src={Paw} alt="Paw" width={70} height={56} className="happy-img" />
+          <Image src={Paw} alt="Paw" width={70} height={56} className="happy-img" priority/>
         </div>
       </section>
       <section className="happy-section-small">
         <div className="happy-container">
-          <Image src={Cake} alt="Cake" width={25} height={22} className="happy-img" />
+          <Image src={Cake} alt="Cake" width={25} height={22} className="happy-img" priority/>
           <div className="happy-text">
             <span>{t('ourHappyFriends')}</span>
           </div>
-          <Image src={Paw} alt="Paw" width={23} height={22} className="happy-img" />
+          <Image src={Paw} alt="Paw" width={23} height={22} className="happy-img" priority/>
         </div>
       </section>
 
@@ -107,20 +107,20 @@ export default function AboutPage() {
 
       <section className="happy-section big">
         <div className="happy-container">
-          <Image src={Letf} alt="Cake" width={35} className="happy-img" />
+          <Image src={Letf} alt="Cake" width={35} className="happy-img" priority/>
           <div className="happy-text">
             <span>{t('CONTACTS')}</span>
           </div>
-          <Image src={Right} alt="Paw" width={40} className="happy-img" />
+          <Image src={Right} alt="Paw" width={40} className="happy-img" priority/>
         </div>
       </section>
       <section className="happy-section-small">
         <div className="happy-container">
-          <Image src={Letf} alt="Cake" width={18} height={22} className="happy-img" />
+          <Image src={Letf} alt="Cake" width={18} height={22} className="happy-img" priority/>
           <div className="happy-text">
             <span>{t('CONTACTS')}</span>
           </div>
-          <Image src={Right} alt="Paw" width={23} height={22} className="happy-img" />
+          <Image src={Right} alt="Paw" width={23} height={22} className="happy-img" priority/>
         </div>
       </section>
       <section

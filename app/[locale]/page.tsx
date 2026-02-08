@@ -110,7 +110,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-bold mb-8 text-[#69429a]">
                 {t('CREATEYOURPETSCAKE')}
               </h2>
-              <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '0 0 2px 0' }} />
+              <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '0 0 2px 0' }} priority/>
               <p className="text-lg text-[#69429a]">
                 {t('choosemaincake')}
               </p>
@@ -121,7 +121,7 @@ export default function HomePage() {
                   <div className="responsive-text" style={{ background: '#aed137', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('VEGETABLES'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('VEGETABLES') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('VEGETABLES') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('VEGETABLES')}</div></div>
                 </div>
 
-                <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
+                <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} priority/>
 
                 <p className="text-lg text-[#69429a]">{t('choosecream')}</p>
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }} className="responsive-text">
@@ -129,7 +129,7 @@ export default function HomePage() {
                   <div className="responsive-text" style={{ background: '#72bfe9', borderRadius: '16px', fontSize: '20px', color: '#fff', whiteSpace: 'nowrap', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASEDMILK'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASEDMILK') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASEDMILK') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASEDMILK')}</div></div>
                   <div className="responsive-text" style={{ background: '#008042', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASED'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASED') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASED') ? '8px 12px' : '10px 15px', borderRadius: '16px', cursor:'pointer'  }}>{t('PLANTBASED')}</div></div>
                 </div>
-                <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
+                <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} priority/>
 
                 <p className="text-lg text-[#69429a]">{t('chooseshape')}</p>
               </div>
@@ -139,7 +139,7 @@ export default function HomePage() {
               {filteredProducts.map((product, index) => (
                 <div key={index} className="rounded-xl overflow-hidden shadow-sm">
                   <div className="relative aspect-square cursor-pointer" onClick={() => handleSelectImage(product.image)}>
-                    <Image src={product.image} alt={product.name} fill className="object-cover" />
+                    <Image src={product.image} alt={product.name} fill className="object-cover" priority/>
                     {selectedImage === product.image.src && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-yellow-400 font-semibold">
                         {t("selected")}
@@ -189,7 +189,7 @@ export default function HomePage() {
           <div className="bg-white rounded-xl p-6  w-auto text-center">
             <h3 className="text-lg font-semibold mb-3 text-[#69429a]">{t('orderModalTitle')}</h3>
             {pendingImage && (
-              <Image src={pendingImage} alt="Selected cake" width={220} height={220} className="mx-auto rounded-lg mb-4" />
+              <Image src={pendingImage} alt="Selected cake" width={220} height={220} className="mx-auto rounded-lg mb-4" priority/>
             )}
             <div className="text-sm text-gray-700 mb-4 space-y-1">
               {type ? <p><strong>{t('mainCake')}:</strong> <span style={{color:'#69429A'}}>{type.toLowerCase() || "-"}</span>:</p> :  <>

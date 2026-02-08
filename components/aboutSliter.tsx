@@ -56,7 +56,7 @@ export default function Slider() {
         className="absolute left-[7%] top-1/2 -translate-y-1/2 z-20 cursor-pointer hidden sm:block"
         onClick={() => swiperRef.current?.slidePrev()}
       >
-        <Image src={Left} width={23} height={23} alt="Left" />
+        <Image src={Left} width={23} height={23} alt="Left" priority/>
       </div>
 
       {/* Swiper */}
@@ -77,6 +77,7 @@ export default function Slider() {
                   src={src}
                   alt={`Slide ${i + 1}`}
                   className="w-full h-full object-cover"
+                  priority
                 />
               </div>
             </SwiperSlide>
@@ -89,7 +90,7 @@ export default function Slider() {
         className="absolute right-[7%] top-1/2 -translate-y-1/2 z-20 cursor-pointer hidden sm:block"
         onClick={() => swiperRef.current?.slideNext()}
       >
-        <Image src={Right} width={23} height={23} alt="Right" />
+        <Image src={Right} width={23} height={23} alt="Right" priority/>
       </div>
     </div>
   );

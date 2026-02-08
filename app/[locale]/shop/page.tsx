@@ -84,7 +84,7 @@ export default function ShopPage() {
           <div className="bg-white rounded-xl p-6  w-auto text-center">
             <h3 className="text-lg font-semibold mb-3 text-[#69429a]">{t('orderModalTitle')}</h3>
             {pendingImage && (
-              <Image src={pendingImage} alt="Selected cake" width={220} height={220} className="mx-auto rounded-lg mb-4" />
+              <Image src={pendingImage} alt="Selected cake" width={220} height={220} className="mx-auto rounded-lg mb-4" priority/>
             )}
             <div className="text-sm text-gray-700 mb-4 space-y-1">
               {type ? <p><strong>{t('mainCake')}:</strong> <span style={{color:'#69429A'}}>{type.toLowerCase() || "-"}</span>:</p> :  <>
@@ -132,7 +132,7 @@ export default function ShopPage() {
                   <h2 className="text-3xl font-bold mb-8 text-[#69429a]">
                     {t('CREATEYOURPETSCAKE')}
                   </h2>
-                  <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '0 0 2px 0' }} />
+                  <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '0 0 2px 0' }} priority/>
                   <p className="text-lg text-[#69429a]">
                     {t('choosemaincake')}
                   </p>
@@ -142,7 +142,7 @@ export default function ShopPage() {
                       <div className="responsive-text" style={{ background: '#f4a2c6', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('FRUIT'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('FRUIT') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('FRUIT') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('FRUIT')}</div></div>
                       <div className="responsive-text" style={{ background: '#aed137', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }} onClick={() => setType(t('VEGETABLES'))}><div style={{ width: '100%', height: '100%', backgroundColor: type === t('VEGETABLES') ? 'rgba(0,0,0,0.75)' : '', padding: type === t('VEGETABLES') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('VEGETABLES')}</div></div>
                     </div>
-                    <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
+                    <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} priority/>
 
                     <p className="text-lg text-[#69429a]">
 
@@ -154,7 +154,7 @@ export default function ShopPage() {
                       <div className="responsive-text" style={{ background: '#008042', borderRadius: '16px', fontSize: '20px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setCreamType(t('PLANTBASED'))}><div style={{ width: '100%', height: '100%', backgroundColor: creamType === t('PLANTBASED') ? 'rgba(0,0,0,0.75)' : '', padding: creamType === t('PLANTBASED') ? '8px 12px' : '10px 15px', borderRadius: '16px' }}>{t('PLANTBASED')}</div></div>
 
                     </div>
-                    <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} />
+                    <Image src={Arrow} alt="aroww" width={30} height={40} style={{ padding: '15px 0 2px 0' }} priority/>
 
                     <p className="text-lg text-[#69429a]">
 
@@ -179,6 +179,7 @@ export default function ShopPage() {
                           alt={product.name}
                           fill
                           className="object-cover"
+                          priority
                         />
 
                         {selectedImage === product.image.src && (
@@ -212,7 +213,7 @@ export default function ShopPage() {
         <section className="border-t border-border bg-muted/30 py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
-              <Image src={Cake} alt="cake" width={40} height={40} className="mb-4 mx-auto" />
+              <Image src={Cake} alt="cake" width={40} height={40} className="mb-4 mx-auto" priority/>
               <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ color: '#69429a' }}>{t("customOrdersWelcome")}</h2>
               <p className="mb-6 text-muted-foreground" style={{ color: '#69429a' }}>{t("customOrdersDesc")}</p>
               <Button

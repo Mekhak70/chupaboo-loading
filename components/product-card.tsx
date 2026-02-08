@@ -24,6 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
           alt={product.name}
           fill
           className="object-cover"
+          priority
         />
 
         {product.image.id === clickedImages && <div

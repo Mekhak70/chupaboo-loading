@@ -21,7 +21,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border  text-primary-foreground" style={{ background: "#69429a" }}>
       <section >
-  <Image src={chupaboooo} alt="Chupaboo" width={0} height={0} style={{ width: '100%', height: 'auto' }} />
+  <Image src={chupaboooo} alt="Chupaboo" width={0} height={0} style={{ width: '100%', height: 'auto' }} priority/>
 </section>
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-3">
@@ -29,7 +29,7 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex  items-center justify-center rounded-full bg-primery">
-                <Image src={Logo} alt="Chupaboo Logo"  color="red" width={230}/>
+                <Image src={Logo} alt="Chupaboo Logo"  color="red" width={230} priority/>
                 
               </div>
               
