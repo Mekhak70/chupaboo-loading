@@ -553,6 +553,80 @@ petHappinessDesc: {
     ru: "Итого",
     pl: "Łącznie"
   },
+
+  lamb: {
+    hy: "Գառ",
+    en: "Lamb",
+    ru: "Баранина",
+    pl: "Jagnięcina"
+  },
+
+  beef: {
+    hy: "Տավար",
+    en: "Beef",
+    ru: "Говядина",
+    pl: "Wołowina"
+  },
+  chicken: {
+    hy: "Հավ",
+    en: "Chicken",
+    ru: "Курица",
+    pl: "Kurczak"
+  },
+  fish: {
+    hy: "Ձուկ",
+    en: "Fish",
+    ru: "Рыба",
+    pl: "Ryba"
+  },
+  chooseMeatType: {
+    hy: "Ընտրիր մսի տեսակը",
+    en: "Choose meat type",
+    ru: "Выберите вид мяса",
+    pl: "Wybierz rodzaj mięsa"
+  },
+  chooseFruitType: {
+    hy: "Ընտրիր մրգի տեսակը",
+    en: "Choose fruit type",
+    ru: "Выберите вид фрукта",
+    pl: "Wybierz rodzaj owocu"
+  },
+  chooseVegetableType: {
+    hy: "Ընտրիր բանջարեղենի տեսակը",
+    en: "Choose vegetable type",
+    ru: "Выберите вид овощей",
+    pl: "Wybierz rodzaj warzyw"
+  },
+  banana: {
+    hy: "Բանան",
+    en: "Banana",
+    ru: "Банан",
+    pl: "Banan"
+  },
+  apple: {
+    hy: "Խնձոր",
+    en: "Apple",
+    ru: "Яблоко",
+    pl: "Jabłko"
+  },
+  carrot: {
+    hy: "Գազար",
+    en: "Carrot",
+    ru: "Морковь",
+    pl: "Marchewka" 
+  },
+  pumpkin: {
+    hy: "Դդում",
+    en: "Pumpkin",
+    ru: "Тыква",
+    pl: "Dynia"
+  },
+  potato: {
+    hy: "Կարտոֆիլ",
+    en: "Potato",
+    ru: "Картофель",
+    pl: "Ziemniak"
+  }
   
 }
 

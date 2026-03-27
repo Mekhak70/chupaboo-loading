@@ -186,12 +186,7 @@ export default async function RootLayout({ children, params }: LayoutProps) {
           src="https://www.googletagmanager.com/gtag/js?id=G-9PTJYM3JSR"
         />
         <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-9PTJYM3JSR', { page_path: window.location.pathname });
-          `}
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9PTJYM3JSR',{page_path:window.location.pathname});`}
         </Script>
       </head>
       <body className="font-sans antialiased">
