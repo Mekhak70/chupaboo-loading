@@ -213,7 +213,7 @@ export default function HomePage() {
         </section>
 
         {/* ORDER BUTTON */}
-        <div className="container mx-auto py-10 text-center bg-white">
+        {/* <div className="container mx-auto py-10 text-center bg-white">
           <a
             href={whatsappLink}
             target="_blank"
@@ -223,7 +223,7 @@ export default function HomePage() {
           >
             {t("orderNow")}
           </a>
-        </div>
+        </div> */}
 
         {/* FEATURES */}
         <section className="bg-white py-16 border-t">
