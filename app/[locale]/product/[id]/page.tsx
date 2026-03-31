@@ -228,6 +228,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
 🎂 ${productName}
 📦 Quantity: ${quantity}
+💰 ${t("unitPrice")}: ${price}
 🍖 ${t("mainCakeType")}: ${cakeType ? t(cakeType) : t("notSelected")}
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
@@ -244,7 +245,7 @@ ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : "
 ⏰ ${t("preferredDeliveryTime")}: ${deliveryTime || t("notProvided")}
 💳 ${t("paymentMethod")}: ${paymentMethod ? t(paymentMethod.toLowerCase()) : t("notSelected")}
 
-${SITE_URL}/product/${product.id}`
+${SITE_URL}/${language}/product/${product.id}`
 
     // WhatsApp-ի հղումը տեքստով և նկարի ֆայլով
     const handleWhatsAppOrder = () => {
