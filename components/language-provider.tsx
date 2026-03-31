@@ -20,7 +20,7 @@ export const translations: Translations = {
   about: { hy: "Մեր մասին", en: "About", ru: "О нас", pl: "O nas" },
   shop: { hy: "Խանութ", en: "Shop", ru: "Магазин", pl: "Sklep" },
   contact: { hy: "Կապ", en: "Contact", ru: "Контакты", pl: "Kontakt" },
-  
+
 
   // Hero
   heroTitle: {
@@ -29,217 +29,385 @@ export const translations: Translations = {
     ru: "Вкусные торты для ваших любимых питомцев!",
     pl: "Pyszne i bezpieczne torty dla Twoich ukochanych pupili!"
   },
-  
+
   heroSubtext: {
     hy: "Կենդանիների համար անվտանգ, բնական բաղադրիչներով տորթեր՝ առանց շաքարի և հավելումների։",
     en: "Treat your furry friends with our handmade, pet-safe cakes.",
     ru: "Порадуйте своих пушистых друзей нашими домашними тортами.",
     pl: "Pociesz swoich futrzastych przyjaciół ręcznie robionymi, bezpiecznymi dla zwierząt tortami."
   },
-  
-  orderNow: { 
-    hy: "Պատվիրել հիմա", 
-    en: "Order Now", 
+
+  orderNow: {
+    hy: "Պատվիրել հիմա",
+    en: "Order Now",
     ru: "Заказать",
-    pl: "Zamów teraz" 
+    pl: "Zamów teraz"
   },
-  
+
   // About
-  aboutTitle: { 
-    hy: "ՄԵՐ ՄԱՍԻՆ", 
-    en: "ABOUT US", 
+  aboutTitle: {
+    hy: "ՄԵՐ ՄԱՍԻՆ",
+    en: "ABOUT US",
     ru: "О НАС",
-    pl: "O NAS" 
+    pl: "O NAS"
   },
-  
+
   aboutText: {
     hy: "Մեզ համար կենդանիները ընտանիքի անդամներ են։ Այդ իսկ պատճառով յուրաքանչյուր տորթ պատրաստում ենք մեծ սիրով ու ուշադրությամբ՝ մտածելով նրանց առողջության և ուրախության մասին։ Մեր տորթերը ոչ միայն համեղ են, այլև անվտանգ ու օգտակար ձեր չորքոտանի ընկերների համար։",
     en: "We are passionate bakers creating healthy and delicious cakes for pets. Every cake is handcrafted with love and the finest ingredients suitable for dogs and cats.",
     ru: "Мы - увлечённые пекари, создающие здоровые и вкусные торты для питомцев.",
     pl: "Dla nas zwierzęta są członkami rodziny. Dlatego każdy tort przygotowujemy z miłością i uwagą, dbając o ich zdrowie i radość. Nasze torty są nie tylko smaczne, ale także bezpieczne i pożywne dla Twoich czworonożnych przyjaciół."
   },
-  
+
   // Shop
-  shopTitle: { 
-    hy: "ՄԵՐ ՏՈՐԹԵՐԸ", 
-    en: "SHOP OUR CAKES", 
+  shopTitle: {
+    hy: "ՄԵՐ ՏՈՐԹԵՐԸ",
+    en: "SHOP OUR CAKES",
     ru: "НАШИ ТОРТЫ",
-    pl: "NASZE TORTY" 
+    pl: "NASZE TORTY"
   },
-  
-  
+
+
   shopDesc: {
     hy: "Մեր տորթերը ստեղծված են հատուկ կենդանիների համար՝ առանց շաքարի և հավելումների։",
     en: "Our cakes are specially made for pets, with no sugar or additives.",
     ru: "Наши торты созданы специально для животных, без сахара и добавок.",
     pl: "Nasze torty są tworzone specjalnie dla zwierząt, bez cukru i dodatków."
   },
-  
-  
-  addToCart: { 
-    hy: "Ավելացնել զամբյուղում", 
-    en: "Add to Cart", 
-    ru: "В корзину",
-    pl: "Dodaj do koszyka" 
-  },
-  checkout: { 
-    hy: "Վճարում", 
-    en: "Checkout", 
-    ru: "Оформить",
-    pl: "Przejdź do kasy" 
-  },
-  cart: { 
-    hy: "Զամբյուղ", 
-    en: "Cart", 
-    ru: "Корзина",
-    pl: "Koszyk" 
-  },
-  allPets: { 
-    hy: "Բոլոր տեսակները", 
-    en: "All Types", 
-    ru: "Все виды",
-    pl: "Wszystkie rodzaje" 
-  },
-  meatBased: { 
-    hy: "Մսային", 
-    en: "Meat-based", 
-    ru: "Мясные",
-    pl: "Mięsne" 
-  },
-  vegetableBased: { 
-    hy: "Բանջարեղանային", 
-    en: "Vegetable-based", 
-    ru: "Овощные",
-    pl: "Warzywne" 
-  },
-  fruitBased: { 
-    hy: "Մրգային", 
-    en: "Fruit-based", 
-    ru: "Фруктовые",
-    pl: "Owocowe" 
-  },
-  
 
-  customOrdersWelcome: { 
-    hy: "Ընդունվում են անհատական պատվերներ!", 
-    en: "Custom Orders Welcome!", 
-    ru: "Принимаем индивидуальные заказы!",
-    pl: "Przyjmujemy zamówienia indywidualne!" 
+  cakeDescription: {
+    hy: "Տորթերը պատրաստվում են բնական և թարմ բաղադրիչներից, առանց շաքար և արհեստական հավելումների:",
+    en: "The cakes are made from natural and fresh ingredients, without sugar or artificial additives.",
+    ru: "Торты готовятся из натуральных и свежих ингредиентов, без сахара и искусственных добавок.",
+    pl: "Ciasta przygotowywane są z naturalnych i świeżych składników, bez cukru i sztucznych dodatków."
   },
-  
+  petName: {
+    hy: "Կենդանու անունը",
+    en: "Pet Name",
+    ru: "Имя питомца",
+    pl: "Imię zwierzęcia"
+  },
+  phoneNumberRequired: {
+    hy: "Խնդրում ենք լրացնել հեռախոսահամարը",
+    en: "Please enter your phone number",
+    ru: "Пожалуйста, введите номер телефона",
+    pl: "Proszę wpisać numer telefonu"
+  },
+  deliveryDateRequired: {
+    hy: "Ընտրեք առաքման օրը",
+    en: "Please select a delivery date",
+    ru: "Пожалуйста, выберите дату доставки",
+    pl: "Proszę wybrać datę dostawy"
+  },
+  deliveryAddressRequired: {
+    hy: "Լրացրեք առաքման հասցեն",
+    en: "Please enter the delivery address",
+    ru: "Пожалуйста, введите адрес доставки",
+    pl: "Proszę wpisać adres dostawy"
+  },
+  deliveryTimeRequired: {
+    hy: "Ընտրեք նախընտրելի առաքման ժամը",
+    en: "Please select a preferred delivery time",
+    ru: "Пожалуйста, выберите предпочитаемое время доставки",
+    pl: "Proszę wybrać preferowaną godzinę dostawy"
+  },
+  phoneNumberInvalid: {
+    hy: "Հեռախոսահամարը անվավեր է",
+    en: "Invalid phone number",
+    ru: "Неверный номер телефона",
+    pl: "Nieprawidłowy numer telefonu"
+  },
+  deliveryAddressTooShort: {
+    hy: "Առաքման հասցեն չափազանց կարճ է",
+    en: "Delivery address is too short",
+    ru: "Адрес доставки слишком короткий",
+    pl: "Adres dostawy jest zbyt krótki"
+  },
+  addToCart: {
+    hy: "Ավելացնել զամբյուղում",
+    en: "Add to Cart",
+    ru: "В корзину",
+    pl: "Dodaj do koszyka"
+  },
+  checkout: {
+    hy: "Վճարում",
+    en: "Checkout",
+    ru: "Оформить",
+    pl: "Przejdź do kasy"
+  },
+  cart: {
+    hy: "Զամբյուղ",
+    en: "Cart",
+    ru: "Корзина",
+    pl: "Koszyk"
+  },
+  all: {
+    hy: "ԲՈԼՈՐԸ",
+    en: "ALL",
+    ru: "ВСЕ",
+    pl: "WSZYSTKO"
+},
+standard: {
+  hy: "ՍՏԱՆԴԱՐՏ",
+  en: "STANDARD",
+  ru: "СТАНДАРТ",
+  pl: "STANDARD"
+},
+mini: {
+  hy: "ՄԻՆԻ",
+  en: "MINI",
+  ru: "МИНИ",
+  pl: "MINI"
+},
+productInfo: {
+  hy: "Տեղեկություն ապրանքի մասին",
+  en: "Product Information",
+  ru: "Информация о продукте",
+  pl: "Informacje o produkcie"
+},
+phoneNumber: {
+  hy: "Հեռախոսահամար",
+  en: "Phone Number",
+  ru: "Номер телефона",
+  pl: "Numer telefonu"
+},
+enterPhoneNumber: {
+  hy: "Մուտքագրեք հեռախոսահամարը",
+  en: "Enter phone number",
+  ru: "Введите номер телефона",
+  pl: "Wprowadź numer telefonu"
+},
+
+deliveryDate: {
+  hy: "Առաքման ամսաթիվ",
+  en: "Delivery Date",
+  ru: "Дата доставки",
+  pl: "Data dostawy"
+},
+selectDeliveryTime: {
+  hy: "Ընտրեք առաքման ժամը",
+  en: "Select delivery time",
+  ru: "Выберите время доставки",
+  pl: "Wybierz czas dostawy"
+},
+deliveryAddress: {
+  hy: "Առաքման հասցե",
+  en: "Delivery Address",
+  ru: "Адрес доставки",
+  pl: "Adres dostawy"
+},
+enterDeliveryAddress: {
+  hy: "Մուտքագրեք առաքման հասցեն",
+  en: "Enter delivery address",
+  ru: "Введите адрес доставки",
+  pl: "Wprowadź adres dostawy"
+},
+bankTransfer: {
+  hy: "Բանկային փոխանցում",
+  en: "Bank Transfer",
+  ru: "Банковский перевод",
+  pl: "Przelew bankowy"
+},
+cash: {
+  hy: "Կանխիկ",
+  en: "Cash",
+  ru: "Наличные",
+  pl: "Gotówka"
+},
+preferredDeliveryTime: {
+  hy: "Ընտրված առաքման ժամ",
+  en: "Preferred Delivery Time",
+  ru: "Предпочтительное время доставки",
+  pl: "Preferowany czas dostawy"
+},
+paymentMethod: {
+  hy: "Վճարման եղանակ",
+  en: "Payment Method",
+  ru: "Способ оплаты",
+  pl: "Metoda płatności"
+},
+  handmade1: {
+      hy: "Ձեռագործ աշխատանք",
+      en: "Handmade with love",
+      ru: "Ручная работа",
+      pl: "Ręcznie robione"
+  },
+  petSafe1: {
+      hy: "Անվտանգ է ընտանի կենդանիների համար",
+      en: "Pet-safe ingredients",
+      ru: "Безопасно для питомцев",
+      pl: "Bezpieczne składniki"
+  },
+  uploadPetPhoto: {
+    hy: "Բեռնել կենդանու լուսանկարը",
+    en: "Upload Pet Photo",
+    ru: "Загрузить фото питомца",
+    pl: "Prześlij zdjęcie zwierzaka"
+},
+enterCustomText: {
+  hy: "Մուտքագրել անհատական տեքստ",
+  en: "Enter Custom Text",
+  ru: "Введите пользовательский текст",
+  pl: "Wprowadź własny tekst"
+},
+petNameLabel: {
+  hy: "Կենդանու անունը",
+  en: "Pet Name",
+  ru: "Имя питомца",
+  pl: "Imię zwierzęcia"
+},
+  freshDaily2: {
+      hy: "Թարմ ամեն օր",
+      en: "Fresh daily",
+      ru: "Свежие каждый день",
+      pl: "Codziennie świeże"
+  },
+  allPets: {
+    hy: "Բոլոր տեսակները",
+    en: "All Types",
+    ru: "Все виды",
+    pl: "Wszystkie rodzaje"
+  },
+  meatBased: {
+    hy: "Մսային",
+    en: "Meat-based",
+    ru: "Мясные",
+    pl: "Mięsne"
+  },
+  vegetableBased: {
+    hy: "Բանջարեղանային",
+    en: "Vegetable-based",
+    ru: "Овощные",
+    pl: "Warzywne"
+  },
+  fruitBased: {
+    hy: "Մրգային",
+    en: "Fruit-based",
+    ru: "Фруктовые",
+    pl: "Owocowe"
+  },
+
+
+  customOrdersWelcome: {
+    hy: "Ընդունվում են անհատական պատվերներ!",
+    en: "Custom Orders Welcome!",
+    ru: "Принимаем индивидуальные заказы!",
+    pl: "Przyjmujemy zamówienia indywidualne!"
+  },
+
   customOrdersDesc: {
     hy: "Ցանկանո՞ւմ եք յուրահատուկ տորթ։ Մենք սիրով պատրաստում ենք անհատական տորթեր յուրաքանչյուր առիթի համար՝ ցանկացած բաղադրությամբ և դիզայնով։ Կապվե՛ք մեզ հետ՝ ձեր գաղափարները քննարկելու համար։",
     en: "Looking for something special? We love creating custom cakes for birthdays, gotcha days, and other celebrations. Contact us to discuss your ideas!",
     ru: "Ищете что-то особенное? Мы с удовольствием создадим торт на заказ для дней рождения и других праздников.",
     pl: "Szukasz czegoś wyjątkowego? Z przyjemnością tworzymy torty na zamówienie na urodziny, 'gotcha day' i inne okazje. Skontaktuj się z nami, aby omówić swoje pomysły!"
-  },  
-  
-  contactUs: { 
-    hy: "ԿԱՊ ՀԱՍՏԱՏԵՔ ՄԵԶ ՀԵՏ", 
-    en: "CONTACT US", 
+  },
+
+  contactUs: {
+    hy: "ԿԱՊ ՀԱՍՏԱՏԵՔ ՄԵԶ ՀԵՏ",
+    en: "CONTACT US",
     ru: "СВЯЗАТЬСЯ",
     pl: "SKONTAKTUJ SIĘ Z NAMI"
   },
-  
+
   // Contact
-  contactTitle: { 
-    hy: "ԿԱՊ ՀԱՍՏԱՏԵՔ ՄԵԶ ՀԵՏ", 
-    en: "CONTACT US", 
+  contactTitle: {
+    hy: "ԿԱՊ ՀԱՍՏԱՏԵՔ ՄԵԶ ՀԵՏ",
+    en: "CONTACT US",
     ru: "СВЯЖИТЕСЬ С НАМИ",
     pl: "SKONTAKTUJ SIĘ Z NAMI"
   },
-  
+
   CONTACTS: {
     hy: "ԿԱՐԾԻՔՆԵՐ",
     en: "REVIEWS",
     ru: "ОТЗЫВЫ",
     pl: "RECENZJE"
   },
-  
+
   chupabooIdea: {
     hy: "Chupaboo–ն ստեղծվել է մի պարզ, բայց շատ կարևոր գաղափարի շուրջ",
     en: "Chupaboo was created around a simple yet deeply important idea —",
     ru: "Chupaboo был создан вокруг простой, но очень важной идеи -",
     pl: "Chupaboo powstało wokół prostej, ale bardzo ważnej idei —"
   },
-  
+
   loveAndCare: {
     hy: "սեր և հոգատարություն կենդանիների հանդեպ։",
     en: "love and care for animals.",
     ru: "любовь и забота о животных.",
     pl: "miłość i troska o zwierzęta."
   },
-  
+
   ideaThatInspiredUs: {
     hy: "Սա այն գաղափարն է, որը մեզ դրդեց ստեղծել մի բան,",
     en: "This idea inspired us to create something",
     ru: "Именно эта идея вдохновила нас на создание чего-то",
     pl: "Ta idea zainspirowała nas do stworzenia czegoś,"
   },
-   
+
   joyOnly: {
     hy: "որը միայն ուրախության մասին է։",
     en: "that is purely about joy.",
     ru: "что существует исключительно ради радости.",
     pl: "który dotyczy wyłącznie radości."
   },
-  
+
   everywhereLoveAndCare: {
     hy: "Թե՛ տանը, թե՛ դրսում, մեր փոքրիկ ընկերները ունեն նույն սիրո և ուշադրության",
     en: "Whether at home or outdoors, our little friends need the same love and attention",
     ru: "Дома или на улице, наши маленькие друзья нуждаютсяв той же любви и внимании,",
     pl: "Czy w domu, czy na zewnątrz, nasi mali przyjaciele potrzebują tej samej miłości i uwagi"
   },
-  
+
   dailyJoyAndBirth: {
     hy: "կարիքը, որը նրանք մեզ տալիս են ամեն օր։ Հենց այդ պատճառով էլ ծնվեց",
     en: "they give us every day. That is why Chupaboo was born -",
     ru: "которые они дарят нам каждый день. Именно поэтому появился",
     pl: "które dają nam każdego dnia. Dlatego powstało Chupaboo –"
   },
-  
+
   chupabooFillsTheGap: {
     hy: "Chupaboo–ն՝ լրացնելու այդ բացը։",
     en: "to fill that need.",
     ru: "Chupaboo — чтобы восполнить эту потребность.",
     pl: "aby wypełnić tę potrzebę."
   },
-  
+
   ourCaringTeam: {
     hy: "Մեր հոգատար թիմը պատրաստում է կենդանիների համար նախատեսված",
     en: "Our caring team creates cakes and treats for animals",
     ru: "Наша заботливая команда готовит торты и лакомства для животных",
     pl: "Nasz troskliwy zespół przygotowuje torty i smakołyki dla zwierząt"
   },
-  
+
   cakesAndTreats: {
     hy: "տորթեր և համովիկներ՝ ամբողջությամբ բնական բաղադրիչներից, առանց",
     en: "using only natural ingredients, ",
     ru: "исключительно из натуральных ингредиентов,",
     pl: "torty i smakołyki wykonane wyłącznie z naturalnych składników, bez"
   },
-  
+
   sugarAndAdditiveFree: {
     hy: "շաքարի և առանց հավելումների։",
     en: "with no sugar and no additives.",
     ru: "без сахара и без каких-либо добавок.",
     pl: "cukru i dodatków."
   },
-  
+
   everyAnimalDeservesLove: {
     hy: "Մենք հավատում ենք, որ յուրաքանչյուր կենդանի արժանի է սիրո,",
     en: "We believe that every animal deserves love,",
     ru: "Мы верим, что каждое животное заслуживает",
     pl: "Wierzymy, że każde zwierzę zasługuje na miłość,"
   },
-  
+
   careAndWarmth: {
     hy: "ուշադրության և ընտանիքի ջերմությանը։",
     en: "care, and the warmth of a family.",
     ru: "любви, заботы и тепла семьи.",
     pl: "troskę i ciepło rodziny."
   },
-   orderModalTitle: {
+  orderModalTitle: {
     hy: "Ցանկանո՞ւմ եք պատվիրել այս տորթը",
     en: "Do you want to order this cake?",
     ru: "Хотите заказать этот торт?",
@@ -275,15 +443,20 @@ export const translations: Translations = {
     ru: "Нет",
     pl: "Nie"
   },
-  
-  
+  orderViaWhatsApp: {
+    hy: "Պատվիրել WhatsApp-ով",
+    en: "Order via WhatsApp",
+    ru: "Заказать через WhatsApp",
+    pl: "Zamów przez WhatsApp"
+  },
+
   contactText: {
     hy: "Ունե՞ք հարցեր կամ անհատական պատվերներ։ Կապ հաստատեք մեզ հետ։",
     en: "Have questions or custom orders? Get in touch!",
     ru: "Есть вопросы или индивидуальные заказы? Свяжитесь с нами!",
     pl: "Masz pytania lub indywidualne zamówienia? Skontaktuj się z nami!"
   },
-   whatsappMessageText : {
+  whatsappMessageText: {
     hy: "Բարև, ուզում եմ պատվիրել տորթ",
     en: "Hi, I want to order a cake",
     ru: "Привет, хочу заказать торт",
@@ -294,20 +467,20 @@ export const translations: Translations = {
     en: "Hi, I want to order this cake",
     ru: "Привет, хочу заказать этот торт",
     pl: "Cześć, chcę zamówić to ciasto"
-  },  
+  },
   andWord: {
     hy: "և",
     en: "and",
     ru: "и",
     pl: "i"
-  },  
+  },
   imageLabel: {
     hy: "Նկարը՝",
     en: "Image:",
     ru: "Изображение:",
     pl: "Obrazek:"
-  },  
-  
+  },
+
   name: { hy: "Անուն", en: "Name", ru: "Имя", pl: "Imię" },
   email: { hy: "Էլ. հասցե", en: "Email", ru: "Эл. почта", pl: "Email" },
   message: { hy: "Հաղորդագրություն", en: "Message", ru: "Сообщение", pl: "Wiadomość" },
@@ -329,227 +502,233 @@ export const translations: Translations = {
   ,
 
   // FAQ
-faq: { hy: "Հաճախ տրվող հարցեր", en: "Frequently Asked Questions", ru: "Часто задаваемые вопросы", pl: "Najczęściej zadawane pytania" },
-faqCustomDesign: { hy: "Անհատական տորթեր պատրաստու՞մ եք։", en: "Do you offer custom cake designs?", ru: "Вы делаете торты на заказ?", pl: "Czy oferujecie torty na zamówienie?" },
-faqCustomDesignAnswer: { hy: "Այո՛։ Մենք սիրով պատրաստում ենք անհատական տորթեր ձեր կենդանու հատուկ առիթների համար։ Կապնվեք մեզ հետ ձեր գաղափարներով։", en: "Yes! We love creating custom cakes for your pet's special occasions. Contact us with your ideas and we'll make it happen.", ru: "Да! Мы с удовольствием создадим торт для особого случая вашего питомца.", pl: "Tak! Uwielbiamy tworzyć torty na zamówienie na specjalne okazje Twojego zwierzaka. Skontaktuj się z nami z pomysłami, a my je zrealizujemy." },
-faqOrderAdvance: { hy: "Մինչև քանի օր առաջ պետք է պատվիրեմ՞։", en: "How far in advance should I order?", ru: "За сколько дней нужно заказывать?", pl: "Na ile dni wcześniej powinienem złożyć zamówienie?" },
-faqOrderAdvanceAnswer: { hy: "Առաջարկում ենք պատվիրել առնվազն 1-2 օր առաջ ստանդարտ տորթերի համար և 2-3 օր առաջ անհատական տորթերի համար։", en: "We recommend ordering at least 1-2 days in advance for standard cakes, and 2-3 days for custom designs.", ru: "Рекомендуем заказывать за 1-2 дней для стандартных тортов и за 2-3 дней для индивидуальных.", pl: "Zalecamy składanie zamówień co najmniej 1-2 dni wcześniej na standardowe torty i 2-3 dni wcześniej na torty na zamówienie." },
-faqSafe: { hy: "Ձեր տորթերը անվտանգ են բոլոր կենդանիների համար՞։", en: "Are your cakes safe for all pets?", ru: "Ваши торты безопасны для всех питомцев?", pl: "Czy wasze torty są bezpieczne dla wszystkich zwierząt?" },
-faqSafeAnswer: { hy: "Մեր տորթերը պատրաստված են վետերինարներ հաստատած բաղադրիչներից, որոնք անվտանգ են մեծ մասի շների և կատուների համար։ Եթե ձեր կենդանու ալերգիաներ կան, խնդրում ենք տեղեկացնել։", en: "Our cakes are made with vet-approved ingredients safe for most dogs and cats. If your pet has allergies, please let us know and we'll accommodate.", ru: "Наши торты сделаны из ингредиентов, одобренных ветеринарами, безопасных для большинства собак и кошек.", pl: "Nasze torty są wykonane ze składników zatwierdzonych przez weterynarzy, bezpiecznych dla większości psów i kotów. Jeśli Twój zwierzak ma alergie, prosimy o informację, a dostosujemy tort." },
-faqDelivery: { hy: "Կա՞ անվճար առաքում և ինչպե՞ս է կազմակերպվում։", en: "Is delivery free and how is it arranged?", ru: "Есть ли бесплатная доставка и как она организована?", pl: "Czy dostawa jest bezpłatna i jak jest zorganizowana?" },
-faqDeliveryAnswer: { hy: "Այո՛, Երևան քաղաքում առաքումը անվճար է։ Մարզերում առաքման գինը կախված է հեռավորությունից։", en: "Yes, delivery is free in the city of Yerevan! In regional areas, the delivery price depends on the distance.", ru: "Да, доставка в городе Ереван бесплатная! В регионах стоимость доставки зависит от расстояния.", pl: "Tak, dostawa w Erywaniu jest bezpłatna! W regionach koszt dostawy zależy od odległości." },
+  faq: { hy: "Հաճախ տրվող հարցեր", en: "Frequently Asked Questions", ru: "Часто задаваемые вопросы", pl: "Najczęściej zadawane pytania" },
+  faqCustomDesign: { hy: "Անհատական տորթեր պատրաստու՞մ եք։", en: "Do you offer custom cake designs?", ru: "Вы делаете торты на заказ?", pl: "Czy oferujecie torty na zamówienie?" },
+  faqCustomDesignAnswer: { hy: "Այո՛։ Մենք սիրով պատրաստում ենք անհատական տորթեր ձեր կենդանու հատուկ առիթների համար։ Կապնվեք մեզ հետ ձեր գաղափարներով։", en: "Yes! We love creating custom cakes for your pet's special occasions. Contact us with your ideas and we'll make it happen.", ru: "Да! Мы с удовольствием создадим торт для особого случая вашего питомца.", pl: "Tak! Uwielbiamy tworzyć torty na zamówienie na specjalne okazje Twojego zwierzaka. Skontaktuj się z nami z pomysłami, a my je zrealizujemy." },
+  faqOrderAdvance: { hy: "Մինչև քանի օր առաջ պետք է պատվիրեմ՞։", en: "How far in advance should I order?", ru: "За сколько дней нужно заказывать?", pl: "Na ile dni wcześniej powinienem złożyć zamówienie?" },
+  faqOrderAdvanceAnswer: { hy: "Առաջարկում ենք պատվիրել առնվազն 1-2 օր առաջ ստանդարտ տորթերի համար և 2-3 օր առաջ անհատական տորթերի համար։", en: "We recommend ordering at least 1-2 days in advance for standard cakes, and 2-3 days for custom designs.", ru: "Рекомендуем заказывать за 1-2 дней для стандартных тортов и за 2-3 дней для индивидуальных.", pl: "Zalecamy składanie zamówień co najmniej 1-2 dni wcześniej na standardowe torty i 2-3 dni wcześniej na torty na zamówienie." },
+  faqSafe: { hy: "Ձեր տորթերը անվտանգ են բոլոր կենդանիների համար՞։", en: "Are your cakes safe for all pets?", ru: "Ваши торты безопасны для всех питомцев?", pl: "Czy wasze torty są bezpieczne dla wszystkich zwierząt?" },
+  faqSafeAnswer: { hy: "Մեր տորթերը պատրաստված են վետերինարներ հաստատած բաղադրիչներից, որոնք անվտանգ են մեծ մասի շների և կատուների համար։ Եթե ձեր կենդանու ալերգիաներ կան, խնդրում ենք տեղեկացնել։", en: "Our cakes are made with vet-approved ingredients safe for most dogs and cats. If your pet has allergies, please let us know and we'll accommodate.", ru: "Наши торты сделаны из ингредиентов, одобренных ветеринарами, безопасных для большинства собак и кошек.", pl: "Nasze torty są wykonane ze składników zatwierdzonych przez weterynarzy, bezpiecznych dla większości psów i kotów. Jeśli Twój zwierzak ma alergie, prosimy o informację, a dostosujemy tort." },
+  faqDelivery: { hy: "Կա՞ անվճար առաքում և ինչպե՞ս է կազմակերպվում։", en: "Is delivery free and how is it arranged?", ru: "Есть ли бесплатная доставка и как она организована?", pl: "Czy dostawa jest bezpłatna i jak jest zorganizowana?" },
+  faqDeliveryAnswer: { hy: "Այո՛, Երևան քաղաքում առաքումը անվճար է։ Մարզերում առաքման գինը կախված է հեռավորությունից։", en: "Yes, delivery is free in the city of Yerevan! In regional areas, the delivery price depends on the distance.", ru: "Да, доставка в городе Ереван бесплатная! В регионах стоимость доставки зависит от расстояния.", pl: "Tak, dostawa w Erywaniu jest bezpłatna! W regionach koszt dostawy zależy od odległości." },
 
-// Footer
-followUs: { hy: "Հետևեք մեզ", en: "Follow Us", ru: "Подписывайтесь", pl: "Śledź nas" },
-allRightsReserved: { hy: "Բոլոր իրավունքները պաշտպանված են", en: "All Rights Reserved", ru: "Все права защищены", pl: "Wszystkie prawa zastrzeżone" },
+  // Footer
+  followUs: { hy: "Հետևեք մեզ", en: "Follow Us", ru: "Подписывайтесь", pl: "Śledź nas" },
+  allRightsReserved: { hy: "Բոլոր իրավունքները պաշտպանված են", en: "All Rights Reserved", ru: "Все права защищены", pl: "Wszystkie prawa zastrzeżone" },
 
   // Features
   handmade: { hy: "Պատրաստված Է սիրով", en: "Handmade with Love", ru: "Сделано с любовью", pl: "Ręcznie wykonane z miłością" },
-handmadeDesc: { hy: "Յուրաքանչյուր տորթ պատրաստվում է սիրով և մանրուքներին ուշադրություն դարձնելով։", en: "Each cake is crafted by hand with care and attention to detail.", ru: "Каждый торт сделан вручную с заботой и вниманием к деталям.", pl: "Każdy tort jest przygotowywany ręcznie z troską i dbałością o szczegóły." },
-petSafe: { hy: "100% անվտանգ կենդանիների համար", en: "100% Pet Safe", ru: "100% безопасно", pl: "100% Bezpieczne dla zwierząt" },
-petSafeDesc: { hy: "Կիրառում ենք միայն լավագույն, վետերինարներ հաստատած բաղադրիչներ ձեր փոքրիկ ընկերների համար։", en: "Only the finest, vet-approved ingredients for your furry friends.", ru: "Только лучшие ингредиенты, одобренные ветеринарами.", pl: "Używamy tylko najlepszych składników, zatwierdzonych przez weterynarzy, dla Twoich futrzastych przyjaciół." },
-freshDaily: { hy: "Թարմ ամեն օր", en: "Fresh Daily", ru: "Свежие ежедневно", pl: "Świeże codziennie" },
-freshDailyDesc: { hy: "Թխում ենք ամեն օր առավելագույն համի և որակի համար։", en: "Baked fresh every day for maximum taste and quality.", ru: "Выпекаем каждый день для максимального вкуса и качества.", pl: "Pieczenie codziennie dla maksymalnego smaku i jakości." },
+  handmadeDesc: { hy: "Յուրաքանչյուր տորթ պատրաստվում է սիրով և մանրուքներին ուշադրություն դարձնելով։", en: "Each cake is crafted by hand with care and attention to detail.", ru: "Каждый торт сделан вручную с заботой и вниманием к деталям.", pl: "Każdy tort jest przygotowywany ręcznie z troską i dbałością o szczegóły." },
+  petSafe: { hy: "100% անվտանգ կենդանիների համար", en: "100% Pet Safe", ru: "100% безопасно", pl: "100% Bezpieczne dla zwierząt" },
+  petSafeDesc: { hy: "Կիրառում ենք միայն լավագույն, վետերինարներ հաստատած բաղադրիչներ ձեր փոքրիկ ընկերների համար։", en: "Only the finest, vet-approved ingredients for your furry friends.", ru: "Только лучшие ингредиенты, одобренные ветеринарами.", pl: "Używamy tylko najlepszych składników, zatwierdzonych przez weterynarzy, dla Twoich futrzastych przyjaciół." },
+  freshDaily: { hy: "Թարմ ամեն օր", en: "Fresh Daily", ru: "Свежие ежедневно", pl: "Świeże codziennie" },
+  freshDailyDesc: { hy: "Թխում ենք ամեն օր առավելագույն համի և որակի համար։", en: "Baked fresh every day for maximum taste and quality.", ru: "Выпекаем каждый день для максимального вкуса и качества.", pl: "Pieczenie codziennie dla maksymalnego smaku i jakości." },
 
-// CTA
-readyToTreat: { hy: "Պատրաստե՞լ ձեր կենդանու ուրախությանը։", en: "Ready to treat your pet?", ru: "Готовы порадовать питомца?", pl: "Gotowy, by sprawić radość swojemu zwierzakowi?" },
-readyToTreatDesc: { hy: "Դիտեք մեր համեղ, կենդանիների համար անվտանգ տորթերի ընտրությունը։", en: "Browse our selection of delicious, pet-safe cakes.", ru: "Просмотрите наш выбор вкусных и безопасных тортов.", pl: "Przejrzyj nasz wybór pysznych i bezpiecznych tortów dla zwierząt." },
+  // CTA
+  readyToTreat: { hy: "Պատրաստե՞լ ձեր կենդանու ուրախությանը։", en: "Ready to treat your pet?", ru: "Готовы порадовать питомца?", pl: "Gotowy, by sprawić radość swojemu zwierzakowi?" },
+  readyToTreatDesc: { hy: "Դիտեք մեր համեղ, կենդանիների համար անվտանգ տորթերի ընտրությունը։", en: "Browse our selection of delicious, pet-safe cakes.", ru: "Просмотрите наш выбор вкусных и безопасных тортов.", pl: "Przejrzyj nasz wybór pysznych i bezpiecznych tortów dla zwierząt." },
 
-// About Page
-ourStory: { hy: "Մեր պատմությունը", en: "Our Story", ru: "Наша история", pl: "Nasza historia" },
-aboutDescription: {
-  hy: "Մեր պատմությունը սկսվեց սիրուց և ցանկությունից՝ ուրախացնել մեր կենդանիներին յուրահատուկ և անմոռանալի ձևով. Մենք ուզում էինք նրանց նվիրել տորթ, որը կլինի համեղ, անվտանգ և լիովին իրենց համար. Այսպես ծնվեց Chupaboo — փոքրիկ նախագիծ, որը այսօր ուրախացնում է հարյուրավոր կենդանիների ու նրանց ընտանիքների կյանքը. Մեր տորթերը պատրաստվում են սիրով ու հոգատարությամբ՝ միայն առողջարար, վետերինարների կողմից հաստատված բաղադրիչներից. Քանի որ ձեր կենդանիները պարզապես կենդանիներ չեն, նրանք ընտանիքի լիիրավ անդամներ են՝ արժանի ամենալավին:",
-  en: "It all started with a simple wish: to celebrate our own pets' birthdays with something truly special. When we couldn't find cakes that were both safe and delicious for our furry family members, we decided to create our own. Today, Chupaboo has grown from a home-kitchen passion project into a beloved bakery serving thousands of happy pets and their families. Every cake we make is crafted with the same love and care as that very first creation. Our dedicated team of bakers uses only vet-approved, human-grade ingredients to ensure every treat is as healthy as it is delicious. Because your pets deserve the very best.",
-  ru: "Всё началось с простого желания — отметить дни рождения наших питомцев чем-то по-настоящему особенным. Когда мы не нашли торты, которые были бы одновременно безопасными и вкусными для наших пушистых членов семьи, мы решили создать их сами. Сегодня Chupaboo выросла из небольшого домашнего проекта в любимую пекарню, обслуживающую тысячи счастливых питомцев и их семьи. Каждый торт мы создаём с той же любовью и заботой, что и самый первый. Наша преданная команда пекарей использует только одобренные ветеринарами ингредиенты, пригодные для употребления человеком, чтобы каждый десерт был не только вкусным, но и полезным. Ведь ваши питомцы заслуживают самое лучшее.",
-  pl: "Wszystko zaczęło się od prostego pragnienia: świętować urodziny naszych zwierząt w wyjątkowy sposób. Kiedy nie mogliśmy znaleźć tortów, które byłyby zarówno bezpieczne, jak i smaczne dla naszych futrzastych członków rodziny, postanowiliśmy stworzyć własne. Dziś Chupaboo rozrosło się z domowego projektu pasji w ukochaną cukiernię, obsługującą tysiące szczęśliwych zwierząt i ich rodziny. Każdy tort, który tworzymy, jest wykonany z taką samą miłością i troską jak pierwszy wypiek. Nasz oddany zespół cukierników używa tylko składników zatwierdzonych przez weterynarzy, aby każda przekąska była tak zdrowa, jak pyszna. Bo Twoje zwierzęta zasługują na to, co najlepsze."
-},
-messages: {
-  hy: "Ինչ-որ սխալ է տեղի ունեցել",
-  ru: "Произошла ошибка",
-  en: "Something went wrong",
-  pl: "Coś poszło nie tak"
-},
+  // About Page
+  ourStory: { hy: "Մեր պատմությունը", en: "Our Story", ru: "Наша история", pl: "Nasza historia" },
+  aboutDescription: {
+    hy: "Մեր պատմությունը սկսվեց սիրուց և ցանկությունից՝ ուրախացնել մեր կենդանիներին յուրահատուկ և անմոռանալի ձևով. Մենք ուզում էինք նրանց նվիրել տորթ, որը կլինի համեղ, անվտանգ և լիովին իրենց համար. Այսպես ծնվեց Chupaboo — փոքրիկ նախագիծ, որը այսօր ուրախացնում է հարյուրավոր կենդանիների ու նրանց ընտանիքների կյանքը. Մեր տորթերը պատրաստվում են սիրով ու հոգատարությամբ՝ միայն առողջարար, վետերինարների կողմից հաստատված բաղադրիչներից. Քանի որ ձեր կենդանիները պարզապես կենդանիներ չեն, նրանք ընտանիքի լիիրավ անդամներ են՝ արժանի ամենալավին:",
+    en: "It all started with a simple wish: to celebrate our own pets' birthdays with something truly special. When we couldn't find cakes that were both safe and delicious for our furry family members, we decided to create our own. Today, Chupaboo has grown from a home-kitchen passion project into a beloved bakery serving thousands of happy pets and their families. Every cake we make is crafted with the same love and care as that very first creation. Our dedicated team of bakers uses only vet-approved, human-grade ingredients to ensure every treat is as healthy as it is delicious. Because your pets deserve the very best.",
+    ru: "Всё началось с простого желания — отметить дни рождения наших питомцев чем-то по-настоящему особенным. Когда мы не нашли торты, которые были бы одновременно безопасными и вкусными для наших пушистых членов семьи, мы решили создать их сами. Сегодня Chupaboo выросла из небольшого домашнего проекта в любимую пекарню, обслуживающую тысячи счастливых питомцев и их семьи. Каждый торт мы создаём с той же любовью и заботой, что и самый первый. Наша преданная команда пекарей использует только одобренные ветеринарами ингредиенты, пригодные для употребления человеком, чтобы каждый десерт был не только вкусным, но и полезным. Ведь ваши питомцы заслуживают самое лучшее.",
+    pl: "Wszystko zaczęło się od prostego pragnienia: świętować urodziny naszych zwierząt w wyjątkowy sposób. Kiedy nie mogliśmy znaleźć tortów, które byłyby zarówno bezpieczne, jak i smaczne dla naszych futrzastych członków rodziny, postanowiliśmy stworzyć własne. Dziś Chupaboo rozrosło się z domowego projektu pasji w ukochaną cukiernię, obsługującą tysiące szczęśliwych zwierząt i ich rodziny. Każdy tort, który tworzymy, jest wykonany z taką samą miłością i troską jak pierwszy wypiek. Nasz oddany zespół cukierników używa tylko składników zatwierdzonych przez weterynarzy, aby każda przekąska była tak zdrowa, jak pyszna. Bo Twoje zwierzęta zasługują na to, co najlepsze."
+  },
+  messages: {
+    hy: "Ինչ-որ սխալ է տեղի ունեցել",
+    ru: "Произошла ошибка",
+    en: "Something went wrong",
+    pl: "Coś poszło nie tak"
+  },
 
-CREATEYOURPETSCAKE: {
-  hy: "ՍՏԵՂԾԻՐ ՔՈ ԿԵՆԴԱՆՈՒ ՏՈՐԹԸ",
-  ru: "СОЗДАЙ ТОРТ ДЛЯ СВОЕГО ПИТОМЦА",
-  en: "CREATE YOUR PET’S CAKE",
-  pl: "STWÓRZ TORT DLA SWOJEGO ZWIERZAKA"
-},
+  CREATEYOURPETSCAKE: {
+    hy: "ՍՏԵՂԾԻՐ ՔՈ ԿԵՆԴԱՆՈՒ ՏՈՐԹԸ",
+    ru: "СОЗДАЙ ТОРТ ДЛЯ СВОЕГО ПИТОМЦА",
+    en: "CREATE YOUR PET’S CAKE",
+    pl: "STWÓRZ TORT DLA SWOJEGO ZWIERZAKA"
+  },
 
-choosemaincake: {
-  hy: "Ընտրիր տորթի հիմնական բաղադրիչը",
-  ru: "Выбери основной ингредиент торта",
-  en: "Choose the main cake ingredient",
-  pl: "Wybierz główny składnik tortu"
-},
+  choosemaincake: {
+    hy: "Ընտրիր տորթի հիմնական բաղադրիչը",
+    ru: "Выбери основной ингредиент торта",
+    en: "Choose the main cake ingredient",
+    pl: "Wybierz główny składnik tortu"
+  },
 
-choosecream: {
-  hy: "Ընտրիր կրեմի տեսակը",
-  ru: "Выбери тип крема",
-  en: "Choose the type of cream",
-  pl: "Wybierz rodzaj kremu"
-},
+  choosecream: {
+    hy: "Ընտրիր կրեմի տեսակը",
+    ru: "Выбери тип крема",
+    en: "Choose the type of cream",
+    pl: "Wybierz rodzaj kremu"
+  },
 
-chooseshape: {
-  hy: "Ընտրիր տորթի ձևը",
-  ru: "Выбери форму торта",
-  en: "Choose the cake shape",
-  pl: "Wybierz kształt tortu"
-},
+  chooseshape: {
+    hy: "Ընտրիր տորթի ձևը",
+    ru: "Выбери форму торта",
+    en: "Choose the cake shape",
+    pl: "Wybierz kształt tortu"
+  },
 
-MEAT: {
-  hy: "ՄԻՍ",
-  ru: "МЯСО",
-  en: "MEAT",
-  pl: "MIĘSO"
-},
+  MEAT: {
+    hy: "ՄԻՍ",
+    ru: "МЯСО",
+    en: "MEAT",
+    pl: "MIĘSO"
+  },
 
-FRUIT: {
-  hy: "ՄԻՐԳ",
-  ru: "ФРУКТЫ",
-  en: "FRUIT",
-  pl: "OWOCE"
-},
+  FRUIT: {
+    hy: "ՄԻՐԳ",
+    ru: "ФРУКТЫ",
+    en: "FRUIT",
+    pl: "OWOCE"
+  },
 
-VEGETABLES: {
-  hy: "ԲԱՆՋԱՐԵՂԵՆ",
-  ru: "ОВОЩИ",
-  en: "VEGETABLES",
-  pl: "WARZYWA"
-},
+  VEGETABLES: {
+    hy: "ԲԱՆՋԱՐԵՂԵՆ",
+    ru: "ОВОЩИ",
+    en: "VEGETABLES",
+    pl: "WARZYWA"
+  },
 
-DAIRY: {
-  hy: "ԿԱԹՆԱՅԻՆ",
-  ru: "МОЛОЧНЫЙ",
-  en: "DAIRY",
-  pl: "MLECZNY"
-},
+  DAIRY: {
+    hy: "ԿԱԹՆԱՅԻՆ",
+    ru: "МОЛОЧНЫЙ",
+    en: "DAIRY",
+    pl: "MLECZNY"
+  },
 
-PLANTBASEDMILK: {
-  hy: "ԲՈՒՍԱԿԱՆ ԿԱԹ",
-  ru: "РАСТИТЕЛЬНОЕ МОЛОКО",
-  en: "PLANT-BASED MILK",
-  pl: "NAPÓJ ROŚLINNY"
-},
+  PLANTBASEDMILK: {
+    hy: "ԲՈՒՍԱԿԱՆ ԿԱԹ",
+    ru: "РАСТИТЕЛЬНОЕ МОЛОКО",
+    en: "PLANT-BASED MILK",
+    pl: "NAPÓJ ROŚLINNY"
+  },
 
-PLANTBASED: {
-  hy: "ԲՈՒՍԱԿԱՆ",
-  ru: "РАСТИТЕЛЬНЫЙ",
-  en: "PLANT-BASED",
-  pl: "ROŚLINNY"
-},
+  PLANTBASED: {
+    hy: "ԲՈՒՍԱԿԱՆ",
+    ru: "РАСТИТЕЛЬНЫЙ",
+    en: "PLANT-BASED",
+    pl: "ROŚLINNY"
+  },
 
-selected: {
-  hy: "Ընտրված է",
-  ru: "Выбрано",
-  en: "Selected",
-  pl: "Wybrane"
-},
+  selected: {
+    hy: "Ընտրված է",
+    ru: "Выбрано",
+    en: "Selected",
+    pl: "Wybrane"
+  },
 
 
-happyPets: { 
-  hy: "Ուրախ պահեր", 
-  en: "Happy Pets", 
-  ru: "Счастливых питомцев",
-  pl: "Szczęśliwe zwierzęta"
-},
+  happyPets: {
+    hy: "Ուրախ պահեր",
+    en: "Happy Pets",
+    ru: "Счастливых питомцев",
+    pl: "Szczęśliwe zwierzęta"
+  },
 
-happyFamilies: { 
-  hy: "Շնորհավոր ընտանիքներ", 
-  en: "Happy Families", 
-  ru: "Счастливых семей",
-  pl: "Szczęśliwe rodziny"
-},
+  happyFamilies: {
+    hy: "Շնորհավոր ընտանիքներ",
+    en: "Happy Families",
+    ru: "Счастливых семей",
+    pl: "Szczęśliwe rodziny"
+  },
 
-ourValues: { 
-  hy: "Մեր արժեքները", 
-  en: "Our Values", 
-  ru: "Наши ценности",
-  pl: "Nasze wartości"
-},
+  ourValues: {
+    hy: "Մեր արժեքները",
+    en: "Our Values",
+    ru: "Наши ценности",
+    pl: "Nasze wartości"
+  },
 
-qualityFirst: { 
-  hy: "Առաջնային որակը", 
-  en: "Quality First", 
-  ru: "Качество прежде всего",
-  pl: "Jakość przede wszystkim"
-},
+  qualityFirst: {
+    hy: "Առաջնային որակը",
+    en: "Quality First",
+    ru: "Качество прежде всего",
+    pl: "Jakość przede wszystkim"
+  },
+  chooseMeatType: {
+    hy: "Ըտերել մսի տեսակը",
+    en: "Choose meat type",
+    ru: "Выберите тип мяса",
+    pl: "Wybierz rodzaj mięsa",
+  },
 
-qualityFirstDesc: { 
-  hy: "Մենք երբեք չենք խնայել բաղադրիչների որակի վրա։ Յուրաքանչյուր բաղադրիչ մանրակրկիտ ընտրված է ձեր կենդանիների համար անվտանգ ու սննդարար լինելու համար։", 
-  en: "We never compromise on ingredients. Every component is carefully selected and tested to ensure it's safe and nutritious for your pets.", 
-  ru: "Мы никогда не идём на компромисс в качестве ингредиентов.",
-  pl: "Nigdy nie oszczędzamy na jakości składników. Każdy składnik jest starannie wybrany i sprawdzony, aby był bezpieczny i pożywny dla Twoich zwierząt."
-},
+  qualityFirstDesc: {
+    hy: "Մենք երբեք չենք խնայել բաղադրիչների որակի վրա։ Յուրաքանչյուր բաղադրիչ մանրակրկիտ ընտրված է ձեր կենդանիների համար անվտանգ ու սննդարար լինելու համար։",
+    en: "We never compromise on ingredients. Every component is carefully selected and tested to ensure it's safe and nutritious for your pets.",
+    ru: "Мы никогда не идём на компромисс в качестве ингредиентов.",
+    pl: "Nigdy nie oszczędzamy na jakości składników. Każdy składnik jest starannie wybrany i sprawdzony, aby był bezpieczny i pożywny dla Twoich zwierząt."
+  },
 
-madeWithLove: { 
-  hy: "Սիրով պատրաստված", 
-  en: "Made with Love", 
-  ru: "Сделано с любовью",
-  pl: "Wykonane z miłością"
-},
+  madeWithLove: {
+    hy: "Սիրով պատրաստված",
+    en: "Made with Love",
+    ru: "Сделано с любовью",
+    pl: "Wykonane z miłością"
+  },
 
-madeWithLoveDesc: { 
-  hy: "Յուրաքանչյուր տորթ ձեռագործ է մեր ոգևոր թիմի կողմից։ Մենք ներդնում ենք մեր սիրտը յուրաքանչյուր ստեղծագործության մեջ։", 
-  en: "Each cake is handcrafted by our passionate team. We pour our hearts into every creation because we know how much your pets mean to you.", 
-  ru: "Каждый торт создан вручную нашей командой с любовью.",
-  pl: "Każdy tort jest ręcznie wykonany przez nasz pełen pasji zespół. Wkładamy serce w każde dzieło, ponieważ wiemy, jak bardzo Twoje zwierzęta są dla Ciebie ważne."
-},
+  madeWithLoveDesc: {
+    hy: "Յուրաքանչյուր տորթ ձեռագործ է մեր ոգևոր թիմի կողմից։ Մենք ներդնում ենք մեր սիրտը յուրաքանչյուր ստեղծագործության մեջ։",
+    en: "Each cake is handcrafted by our passionate team. We pour our hearts into every creation because we know how much your pets mean to you.",
+    ru: "Каждый торт создан вручную нашей командой с любовью.",
+    pl: "Każdy tort jest ręcznie wykonany przez nasz pełen pasji zespół. Wkładamy serce w każde dzieło, ponieważ wiemy, jak bardzo Twoje zwierzęta są dla Ciebie ważne."
+  },
 
-petHappiness: { 
-  hy: "Կենդանու ուրախություն", 
-  en: "Pet Happiness", 
-  ru: "Счастье питомцев",
-  pl: "Szczęście zwierząt"
-},
+  petHappiness: {
+    hy: "Կենդանու ուրախություն",
+    en: "Pet Happiness",
+    ru: "Счастье питомцев",
+    pl: "Szczęście zwierząt"
+  },
 
-petHappinessDesc: { 
-  hy: "Մեր աշխատանքը չափվում է մեկ բանով՝ ձեր կենդանու ուրախությամբ։ Երբ պոչերը շարժվում են, մենք գիտենք՝ մեր նպատակն իրականացված է։", 
-  en: "Our ultimate goal is to see tails wagging and purrs of contentment. Your pet's joy is our greatest reward.", 
-  ru: "Наша главная цель - видеть виляющие хвосты и довольное мурлыканье.",
-  pl: "Naszym celem jest widzieć merdające ogony i zadowolone mruczenie. Radość Twojego zwierzaka jest naszą największą nagrodą."
-},
+  petHappinessDesc: {
+    hy: "Մեր աշխատանքը չափվում է մեկ բանով՝ ձեր կենդանու ուրախությամբ։ Երբ պոչերը շարժվում են, մենք գիտենք՝ մեր նպատակն իրականացված է։",
+    en: "Our ultimate goal is to see tails wagging and purrs of contentment. Your pet's joy is our greatest reward.",
+    ru: "Наша главная цель - видеть виляющие хвосты и довольное мурлыканье.",
+    pl: "Naszym celem jest widzieć merdające ogony i zadowolone mruczenie. Radość Twojego zwierzaka jest naszą największą nagrodą."
+  },
 
   // Checkout
-  cartEmpty: { 
-    hy: "Ձեր զամբյուղը դատարկ է", 
-    en: "Your cart is empty", 
+  cartEmpty: {
+    hy: "Ձեր զամբյուղը դատարկ է",
+    en: "Your cart is empty",
     ru: "Корзина пуста",
     pl: "Twój koszyk jest pusty"
   },
-  
-  cartEmptyDesc: { 
-    hy: "Ավելացրեք համեղ տորթեր ձեր զամբյուղին նախքան վճարումը։", 
-    en: "Add some delicious cakes to your cart before checking out.", 
+
+  cartEmptyDesc: {
+    hy: "Ավելացրեք համեղ տորթեր ձեր զամբյուղին նախքան վճարումը։",
+    en: "Add some delicious cakes to your cart before checking out.",
     ru: "Добавьте вкусные торты в корзину перед оформлением.",
     pl: "Dodaj kilka pysznych tortów do koszyka przed dokonaniem płatności."
   },
-  
-  browseCakes: { 
-    hy: "Դիտել տորթերը", 
-    en: "Browse Cakes", 
+
+  browseCakes: {
+    hy: "Դիտել տորթերը",
+    en: "Browse Cakes",
     ru: "Смотреть торты",
     pl: "Przeglądaj torty"
   },
-  
-  backToShop: { 
-    hy: "Վերադառնալ խանութ", 
-    en: "Back to Shop", 
+
+  backToShop: {
+    hy: "Վերադառնալ խանութ",
+    en: "Back to Shop",
     ru: "Вернуться в магазин",
     pl: "Powrót do sklepu"
   },
-  
-  orderSummary: { 
-    hy: "Պատվերի ամփոփում", 
-    en: "Order Summary", 
+
+  orderSummary: {
+    hy: "Պատվերի ամփոփում",
+    en: "Order Summary",
     ru: "Сводка заказа",
     pl: "Podsumowanie zamówienia"
   },
-  
-  total: { 
-    hy: "Ընդհանուր", 
-    en: "Total", 
+
+  total: {
+    hy: "Ընդհանուր",
+    en: "Total",
     ru: "Итого",
     pl: "Łącznie"
   },
@@ -567,6 +746,12 @@ petHappinessDesc: {
     ru: "Говядина",
     pl: "Wołowina"
   },
+  freeDeliveryHint: {
+    hy: "Եթե պատվերի ընդհանուր գինը գերազանցում է 6000֏, առաքումը Երևանում՝ անվճար",
+    en: "Free delivery in Yerevan if the total order price exceeds 6000֏",
+    ru: "Бесплатная доставка по Еревану, если общая стоимость заказа превышает 6000֏",
+    pl: "Darmowa dostawa w Erywaniu, jeśli łączna cena zamówienia przekracza 6000֏"
+  },
   chicken: {
     hy: "Հավ",
     en: "Chicken",
@@ -579,11 +764,11 @@ petHappinessDesc: {
     ru: "Рыба",
     pl: "Ryba"
   },
-  chooseMeatType: {
-    hy: "Ընտրիր մսի տեսակը",
-    en: "Choose meat type",
-    ru: "Выберите вид мяса",
-    pl: "Wybierz rodzaj mięsa"
+  chooseIngredients: {
+    hy: "Ըտերել բաղադրությունը",
+    en: "Choose ingredients",
+    ru: "Выберите ингредиенты",
+    pl: "Wybierz składniki",
   },
   chooseFruitType: {
     hy: "Ընտրիր մրգի տեսակը",
@@ -603,17 +788,84 @@ petHappinessDesc: {
     ru: "Банан",
     pl: "Banan"
   },
+  pear: {
+    hy: "Տանձ",
+    en: "Pear",
+    ru: "Груша",
+    pl: "Gruszka"
+  },
+  elderberry: {
+    hy: "Հապալաս",
+    en: "Elderberry",
+    ru: "Бузина",
+    pl: "Bez czarny"
+  },
+  strawberry: {
+    hy: "Ելակ",
+    en: "Strawberry",
+    ru: "Клубника",
+    pl: "Truskawka"
+  },
+  mango: {
+    hy: "Մանգո",
+    en: "Mango",
+    ru: "Манго",
+    pl: "Mango"
+  },
+  currency: {
+    hy: "Դրամ",
+    en: "AMD",
+    ru: "Драм",
+    pl: "dram"
+  },
+  mainPage: {
+    hy: "Գլխավոր էջ",
+    en: "Home",
+    ru: "Главная",
+    pl: "Strona główna"
+  },
   apple: {
     hy: "Խնձոր",
     en: "Apple",
     ru: "Яблоко",
     pl: "Jabłko"
   },
+  turkey: { hy: "Հնդկահավ", en: "Turkey", ru: "Индейка", pl: "Indyk" },
   carrot: {
     hy: "Գազար",
     en: "Carrot",
     ru: "Морковь",
-    pl: "Marchewka" 
+    pl: "Marchewka"
+  },
+  chooseDesign: {
+    hy: "Ընտրել դիզայնը",
+    en: "Choose a design",
+    ru: "Выберите дизайн",
+    pl: "Wybierz projekt"
+  },
+  standardDesign: {
+    hy: "Ստանդարտ դիզայն",
+    en: "Standard design",
+    ru: "Стандартный дизайн",
+    pl: "Projekt standardowy"
+  },
+  customMyDogPhotoDesign: {
+    hy: "Իմ շան լուսանկարով",
+    en: "My dog photo",
+    ru: "Фото собаки",
+    pl: "Zdjęcie psa"
+  },
+  customDesign: {
+    hy: "Անհատական դիզայն",
+    en: "Custom design",
+    ru: "Индивидуальный дизайн",
+    pl: "Projekt niestandardowy"
+  },
+  broccoli: {
+    hy: "Բռոկոլի",
+    en: "Broccoli",
+    ru: "Брокколи",
+    pl: "Brokuł"
   },
   pumpkin: {
     hy: "Դդում",
@@ -621,13 +873,61 @@ petHappinessDesc: {
     ru: "Тыква",
     pl: "Dynia"
   },
+  greenPepper: {
+    hy: "Կանաչ բիբար",
+    en: "Green Pepper",
+    ru: "Зелёный перец",
+    pl: "Zielona papryka"
+  },
+  zucchini: {
+    hy: "Դդմիկ",
+    en: "Zucchini",
+    ru: "Цуккини",
+    pl: "Cukinia"
+  },
+  cauliflower: {
+    hy: "Ծաղկակաղամբ",
+    en: "Cauliflower",
+    ru: "Цветная капуста",
+    pl: "Kalafior"
+  },
+  sweetPotato: {
+    hy: "Քաղցր կարտոֆիլ",
+    en: "Sweet Potato",
+    ru: "Сладкий картофель",
+    pl: "Słodki ziemniak"
+  },
+  spinach: {
+    hy: "Սպանախ",
+    en: "Spinach",
+    ru: "Шпинат",
+    pl: "Szpinak"
+  },
+  rice: {
+    hy: "Բրինձ",
+    en: "Rice",
+    ru: "Рис",
+    pl: "Ryż"
+  },
+  wheat: {
+    hy: "Հնդկաձավար",
+    en: "Wheat",
+    ru: "Пшеница",
+    pl: "Pszenica"
+  },
+  oats: {
+    hy: "Վարսակ",
+    en: "Oats",
+    ru: "Овсянка",
+    pl: "Owies"
+  },
   potato: {
     hy: "Կարտոֆիլ",
     en: "Potato",
     ru: "Картофель",
     pl: "Ziemniak"
   }
-  
+
 }
 
 type LanguageContextType = {
