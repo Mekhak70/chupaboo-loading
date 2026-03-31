@@ -228,7 +228,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
 🎂 ${productName}
 📦 Quantity: ${quantity}
-💰 ${t("unitPrice")}: ${price}
+💰 ${t("unitPrice")}: ${quantity * price}
 🍖 ${t("mainCakeType")}: ${cakeType ? t(cakeType) : t("notSelected")}
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
