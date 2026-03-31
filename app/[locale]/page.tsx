@@ -212,18 +212,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ORDER BUTTON */}
-        {/* <div className="container mx-auto py-10 text-center bg-white">
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center px-8 py-4 text-white font-semibold rounded-lg transition"
-            style={{ backgroundColor: "#69429a" }}
-          >
-            {t("orderNow")}
-          </a>
-        </div> */}
+     
 
         {/* FEATURES */}
         <section className="bg-white py-16 border-t">
