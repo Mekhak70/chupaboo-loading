@@ -113,7 +113,6 @@ from-primary/5
                   />
                 </div>
 
-                {/* PHONE */}
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="phone">{t("phone")}</Label>
                   <Input
