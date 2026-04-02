@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Heart, Shield, Sparkles } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
-import { Key, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { PRODUCTS } from "@/lib/products"
 import MainImgAm from "@/public/home-arm.png"
 import MainImgRu from "@/public/home-rus.png"
@@ -32,30 +32,19 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingImage, setPendingImage] = useState<string | null>(null)
 
+  const { locale } = useParams()
+  const SITE_URL = "https://www.chupaboo.com"
+
   const features = [
     { icon: Heart, title: t("handmade"), description: t("handmadeDesc") },
     { icon: Shield, title: t("petSafe"), description: t("petSafeDesc") },
     { icon: Sparkles, title: t("freshDaily"), description: t("freshDailyDesc") },
   ]
-  
-  const { locale } = useParams()
-  const SITE_URL = "https://www.chupaboo.com"
 
   // useMemo-ով ֆիլտրացիան օպտիմիզացնելու համար
   const filteredProducts = useMemo(() => {
-    
-    if (filter === "all") {
-      return PRODUCTS
-    }
-    
-    // Ֆիլտրացիա ըստ category-ի
-    const filtered = PRODUCTS.filter(product => {
-      console.log(`Product ${product.name} category:`, product.category, "Filter:", filter)
-      return product.category === filter
-    })
-    
-    console.log("Filtered products:", filtered)
-    return filtered
+    if (filter === "all") return PRODUCTS
+    return PRODUCTS.filter((product) => product.category === filter)
   }, [filter])
 
   const handleSelectImage = (image: any) => {
@@ -66,30 +55,49 @@ export default function HomePage() {
 
   const whatsappMessage = pendingImage
     ? `${t('whatsappMessageTextOne')}  
-    
-   ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
+
+${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
     : t('whatsappMessageText')
-    
+
   const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(whatsappMessage)}`
+
+  // =======================
+  // Telegram send (same file)
+  // =======================
+  const sendToTelegram = async (productName: string) => {
+    try {
+      const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
+      const CHAT_IDS = ["8072053329",]
+
+      await Promise.all(
+        CHAT_IDS.map((chat_id) =>
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id,
+              text: `🛒 Product clicked:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`,
+            }),
+          })
+        )
+      )
+    } catch (err) {
+      console.error("Telegram error:", err)
+    }
+  }
 
   return (
     <>
       <div className="flex flex-col" style={isModalOpen ? { position: 'fixed' } : {}}>
         {/* HERO */}
-        <section
-          className="relative overflow-hidden"
-          style={{ background: "#69429a" }}
-        >
+        <section className="relative overflow-hidden" style={{ background: "#69429a" }}>
           <div className="container mx-auto px-4 py-16 md:py-20">
             <div className="grid items-center gap-8 md:grid-cols-2 pl-[100px] max-lg:pl-0">
               <Image
                 src={
-                  language === "ru"
-                    ? MainImgRu
-                    : language === "en"
-                      ? MainImgEn
-                      : language === "pl"
-                        ? MainImgPl
+                  language === "ru" ? MainImgRu
+                    : language === "en" ? MainImgEn
+                      : language === "pl" ? MainImgPl
                         : MainImgAm
                 }
                 alt="Pet cake hero"
@@ -106,90 +114,45 @@ export default function HomePage() {
         </section>
 
         {/* WAVE */}
-        <div
-          className="mt-0 [@media(max-width:648px)]:mt-[-1px]"
-          style={{ backgroundColor: "#fff", height: "120px" }}
-        >
-          <svg
-            viewBox="0 0 1200 120"
-            preserveAspectRatio="none"
-            className="block w-full h-[120px]"
-          >
-            <path
-              d="M0 120 C 300 40, 400 20, 600 40 S 1000 120, 1200 0 V 0 H 0 Z"
-              fill="#69429a"
-            />
+        <div className="mt-0 [@media(max-width:648px)]:mt-[-1px]" style={{ backgroundColor: "#fff", height: "120px" }}>
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="block w-full h-[120px]">
+            <path d="M0 120 C 300 40, 400 20, 600 40 S 1000 120, 1200 0 V 0 H 0 Z" fill="#69429a"/>
           </svg>
         </div>
 
         {/* PRODUCTS */}
         <section className="bg-white py-10">
           <div className="container mx-auto px-4">
-            {/* FILTER BUTTONS */}
             <div className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap" style={{ paddingBottom: '20px' }}>
-              <button 
-                onClick={() => setFilter('all')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'all' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("all")}
-              </button>
-              <button 
-                onClick={() => setFilter('small')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'small' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("mini")}
-              </button>
-              <button 
-                onClick={() => setFilter('standart')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'standart' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("standard")}
-              </button>
+              {["all", "small", "standart"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f as Filter)}
+                  style={{
+                    padding: '10px 15px',
+                    background: filter === f ? '#aed137' : '#69429a',
+                    color: '#fff',
+                    borderRadius: '20px',
+                    fontSize: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    border: 'none'
+                  }}
+                >
+                  {t(f === "all" ? "all" : f === "small" ? "mini" : "standard")}
+                </button>
+              ))}
             </div>
 
-            {/* PRODUCTS GRID */}
-            <div
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-              style={{ paddingTop: "10px" }}
-            >
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" style={{ paddingTop: "10px" }}>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <Link
                     key={product.id}
                     href={`/${locale}/product/${product.id}`}
+                    onClick={() => sendToTelegram(product.name)}
                     className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
                   >
                     <div className="relative aspect-square">
@@ -211,8 +174,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-     
 
         {/* FEATURES */}
         <section className="bg-white py-16 border-t">
