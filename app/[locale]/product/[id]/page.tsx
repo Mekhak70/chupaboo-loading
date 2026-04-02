@@ -11,7 +11,7 @@ import { notFound } from "next/navigation"
 type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | ""
 type CreamType = "DAIRY" | "PLANTBASEDMILK" | "PLANTBASED" | ""
 type DesignType = "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | 'NAME_TEXT' | ""
-type PaymentMethod = "CASH" | "CARD" | "BANK_TRANSFER"
+type PaymentMethod = "cash" | "CARD" | "bankTransfer" | ""
 
 interface ValidationErrors {
     cakeType?: string;
@@ -49,11 +49,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [deliveryDate, setDeliveryDate] = useState("");
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [deliveryTime, setDeliveryTime] = useState("");
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
     // Validation errors state
     const [errors, setErrors] = useState<ValidationErrors>({});
-
+console.log(paymentMethod,'paymentMethod')
     const fileInputRef = useRef<HTMLInputElement>(null);
     const product = getProductById(id)
     const [price, setPrice] = useState<number>(product ? product.priceInCents : 0)
@@ -213,7 +213,7 @@ ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : "
 📅 ${t("deliveryDate")}: ${deliveryDate || t("notProvided")}
 📍 ${t("deliveryAddress")}: ${deliveryAddress || t("notProvided")}
 ⏰ ${t("preferredDeliveryTime")}: ${deliveryTime || t("notProvided")}
-💳 ${t("paymentMethod")}: ${paymentMethod ? t(paymentMethod.toLowerCase()) : t("notSelected")}
+💳 ${t("paymentMethod")}: ${t(paymentMethod)}
 
 ${SITE_URL}/${language}/product/${product.id}`
 
@@ -235,11 +235,11 @@ ${SITE_URL}/${language}/product/${product.id}`
         const textMessage = encodeURIComponent(whatsappMessage);
 
         // If there's a photo for CUSTOM_PHOTO
-        
-            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
-            window.open(whatsappUrl, '_blank');
-            setIsSending(false);
-        
+
+        const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
+        window.open(whatsappUrl, '_blank');
+        setIsSending(false);
+
     };
 
     // Helper function to convert file to base64
@@ -276,7 +276,7 @@ ${SITE_URL}/${language}/product/${product.id}`
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             showToast(t("photoDownloaded") || "📸 Photo downloaded! Please attach it in WhatsApp");
         }
     };
@@ -301,7 +301,7 @@ ${SITE_URL}/${language}/product/${product.id}`
             animation: slideUp 0.3s ease;
         `;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.style.animation = 'slideDown 0.3s ease';
             setTimeout(() => toast.remove(), 300);
@@ -855,34 +855,33 @@ ${SITE_URL}/${language}/product/${product.id}`
                         </div>
 
                         <div id="error-deliveryDate">
-  <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-    <Calendar className="w-5 h-5" />
-    {t("deliveryDate")}
-  </p>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
+                                <Calendar className="w-5 h-5" />
+                                {t("deliveryDate")}
+                            </p>
 
-  <div className="relative">
-    <input
-      type="date"
-      value={deliveryDate}
-      onChange={(e) => {
-        setDeliveryDate(e.target.value);
-        if (e.target.value) {
-          clearFieldError('deliveryDate');
-        }
-      }}
-      min={getMinDate()}
-      max={getMaxDate()}
-      className={`w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${
-        errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
-      }`}
-      required
-    />
-  </div>
+                            <div className="relative">
+                                <input
+                                    type="date"
+                                    value={deliveryDate}
+                                    onChange={(e) => {
+                                        setDeliveryDate(e.target.value);
+                                        if (e.target.value) {
+                                            clearFieldError('deliveryDate');
+                                        }
+                                    }}
+                                    min={getMinDate()}
+                                    max={getMaxDate()}
+                                    className={`w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    required
+                                />
+                            </div>
 
-  {errors.deliveryDate && (
-    <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>
-  )}
-</div>
+                            {errors.deliveryDate && (
+                                <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>
+                            )}
+                        </div>
 
                         <div id="error-deliveryAddress">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
@@ -942,10 +941,10 @@ ${SITE_URL}/${language}/product/${product.id}`
                             <div className="flex flex-wrap gap-3">
                                 <button
                                     onClick={() => {
-                                        setPaymentMethod("CASH");
+                                        setPaymentMethod("cash");
                                         clearFieldError('paymentMethod');
                                     }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "CASH"
+                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "cash"
                                         ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
                                         : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
                                         }`}
@@ -955,10 +954,10 @@ ${SITE_URL}/${language}/product/${product.id}`
 
                                 <button
                                     onClick={() => {
-                                        setPaymentMethod("BANK_TRANSFER");
+                                        setPaymentMethod("bankTransfer");
                                         clearFieldError('paymentMethod');
                                     }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "BANK_TRANSFER"
+                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "bankTransfer"
                                         ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105"
                                         : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"
                                         }`}
@@ -1052,7 +1051,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                                     <span className="text-[#aed137]">✓</span>
                                     {t('safeIngredients')}
                                 </li>
-                                
+
                                 <li className="flex items-center gap-2">
                                     <span className="text-[#aed137]">✓</span>
                                     {t('freshDaily2')}
