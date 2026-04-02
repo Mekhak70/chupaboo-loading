@@ -130,20 +130,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             isValid = false;
         }
 
-        if (designType === "NAME_TEXT" && !petName.trim()) {
-            newErrors.petName = t("petNameRequired") || "Please enter pet name";
-            isValid = false;
-        }
 
         if (designType === "CUSTOM_TEXT" && !customText.trim()) {
             newErrors.customText = t("customTextRequired") || "Please enter custom text";
             isValid = false;
         }
 
-        if (designType === "CUSTOM_PHOTO" && !customImageFile) {
-            newErrors.customImage = t("photoRequired") || "Please upload a photo";
-            isValid = false;
-        }
+        // if (designType === "CUSTOM_PHOTO" && !customImageFile) {
+        //     newErrors.customImage = t("photoRequired") || "Please upload a photo";
+        //     isValid = false;
+        // }
 
         const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
         if (!phoneNumber.trim()) {
@@ -208,8 +204,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
 🥬 ${t("ingredients")}: ${getSelectedVegetablesForMessage()}
-🎨 ${t("designType")}: ${designType ? t(designType.toLowerCase()) : t("notSelected")}
-${designType === "CUSTOM_PHOTO" ? `📸 ${t("customPhoto")}: ${t("uploaded")}` : ""}
+🎨 ${t("designType")}: ${designType !== "CUSTOM_PHOTO" ? t(designType.toLowerCase()) : t("customMyDogPhotoDesign")}
 ${designType === "CUSTOM_TEXT" ? `✏️ ${t("customText")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
@@ -240,44 +235,11 @@ ${SITE_URL}/${language}/product/${product.id}`
         const textMessage = encodeURIComponent(whatsappMessage);
 
         // If there's a photo for CUSTOM_PHOTO
-        if (designType === "CUSTOM_PHOTO" && customImageFile) {
-            try {
-                // Convert image to base64
-                const base64Image = await fileToBase64(customImageFile);
-                
-                // Create a temporary anchor element for the image
-                const imageUrl = URL.createObjectURL(customImageFile);
-                
-                // Open WhatsApp with text first
-                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
-                const whatsappWindow = window.open(whatsappUrl, '_blank');
-                
-                // Small delay to ensure WhatsApp opens
-                setTimeout(() => {
-                    // Try to send via clipboard for image
-                    copyImageToClipboard(customImageFile).then(() => {
-                        // Show a subtle tooltip that image is ready to paste
-                        showToast(t("imageReadyToPaste") || "📸 Image copied! Press Ctrl+V in WhatsApp chat");
-                    }).catch(() => {
-                        // If clipboard fails, offer download
-                        downloadImageAndNotify(customImage);
-                    });
-                    
-                    setIsSending(false);
-                }, 1500);
-                
-            } catch (error) {
-                console.error("Error sending photo:", error);
-                // Fallback: open WhatsApp without photo
-                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
-                window.open(whatsappUrl, '_blank');
-                setIsSending(false);
-            }
-        } else {
+        
             const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
             window.open(whatsappUrl, '_blank');
             setIsSending(false);
-        }
+        
     };
 
     // Helper function to convert file to base64
@@ -798,7 +760,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                                     </div>
                                 )}
 
-                                {designType === "CUSTOM_PHOTO" && (
+                                {/* {designType === "CUSTOM_PHOTO" && (
                                     <div id="error-customImage">
                                         <p className="text-lg font-semibold text-[#69429a] mb-3">
                                             {t("uploadPetPhoto")}
@@ -839,7 +801,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                                             <p className="text-red-500 text-sm mt-2">{errors.customImage}</p>
                                         )}
                                     </div>
-                                )}
+                                )} */}
 
                                 {designType === "CUSTOM_TEXT" && (
                                     <div id="error-customText">
@@ -1082,15 +1044,16 @@ ${SITE_URL}/${language}/product/${product.id}`
                             <ul className="space-y-2 text-gray-600">
                                 <li className="flex items-center gap-2">
                                     <span className="text-[#aed137]">✓</span>
-                                    {t('handmade1')}
+                                    {t('safeIngredients')}
                                 </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="text-[#aed137]">✓</span>
-                                    {t('petSafe1')}
-                                </li>
+                                
                                 <li className="flex items-center gap-2">
                                     <span className="text-[#aed137]">✓</span>
                                     {t('freshDaily2')}
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-[#aed137]">✓</span>
+                                    {t('madeWithLove')}
                                 </li>
                             </ul>
                         </div>

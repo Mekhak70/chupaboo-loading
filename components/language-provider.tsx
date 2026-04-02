@@ -693,10 +693,10 @@ petNameLabel: {
   },
 
   madeWithLove: {
-    hy: "Սիրով պատրաստված",
-    en: "Made with Love",
+    hy: "Պատրաստված է սիրով",
+    en: "Made with love",
     ru: "Сделано с любовью",
-    pl: "Wykonane z miłością"
+    pl: "Zrobione z miłością"
   },
 
   madeWithLoveDesc: {
@@ -908,6 +908,12 @@ petNameLabel: {
     en: "Broccoli",
     ru: "Брокколи",
     pl: "Brokuł"
+  },
+  safeIngredients: {
+    hy: "Անվտանգ բաղադրիչներ",
+    en: "Safe ingredients",
+    ru: "Безопасные ингредиенты",
+    pl: "Bezpieczne składniki"
   },
   pumpkin: {
     hy: "Դդում",
