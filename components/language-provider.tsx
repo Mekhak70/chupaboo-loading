@@ -105,6 +105,12 @@ export const translations: Translations = {
     ru: "Пожалуйста, введите адрес доставки",
     pl: "Proszę wpisać adres dostawy"
   },
+  priceDependsOnComponentsAndDesign: {
+    hy: "Գինը փոխվում է կախված բաղադրիչներից և դիզայնից",
+    en: "The price varies depending on the components and design",
+    ru: "Цена меняется в зависимости от компонентов и дизайна",
+    pl: "Cena zmienia się w zależności od komponentów i projektu"
+  },
   deliveryTimeRequired: {
     hy: "Ընտրեք նախընտրելի առաքման ժամը",
     en: "Please select a preferred delivery time",

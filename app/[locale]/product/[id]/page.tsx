@@ -184,7 +184,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             today.setHours(0, 0, 0, 0);
             const maxDate = new Date();
             maxDate.setDate(maxDate.getDate() + 30);
-            
+
             if (selectedDate < today) {
                 newErrors.deliveryDate = t("deliveryDatePast") || "Delivery date cannot be in the past";
                 isValid = false;
@@ -300,7 +300,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                 setCustomImage(reader.result as string);
             };
             reader.readAsDataURL(file);
-            
+
             // Clear error if exists
             clearFieldError('customImage');
         }
@@ -338,7 +338,7 @@ ${SITE_URL}/${language}/product/${product.id}`
 
             setSelectedVegetables(updated);
         }
-        
+
         // Clear error
         clearFieldError('selectedVegetables');
     };
@@ -940,19 +940,34 @@ ${SITE_URL}/${language}/product/${product.id}`
                                 </button>
                             </div>
                         </div>
-<div   style={{
-    position: 'sticky',
-    bottom: '20px',
-    zIndex: 50,
-    marginTop: 'auto',
-    backgroundColor: 'white',
-    borderRadius: '1rem',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    padding: '1rem'
-  }}>
-                        <div className="text-3xl font-bold text-[#69429a]">
-                            {price * quantity} {t("currency")}
-                        </div>
+                        <div style={{
+                            position: 'sticky',
+                            bottom: '20px',
+                            zIndex: 50,
+                            marginTop: 'auto',
+                            backgroundColor: 'white',
+                            borderRadius: '1rem',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                            padding: '1rem',
+                            border: '1px solid rgba(105, 66, 154, 0.1)'
+                        }}>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    
+                                    <div className="text-3xl font-bold text-[#69429a]">
+                                        {price * quantity} {t("currency")}
+                                        <sup className="text-sm font-normal text-gray-400 ml-1">*</sup>
+                                    </div>
+                                </div>
+                               
+                            </div>
+
+                            <div className="mt-3 pt-2 border-t border-dashed border-gray-200 flex items-start gap-1">
+                                <span className="text-[#69429a] text-sm font-bold">*</span>
+                                <span className="text-xs text-gray-400">
+                                {t("priceDependsOnComponentsAndDesign")}
+                                </span>
+                            </div>
                         </div>
 
                         <button
