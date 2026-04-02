@@ -654,6 +654,30 @@ petNameLabel: {
     ru: "Качество прежде всего",
     pl: "Jakość przede wszystkim"
   },
+  quantity: {
+    hy: "Քանակ",
+    en: "Quantity",
+    ru: "Количество",
+    pl: "Ilość"
+  },
+  meatType: {
+    hy: "Մսի տեսակը",
+    en: "Meat type",
+    ru: "Тип мяса",
+    pl: "Rodzaj mięsa"
+  },
+  ingredients: {
+    hy: "Բաղադրիչներ",
+    en: "Ingredients",
+    ru: "Ингредиенты",
+    pl: "Składniki"
+  },
+  designType: {
+    hy: "Դիզայնի տեսակը",
+    en: "Design type",
+    ru: "Тип дизайна",
+    pl: "Typ projektu"
+  },
   chooseMeatType: {
     hy: "Ըտերել մսի տեսակը",
     en: "Choose meat type",
@@ -744,6 +768,18 @@ petNameLabel: {
     en: "Lamb",
     ru: "Баранина",
     pl: "Jagnięcina"
+  },
+  price: {
+    hy: "Գինը",
+    en: "Price",
+    ru: "Цена",
+    pl: "Cena"
+  },
+  mainCakeType: {
+    hy: "Տորթի հիմնական տեսակը",
+    en: "Main cake type",
+    ru: "Основной тип торта",
+    pl: "Główny typ tortu"
   },
 
   beef: {

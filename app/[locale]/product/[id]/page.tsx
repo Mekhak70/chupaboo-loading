@@ -42,6 +42,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [customImageFile, setCustomImageFile] = useState<File | null>(null);
     const [customText, setCustomText] = useState("");
     const [petName, setPetName] = useState("");
+    const [isSending, setIsSending] = useState(false);
 
     // Additional fields
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -73,15 +74,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     ? product.name
                     : product.name
 
-    const productDescription =
-        language === "hy"
-            ? product.description
-            : language === "ru"
-                ? product.description
-                : language === "pl"
-                    ? product.description
-                    : product.description
-
     const getSelectedVegetablesForMessage = () => {
         if (selectedVegetables.length === 0) return t("notSelected")
         return selectedVegetables.map(v => t(v.toLowerCase())).join(", ")
@@ -92,7 +84,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         return t(selectedAnimal.toLowerCase())
     }
 
-    // Get minimum date (today)
     const getMinDate = () => {
         const today = new Date();
         const year = today.getFullYear();
@@ -101,7 +92,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         return `${year}-${month}-${day}`;
     };
 
-    // Get maximum date (30 days from now)
     const getMaxDate = () => {
         const maxDate = new Date();
         maxDate.setDate(maxDate.getDate() + 30);
@@ -111,60 +101,50 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         return `${year}-${month}-${day}`;
     };
 
-    // Validation function
     const validateForm = (): boolean => {
         const newErrors: ValidationErrors = {};
         let isValid = true;
 
-        // Validate cakeType
         if (!cakeType) {
             newErrors.cakeType = t("cakeTypeRequired") || "Please select cake type";
             isValid = false;
         }
 
-        // Validate creamType
         if (!creamType) {
             newErrors.creamType = t("creamTypeRequired") || "Please select cream type";
             isValid = false;
         }
 
-        // Validate selected vegetables
         if (selectedVegetables.length === 0) {
             newErrors.selectedVegetables = t("ingredientsRequired") || "Please select at least one ingredient";
             isValid = false;
         }
 
-        // Validate selected animal for MEAT cakes
         if (cakeType === "MEAT" && !selectedAnimal) {
             newErrors.selectedAnimal = t("meatTypeRequired") || "Please select meat type";
             isValid = false;
         }
 
-        // Validate design type for non-small products
         if (product.category !== 'small' && !designType) {
             newErrors.designType = t("designTypeRequired") || "Please select design type";
             isValid = false;
         }
 
-        // Validate pet name for NAME_TEXT design
         if (designType === "NAME_TEXT" && !petName.trim()) {
             newErrors.petName = t("petNameRequired") || "Please enter pet name";
             isValid = false;
         }
 
-        // Validate custom text for CUSTOM_TEXT design
         if (designType === "CUSTOM_TEXT" && !customText.trim()) {
             newErrors.customText = t("customTextRequired") || "Please enter custom text";
             isValid = false;
         }
 
-        // Validate custom image for CUSTOM_PHOTO design
         if (designType === "CUSTOM_PHOTO" && !customImageFile) {
             newErrors.customImage = t("photoRequired") || "Please upload a photo";
             isValid = false;
         }
 
-        // Validate phone number
         const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
         if (!phoneNumber.trim()) {
             newErrors.phoneNumber = t("phoneNumberRequired") || "Please enter phone number";
@@ -174,7 +154,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             isValid = false;
         }
 
-        // Validate delivery date
         if (!deliveryDate) {
             newErrors.deliveryDate = t("deliveryDateRequired") || "Please select delivery date";
             isValid = false;
@@ -194,7 +173,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             }
         }
 
-        // Validate delivery address
         if (!deliveryAddress.trim()) {
             newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address";
             isValid = false;
@@ -203,13 +181,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             isValid = false;
         }
 
-        // Validate delivery time
         if (!deliveryTime) {
             newErrors.deliveryTime = t("deliveryTimeRequired") || "Please select delivery time";
             isValid = false;
         }
 
-        // Validate payment method
         if (!paymentMethod) {
             newErrors.paymentMethod = t("paymentMethodRequired") || "Please select payment method";
             isValid = false;
@@ -219,7 +195,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         return isValid;
     };
 
-    // Clear error for a specific field when user starts typing/selecting
     const clearFieldError = (field: keyof ValidationErrors) => {
         setErrors(prev => ({ ...prev, [field]: undefined }));
     };
@@ -227,14 +202,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const whatsappMessage = `${t("whatsappMessageTextOne")}
 
 🎂 ${productName}
-📦 Quantity: ${quantity}
-💰 ${t("unitPrice")}: ${quantity * price}
+📦 ${t("quantity")}: ${quantity}
+💰 ${t("price")}: ${quantity * price} ${t("currency")}
 🍖 ${t("mainCakeType")}: ${cakeType ? t(cakeType) : t("notSelected")}
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
 🥬 ${t("ingredients")}: ${getSelectedVegetablesForMessage()}
 🎨 ${t("designType")}: ${designType ? t(designType.toLowerCase()) : t("notSelected")}
-${designType === "CUSTOM_PHOTO" ? `📸 ${t("customPhoto")}: ${customImage ? t("uploaded") : t("notUploaded")}` : ""}
+${designType === "CUSTOM_PHOTO" ? `📸 ${t("customPhoto")}: ${t("uploaded")}` : ""}
 ${designType === "CUSTOM_TEXT" ? `✏️ ${t("customText")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
@@ -247,11 +222,9 @@ ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : "
 
 ${SITE_URL}/${language}/product/${product.id}`
 
-    // WhatsApp-ի հղումը տեքստով և նկարի ֆայլով
-    const handleWhatsAppOrder = () => {
-        // Validate form before sending
+    // Send to WhatsApp with photo
+    const handleWhatsAppOrder = async () => {
         if (!validateForm()) {
-            // Scroll to first error
             const firstErrorField = Object.keys(errors)[0];
             if (firstErrorField) {
                 const element = document.getElementById(`error-${firstErrorField}`);
@@ -262,23 +235,115 @@ ${SITE_URL}/${language}/product/${product.id}`
             return;
         }
 
+        setIsSending(true);
+
         const textMessage = encodeURIComponent(whatsappMessage);
 
+        // If there's a photo for CUSTOM_PHOTO
         if (designType === "CUSTOM_PHOTO" && customImageFile) {
-            const formData = new FormData();
-            formData.append('file', customImageFile);
-            formData.append('text', whatsappMessage);
-
-            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
-            window.open(whatsappUrl, '_blank');
-
-            setTimeout(() => {
-                alert(t("photoSendReminder") || "Please send the photo separately in the chat after opening WhatsApp");
-            }, 1000);
+            try {
+                // Convert image to base64
+                const base64Image = await fileToBase64(customImageFile);
+                
+                // Create a temporary anchor element for the image
+                const imageUrl = URL.createObjectURL(customImageFile);
+                
+                // Open WhatsApp with text first
+                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
+                const whatsappWindow = window.open(whatsappUrl, '_blank');
+                
+                // Small delay to ensure WhatsApp opens
+                setTimeout(() => {
+                    // Try to send via clipboard for image
+                    copyImageToClipboard(customImageFile).then(() => {
+                        // Show a subtle tooltip that image is ready to paste
+                        showToast(t("imageReadyToPaste") || "📸 Image copied! Press Ctrl+V in WhatsApp chat");
+                    }).catch(() => {
+                        // If clipboard fails, offer download
+                        downloadImageAndNotify(customImage);
+                    });
+                    
+                    setIsSending(false);
+                }, 1500);
+                
+            } catch (error) {
+                console.error("Error sending photo:", error);
+                // Fallback: open WhatsApp without photo
+                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
+                window.open(whatsappUrl, '_blank');
+                setIsSending(false);
+            }
         } else {
             const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
             window.open(whatsappUrl, '_blank');
+            setIsSending(false);
         }
+    };
+
+    // Helper function to convert file to base64
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
+
+    // Helper function to copy image to clipboard
+    const copyImageToClipboard = async (file: File): Promise<void> => {
+        try {
+            const blob = new Blob([await file.arrayBuffer()], { type: file.type });
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]);
+        } catch (error) {
+            console.error("Clipboard API error:", error);
+            throw error;
+        }
+    };
+
+    // Download image and show notification
+    const downloadImageAndNotify = (imageSrc: string | null) => {
+        if (imageSrc) {
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            link.download = `pet-photo-${Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast(t("photoDownloaded") || "📸 Photo downloaded! Please attach it in WhatsApp");
+        }
+    };
+
+    // Simple toast notification
+    const showToast = (message: string) => {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #25D366;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 10000;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideUp 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideDown 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -301,7 +366,6 @@ ${SITE_URL}/${language}/product/${product.id}`
             };
             reader.readAsDataURL(file);
 
-            // Clear error if exists
             clearFieldError('customImage');
         }
     };
@@ -339,7 +403,6 @@ ${SITE_URL}/${language}/product/${product.id}`
             setSelectedVegetables(updated);
         }
 
-        // Clear error
         clearFieldError('selectedVegetables');
     };
 
@@ -391,6 +454,35 @@ ${SITE_URL}/${language}/product/${product.id}`
         setPrice(finalPrice);
     }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product.category, designType]);
 
+    // Add animation styles
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+            @keyframes slideDown {
+                from {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => style.remove();
+    }, []);
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="bg-[#69429a] text-white py-4">
@@ -433,6 +525,8 @@ ${SITE_URL}/${language}/product/${product.id}`
                                     onClick={() => {
                                         setCakeType("MEAT");
                                         clearFieldError('cakeType');
+                                        setSelectedVegetables(['POTATO', 'CARROT']);
+
                                     }}
                                     className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "MEAT"
                                         ? "bg-[#ef4f27] text-white border-[#ef4f27] shadow-md scale-105"
@@ -444,6 +538,7 @@ ${SITE_URL}/${language}/product/${product.id}`
 
                                 <button
                                     onClick={() => {
+                                        setSelectedVegetables(['BANANA', 'APPLE']);
                                         setCakeType("FRUIT");
                                         clearFieldError('cakeType');
                                     }}
@@ -743,11 +838,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                                         {errors.customImage && (
                                             <p className="text-red-500 text-sm mt-2">{errors.customImage}</p>
                                         )}
-                                        {customImage && (
-                                            <p className="text-xs text-green-600 mt-2">
-                                                ✓ {t("photoReady")} {t("photoSendReminder")}
-                                            </p>
-                                        )}
                                     </div>
                                 )}
 
@@ -779,7 +869,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                             </>
                         )}
 
-                        {/* Phone Number Field */}
                         <div id="error-phoneNumber">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                                 <Phone className="w-5 h-5" />
@@ -803,7 +892,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                             )}
                         </div>
 
-                        {/* Delivery Date Field */}
                         <div id="error-deliveryDate">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                                 <Calendar className="w-5 h-5" />
@@ -828,7 +916,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                             )}
                         </div>
 
-                        {/* Delivery Address Field */}
                         <div id="error-deliveryAddress">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                                 <MapPin className="w-5 h-5" />
@@ -852,7 +939,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                             )}
                         </div>
 
-                        {/* Preferred Delivery Time Field */}
                         <div id="error-deliveryTime">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                                 <Clock className="w-5 h-5" />
@@ -880,7 +966,6 @@ ${SITE_URL}/${language}/product/${product.id}`
                             )}
                         </div>
 
-                        {/* Payment Method Field */}
                         <div id="error-paymentMethod">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                                 <CreditCard className="w-5 h-5" />
@@ -940,6 +1025,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                                 </button>
                             </div>
                         </div>
+
                         <div style={{
                             position: 'sticky',
                             bottom: '20px',
@@ -953,29 +1039,36 @@ ${SITE_URL}/${language}/product/${product.id}`
                         }}>
                             <div className="flex justify-between items-end">
                                 <div>
-                                    
                                     <div className="text-3xl font-bold text-[#69429a]">
                                         {price * quantity} {t("currency")}
                                         <sup className="text-sm font-normal text-gray-400 ml-1">*</sup>
                                     </div>
                                 </div>
-                               
                             </div>
-
                             <div className="mt-3 pt-2 border-t border-dashed border-gray-200 flex items-start gap-1">
                                 <span className="text-[#69429a] text-sm font-bold">*</span>
                                 <span className="text-xs text-gray-400">
-                                {t("priceDependsOnComponentsAndDesign")}
+                                    {t("priceDependsOnComponentsAndDesign")}
                                 </span>
                             </div>
                         </div>
 
                         <button
                             onClick={handleWhatsAppOrder}
-                            className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#25D366] text-white font-semibold rounded-xl hover:bg-[#1da851] transition-colors text-lg cursor-pointer"
+                            disabled={isSending}
+                            className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#69429a] text-white font-semibold rounded-xl hover:bg-[#aed137] transition-colors text-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            <MessageCircle className="w-6 h-6" />
-                            {t("orderViaWhatsApp")}
+                            {isSending ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    {t("sending") || "Sending..."}
+                                </>
+                            ) : (
+                                <>
+                                    {/* <MessageCircle className="w-6 h-6" /> */}
+                                    {t("orderNow")}
+                                </>
+                            )}
                         </button>
 
                         <p className="mt-2 text-gray-700 italic text-sm">
