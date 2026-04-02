@@ -855,28 +855,34 @@ ${SITE_URL}/${language}/product/${product.id}`
                         </div>
 
                         <div id="error-deliveryDate">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <Calendar className="w-5 h-5" />
-                                {t("deliveryDate")}
-                            </p>
-                            <input
-                                type="date"
-                                value={deliveryDate}
-                                onChange={(e) => {
-                                    setDeliveryDate(e.target.value);
-                                    if (e.target.value) {
-                                        clearFieldError('deliveryDate');
-                                    }
-                                }}
-                                min={getMinDate()}
-                                max={getMaxDate()}
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryDate ? 'border-red-500' : 'border-gray-300'}`}
-                                required
-                            />
-                            {errors.deliveryDate && (
-                                <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>
-                            )}
-                        </div>
+  <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
+    <Calendar className="w-5 h-5" />
+    {t("deliveryDate")}
+  </p>
+
+  <div className="relative">
+    <input
+      type="date"
+      value={deliveryDate}
+      onChange={(e) => {
+        setDeliveryDate(e.target.value);
+        if (e.target.value) {
+          clearFieldError('deliveryDate');
+        }
+      }}
+      min={getMinDate()}
+      max={getMaxDate()}
+      className={`w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${
+        errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
+      }`}
+      required
+    />
+  </div>
+
+  {errors.deliveryDate && (
+    <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>
+  )}
+</div>
 
                         <div id="error-deliveryAddress">
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
