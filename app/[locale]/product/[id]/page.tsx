@@ -940,9 +940,19 @@ ${SITE_URL}/${language}/product/${product.id}`
                                 </button>
                             </div>
                         </div>
-
+<div   style={{
+    position: 'sticky',
+    bottom: '20px',
+    zIndex: 50,
+    marginTop: 'auto',
+    backgroundColor: 'white',
+    borderRadius: '1rem',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    padding: '1rem'
+  }}>
                         <div className="text-3xl font-bold text-[#69429a]">
                             {price * quantity} {t("currency")}
+                        </div>
                         </div>
 
                         <button
