@@ -46,10 +46,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     // Additional fields
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [deliveryDate, setDeliveryDate] = useState("");
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [deliveryTime, setDeliveryTime] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toISOString().split("T")[0]; // YYYY-MM-DD
+      };
+      
+      const [deliveryDate, setDeliveryDate] = useState(getTodayDate());
 
     // Validation errors state
     const [errors, setErrors] = useState<ValidationErrors>({});
@@ -205,7 +210,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
 🥬 ${t("ingredients")}: ${getSelectedVegetablesForMessage()}
 🎨 ${t("designType")}: ${designType !== "CUSTOM_PHOTO" ? t(designType.toLowerCase()) : t("customMyDogPhotoDesign")}
-${designType === "CUSTOM_TEXT" ? `✏️ ${t("customText")}: ${customText || t("notProvided")}` : ""}
+${designType === "CUSTOM_TEXT" ? `✏️ ${t("customDesign")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
 📞 ${t("phoneNumber")}: ${phoneNumber || t("notProvided")}

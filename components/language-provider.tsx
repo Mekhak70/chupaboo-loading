@@ -626,7 +626,6 @@ petNameLabel: {
     pl: "Wybrane"
   },
 
-
   happyPets: {
     hy: "Ուրախ պահեր",
     en: "Happy Pets",
