@@ -53,7 +53,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     // Validation errors state
     const [errors, setErrors] = useState<ValidationErrors>({});
-console.log(paymentMethod,'paymentMethod')
+    console.log(paymentMethod, 'paymentMethod')
     const fileInputRef = useRef<HTMLInputElement>(null);
     const product = getProductById(id)
     const [price, setPrice] = useState<number>(product ? product.priceInCents : 0)
@@ -208,7 +208,6 @@ console.log(paymentMethod,'paymentMethod')
 ${designType === "CUSTOM_TEXT" ? `✏️ ${t("customText")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
-
 📞 ${t("phoneNumber")}: ${phoneNumber || t("notProvided")}
 📅 ${t("deliveryDate")}: ${deliveryDate || t("notProvided")}
 📍 ${t("deliveryAddress")}: ${deliveryAddress || t("notProvided")}
@@ -447,17 +446,16 @@ ${SITE_URL}/${language}/product/${product.id}`
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="bg-[#69429a] text-white py-4">
-                <div className="container mx-auto px-4">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-white hover:text-white/80 transition-colors"
-                    >
+            <Link
+                href="/"
+                className="flex items-center gap-2 text-white hover:text-white/80 transition-colors w-full bg-[#69429a]"
+            >
+                <div className="bg-[#69429a] text-white py-4">
+                    <div className="container mx-auto px-4 flex">
                         <ArrowLeft className="w-5 h-5" />
                         <span>{t("mainPage")}</span>
-                    </Link>
-                </div>
-            </div>
+                    </div>
+                </div></Link>
 
             <div className="container mx-auto px-4 py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">

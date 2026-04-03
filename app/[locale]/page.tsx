@@ -152,7 +152,11 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
                   <Link
                     key={product.id}
                     href={`/${locale}/product/${product.id}`}
-                    onClick={() => sendToTelegram(product.name)}
+                    onClick={() => {
+                      setTimeout(() => {
+                        sendToTelegram(product.name);
+                      }, 0);
+                    }}
                     className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
                   >
                     <div className="relative aspect-square">
