@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Heart, Shield, Sparkles } from "lucide-react"
+import { Filter, Heart, Shield, Sparkles } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { useMemo, useState } from "react"
 import { PRODUCTS } from "@/lib/products"
@@ -11,7 +11,7 @@ import MainImgEn from "@/public/home-eng.png"
 import MainImgPl from "@/public/home-pl.png"
 import PetSlider from "@/components/PetSlider"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { StaticImport } from "next/dist/shared/lib/get-img-props"
 
 type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart"
@@ -31,6 +31,7 @@ export default function HomePage() {
   const [creamType, setCreamType] = useState<string>("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingImage, setPendingImage] = useState<string | null>(null)
+  const router = useRouter()
 
   const { locale } = useParams()
   const SITE_URL = "https://www.chupaboo.com"
@@ -64,27 +65,7 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
   // =======================
   // Telegram send (same file)
   // =======================
-  const sendToTelegram = async (productName: string) => {
-    try {
-      const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
-      const CHAT_IDS = ["8072053329",]
-
-      await Promise.all(
-        CHAT_IDS.map((chat_id) =>
-          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id,
-              text: `🛒 Product clicked:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`,
-            }),
-          })
-        )
-      )
-    } catch (err) {
-      console.error("Telegram error:", err)
-    }
-  }
+  
 
   return (
     <>
@@ -127,7 +108,9 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
               {["all", "small", "standart"].map((f) => (
                 <button
                   key={f}
-                  onClick={() => setFilter(f as Filter)}
+                  onClick={() => {
+                    setFilter(f as Filter)
+                  }}
                   style={{
                     padding: '10px 15px',
                     background: filter === f ? '#aed137' : '#69429a',
@@ -152,11 +135,7 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
                   <Link
                     key={product.id}
                     href={`/${locale}/product/${product.id}`}
-                    onClick={() => {
-                      setTimeout(() => {
-                        sendToTelegram(product.name);
-                      }, 0);
-                    }}
+                   
                     className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
                   >
                     <div className="relative aspect-square">
