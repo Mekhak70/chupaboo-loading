@@ -38,6 +38,24 @@ import img27 from '@/public/cake-27.png'
 
 export const PRODUCTS: Product[] = [
   {
+    id: "chupaboooo",
+    name: "Chupaboooo",
+    description: "Savory chupaboooo cake that cats absolutely love. Made with real salmon and cat-safe ingredients.",
+    priceInCents: 12000,
+    image: img3,
+    category: "standart",
+    cream: true,
+  },
+  {
+    id: "miniboo-1",
+    name: "Miniboo",
+    description: "A delicious miniboo butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
+    priceInCents: 3000,
+    image: img18,
+    category: "small",
+    cream: true,
+  },
+  {
     id: "pawy-1",
     name: "Pawy",
     description: "A delicious pawy butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
@@ -91,15 +109,7 @@ export const PRODUCTS: Product[] = [
     category: "standart",
     cream: true,
   },
-  {
-    id: "miniboo-1",
-    name: "Miniboo",
-    description: "A delicious miniboo butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
-    priceInCents: 3000,
-    image: img18,
-    category: "small",
-    cream: true,
-  },
+  
   {
     id: "chupaboooo-special",
     name: "Chupaboooo Special",
@@ -134,15 +144,6 @@ export const PRODUCTS: Product[] = [
     priceInCents: 3000,
     image: img20,
     category: "small",
-    cream: true,
-  },
-  {
-    id: "chupaboooo",
-    name: "Chupaboooo",
-    description: "Savory chupaboooo cake that cats absolutely love. Made with real salmon and cat-safe ingredients.",
-    priceInCents: 12000,
-    image: img3,
-    category: "standart",
     cream: true,
   },
   {
