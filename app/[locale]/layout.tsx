@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { RootLayoutContent } from "@/components/RootLayoutContent"
 import { Nunito } from "next/font/google"
 import "@/app/globals.css"
-import Script from "next/script" 
+import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import type { ReactNode, JSX } from "react";
 
@@ -15,9 +15,8 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   const seo = {
     en: {
-      title: "Pet Cakes & Dog Birthday Cakes | Chupaboo",
-      description:
-        "Pet-safe cakes and treats for dogs and pets. Dog birthday cakes, custom pet cakes for birthdays and special occasions by Chupaboo.",
+      title: "Natural Ingredient Pet Cakes",
+      description: "Order safe and delicious pet cakes made with natural ingredients for your beloved pets.",
       keywords: [
         "cake",
         "pet cakes",
@@ -43,9 +42,8 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
       ],
     },
     hy: {
-      title: "Կենդանիների տորթեր և շների ծննդյան տորթեր | Chupaboo",
-      description:
-        "Անվտանգ և համեղ տորթեր շների և կենդանիների համար։ Շան ծննդյան տորթեր հատուկ առիթների համար։",
+      title: "Բնական բաղադրիչներով տորթեր կենդանիների համար",
+      description: "Պատվիրեք բնական բաղադրիչներով պատրաստված անվտանգ և համեղ տորթեր ձեր կենդանիների համար։",
       keywords: [
         "տորթ",
         "կենդանիների տորթեր",
@@ -68,9 +66,8 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
       ],
     },
     ru: {
-      title: "Торты для собак и животных | Chupaboo",
-      description:
-        "Безопасные торты и лакомства для собак. Торты на день рождения для собак и особых случаев.",
+      title: "Торты для животных из натуральных ингредиентов",
+      description: "Закажите безопасные и вкусные торты для ваших питомцев, приготовленные из натуральных ингредиентов.",
       keywords: [
         "торт",
         "торты для собак",
@@ -94,9 +91,8 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
       ],
     },
     pl: {
-      title: "Torty dla psów i zwierząt | Chupaboo",
-      description:
-        "Bezpieczne torty dla psów i zwierząt. Torty urodzinowe dla psów na specjalne okazje.",
+      title: "Torty dla zwierząt z naturalnych składników",
+description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane z naturalnych składników.",
       keywords: [
         "tort",
         "torty dla psów",
@@ -128,9 +124,9 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
     description: lang.description,
     keywords: lang.keywords,
     icons: {
-      icon: "/logo.png",          
-      shortcut: "/logo.png",     
-      apple: "/logo.png" 
+      icon: "/logo.png",
+      shortcut: "/logo.png",
+      apple: "/logo.png"
     },
     openGraph: {
       title: lang.title,
@@ -150,10 +146,10 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
         locale === "en"
           ? "en_US"
           : locale === "hy"
-          ? "hy_AM"
-          : locale === "ru"
-          ? "ru_RU"
-          : "pl_PL",
+            ? "hy_AM"
+            : locale === "ru"
+              ? "ru_RU"
+              : "pl_PL",
     },
     twitter: {
       card: "summary_large_image",
