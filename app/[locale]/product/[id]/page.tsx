@@ -43,33 +43,46 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [customText, setCustomText] = useState("");
     const [petName, setPetName] = useState("");
     const [isSending, setIsSending] = useState(false);
-    console.log(designType, 'designType');
 
-    const sendToTelegram = async (productName: string) => {
+    const sendToTelegram = async (productName: string, imageSrc:string) => {
         try {
             const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
             const CHAT_IDS = ["8072053329",]
-
-            await Promise.all(
-                CHAT_IDS.map((chat_id) =>
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            chat_id,
-                            text: `🛒 Product clicked:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`,
-                        }),
-                    })
-                )
-            )
+            const caption = `🛒 New user:
+            📦 ${productName}
+            🕒 ${new Date().toLocaleString()}`
+            
+                    await Promise.all(
+                        CHAT_IDS.map((chat_id) =>
+                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id,
+                                    photo: imageSrc, // ✅ full URL
+                                    caption,
+                                }),
+                            })
+                        )
+                    )
         } catch (err) {
             console.error("Telegram error:", err)
         }
     }
 
+    const hasSent = useRef(false);
+
     useEffect(() => {
-        sendToTelegram(productName)
-    }, [])
+        if (product && !hasSent.current) {
+            hasSent.current = true;
+    
+            const fullImageUrl = product.image.src.startsWith("http")
+                ? product.image.src
+                : `${SITE_URL}${product.image.src}`;
+    
+            sendToTelegram(productName, fullImageUrl);
+        }
+    }, []);
     // Additional fields
     const [phoneNumber, setPhoneNumber] = useState("");
     const [deliveryAddress, setDeliveryAddress] = useState("");
