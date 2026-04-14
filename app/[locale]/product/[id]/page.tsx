@@ -43,32 +43,33 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [customText, setCustomText] = useState("");
     const [petName, setPetName] = useState("");
     const [isSending, setIsSending] = useState(false);
+    console.log(designType, 'designType');
 
     const sendToTelegram = async (productName: string) => {
         try {
-          const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
-          const CHAT_IDS = ["8072053329",]
-    
-          await Promise.all(
-            CHAT_IDS.map((chat_id) =>
-              fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chat_id,
-                  text: `🛒 Product clicked:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`,
-                }),
-              })
-            )
-          )
-        } catch (err) {
-          console.error("Telegram error:", err)
-        }
-      }
+            const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
+            const CHAT_IDS = ["8072053329",]
 
-      useEffect(() => {
+            await Promise.all(
+                CHAT_IDS.map((chat_id) =>
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            chat_id,
+                            text: `🛒 Product clicked:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`,
+                        }),
+                    })
+                )
+            )
+        } catch (err) {
+            console.error("Telegram error:", err)
+        }
+    }
+
+    useEffect(() => {
         sendToTelegram(productName)
-      },[])
+    }, [])
     // Additional fields
     const [phoneNumber, setPhoneNumber] = useState("");
     const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -77,9 +78,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const getTodayDate = () => {
         const today = new Date();
         return today.toISOString().split("T")[0]; // YYYY-MM-DD
-      };
-      
-      const [deliveryDate, setDeliveryDate] = useState(getTodayDate());
+    };
+
+    const [deliveryDate, setDeliveryDate] = useState(getTodayDate());
 
     // Validation errors state
     const [errors, setErrors] = useState<ValidationErrors>({});
@@ -234,7 +235,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
 🥬 ${t("ingredients")}: ${getSelectedVegetablesForMessage()}
-🎨 ${t("designType")}: ${designType !== "CUSTOM_PHOTO" ? t(designType.toLowerCase()) : t("customMyDogPhotoDesign")}
+🎨 ${t("designType")}: ${designType !== "CUSTOM_PHOTO" && designType !== "NAME_TEXT" ? t(designType.toLowerCase()) : designType == "CUSTOM_PHOTO" ? t("customMyDogPhotoDesign") : designType == "NAME_TEXT" ? t('petName') : ''}
 ${designType === "CUSTOM_TEXT" ? `✏️ ${t("customDesign")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
