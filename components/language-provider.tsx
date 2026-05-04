@@ -81,6 +81,12 @@ export const translations: Translations = {
     ru: "Торты готовятся из натуральных и свежих ингредиентов, без сахара и искусственных добавок.",
     pl: "Ciasta przygotowywane są z naturalnych i świeżych składników, bez cukru i sztucznych dodatków."
   },
+  partners: {
+    hy: "Մեր գործընկերներ",
+    en: "Our Partners",
+    ru: "Наши партнеры",
+    pl: "Nasi partnerzy"
+  },
   petName: {
     hy: "Կենդանու անունը",
     en: "Pet Name",

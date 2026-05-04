@@ -35,6 +35,8 @@ import img24 from '@/public/cake-24.png'
 import img25 from '@/public/cake-25.png'
 import img26 from '@/public/cake-26.png'
 import img27 from '@/public/cake-27.png'
+import img28 from '@/public/cake-28.png'
+import img29 from '@/public/cake-29.png'
 
 export const PRODUCTS: Product[] = [
   {
@@ -65,20 +67,20 @@ export const PRODUCTS: Product[] = [
     cream: true,
   },
   {
+    id: "midi",
+    name: "Midi",
+    description: "A delicious pawy butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
+    priceInCents: 12000,
+    image: img28,
+    category: "small",
+    cream: true,
+  },
+  {
     id: "pawy",
     name: "Pawy",
     description: "A delicious pawy butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
     priceInCents: 12000,
     image: img25,
-    category: "standart",
-    cream: true,
-  },
-  {
-    id: "kittboo",
-    name: "Kittboo",
-    description: "A delicious kittboo butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
-    priceInCents: 2499,
-    image: img21,
     category: "standart",
     cream: true,
   },
@@ -91,6 +93,16 @@ export const PRODUCTS: Product[] = [
     category: "standart",
     cream: true,
   },
+  {
+    id: "kittboo",
+    name: "Kittboo",
+    description: "A delicious kittboo butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
+    priceInCents: 2499,
+    image: img21,
+    category: "standart",
+    cream: true,
+  },
+
   {
     id: "boniboo",
     name: "Boniboo",
@@ -109,7 +121,15 @@ export const PRODUCTS: Product[] = [
     category: "standart",
     cream: true,
   },
-  
+  {
+    id: "Lovy-Name",
+    name: "Lovy",
+    description: "A delicious pawy butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
+    priceInCents: 12000,
+    image: img29,
+    category: "standart",
+    cream: true,
+  },
   {
     id: "chupaboooo-special",
     name: "Chupaboooo Special",

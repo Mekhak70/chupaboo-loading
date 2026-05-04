@@ -12,6 +12,7 @@ import Letf from "@/public/sirtLeft.png"
 import Right from "@/public/sirtRight.png"
 import reviews from "@/public/reviews.png"
 import reviewMobile from "@/public/reviewMobile.png"
+import Link from "next/link"
 export default function AboutPage() {
   const { t } = useLanguage()
 
@@ -19,7 +20,28 @@ export default function AboutPage() {
     { icon: Heart, value: "5,000+", label: t("happyPets") },
     { icon: Award, value: "100%", label: t("petSafe") },
     { icon: Users, value: "3,000+", label: t("happyFamilies") },
+
   ]
+  const partners = [
+    {
+      src: "/partners1.webp",
+      alt: "Pet Taxi",
+      link: "https://pettaxi.am/"
+    }, {
+      src: "/koemee.png",
+      alt: "Koemee",
+      link: "https://www.instagram.com/koemeedesign/"
+    },
+    {
+      src: "/artboard.png",
+      alt: "Artboard",
+      link: "https://www.instagram.com/pawsandpeople.studio/"
+    }
+
+  ];
+
+  // duplicate → seamless scroll
+  const looped = [...partners, ...partners];
 
   return (
     <div className="flex flex-col w-full" style={{ backgroundColor: '#f9f5ff' }}>
@@ -81,6 +103,65 @@ export default function AboutPage() {
       </section>
 
       {/* Happy Section */}
+      <section className=" py-16  w-full overflow-hidden" >
+        <div className="w-full px-4 md:px-8 lg:px-16">
+          <h2
+            className="text-3xl font-bold text-center mb-12"
+            style={{ color: "#69429a" }}
+          >
+            {t("partners")}
+          </h2>
+
+          <div className="w-full overflow-hidden">
+            <div
+              style={{
+                display: "flex",
+                gap: "24px",
+                width: "max-content",
+                animation: "scroll 10s linear infinite", // ավելի դանդաղ
+              }}
+            >
+              {looped.map((src, i) => (
+                <Link key={i} href={src.link} target="_blank" rel="noopener noreferrer">
+                <div
+                  key={i}
+                  style={{
+                    width: "380px", // ավելի լայն → քիչ partner-ի դեպքում լցնի
+                    height: "190px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "24px",
+                    // background: "#f9fafb",
+                    borderRadius: "16px",
+                  }}
+                >
+                  <img
+                    src={src.src}
+                    alt={`partner-${i}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      // transform: "scale(1)", // zoom level
+                    }}
+                  />
+                </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <style>
+            {`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}
+          </style>
+        </div>
+      </section>
       <section className="happy-section big">
         <div className="happy-container">
           <Image src={Cake} alt="Cake" width={70} height={56} className="happy-img" priority/>
@@ -90,6 +171,7 @@ export default function AboutPage() {
           <Image src={Paw} alt="Paw" width={70} height={56} className="happy-img" priority/>
         </div>
       </section>
+      
       <section className="happy-section-small">
         <div className="happy-container">
           <Image src={Cake} alt="Cake" width={25} height={22} className="happy-img" priority/>
@@ -99,6 +181,7 @@ export default function AboutPage() {
           <Image src={Paw} alt="Paw" width={23} height={22} className="happy-img" priority/>
         </div>
       </section>
+      
 
       <section style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '52px', paddingTop: '35px' }}>
         <Slider />

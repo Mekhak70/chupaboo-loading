@@ -97,7 +97,7 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
         {/* WAVE */}
         <div className="mt-0 [@media(max-width:648px)]:mt-[-1px]" style={{ backgroundColor: "#fff", height: "120px" }}>
           <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="block w-full h-[120px]">
-            <path d="M0 120 C 300 40, 400 20, 600 40 S 1000 120, 1200 0 V 0 H 0 Z" fill="#69429a"/>
+            <path d="M0 120 C 300 40, 400 20, 600 40 S 1000 120, 1200 0 V 0 H 0 Z" fill="#69429a" />
           </svg>
         </div>
 
@@ -135,7 +135,7 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
                   <Link
                     key={product.id}
                     href={`/${locale}/product/${product.id}`}
-                   
+
                     className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
                   >
                     <div className="relative aspect-square">
@@ -175,6 +175,7 @@ ${type} ${creamType}։ ${t('imageLabel')} ${SITE_URL}${pendingImage}`
           </div>
         </section>
       </div>
+     
 
       <style jsx>{`
         @media (max-width: 450px) {
