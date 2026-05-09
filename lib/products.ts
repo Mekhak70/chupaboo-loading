@@ -72,7 +72,7 @@ export const PRODUCTS: Product[] = [
     description: "A delicious pawy butter cake with yogurt frosting. Perfect for dogs who love peanut butter!",
     priceInCents: 12000,
     image: img28,
-    category: "standart",
+    category: "small",
     cream: true,
   },
   {
