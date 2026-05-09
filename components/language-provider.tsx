@@ -811,7 +811,7 @@ petNameLabel: {
     pl: "Typ projektu"
   },
   chooseMeatType: {
-    hy: "Ընտերել մսի տեսակը",
+    hy: "Ընտրել մսի տեսակը",
     en: "Choose meat type",
     ru: "Выберите тип мяса",
     pl: "Wybierz rodzaj mięsa",
@@ -939,7 +939,7 @@ petNameLabel: {
     pl: "Ryba"
   },
   chooseIngredients: {
-    hy: "Ընտերել բաղադրությունը",
+    hy: "Ընտրել բաղադրությունը",
     en: "Choose ingredients",
     ru: "Выберите ингредиенты",
     pl: "Wybierz składniki",
