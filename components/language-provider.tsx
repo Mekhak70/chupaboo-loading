@@ -171,11 +171,54 @@ export const translations: Translations = {
     ru: "Ереван, Алабяна 10",
     pl: "Erywań, Halabyan 10",
   },
+
   petName: {
     hy: "Կենդանու անունը",
     en: "Pet Name",
     ru: "Имя питомца",
     pl: "Imię zwierzęcia"
+  },
+  chooseSendMethod: {
+    hy: "Ընտրեք ուղարկման եղանակը",
+    en: "Choose sending method",
+    ru: "Выберите способ отправки",
+    pl: "Wybierz metodę wysyłki",
+  },
+  chooseSendMethodDesc: {
+    hy: "Ինչպե՞ս եք ցանկանում ուղարկել ձեր պատվերը",
+    en: "How would you like to send your order?",
+    ru: "Как вы хотите отправить ваш заказ?",
+    pl: "Jak chcesz wysłać swoje zamówienie?",
+  },
+  sendViaWhatsApp: {
+    hy: "Ուղարկել WhatsApp-ով",
+    en: "Send via WhatsApp",
+    ru: "Отправить через WhatsApp",
+    pl: "Wyślij przez WhatsApp",
+  },
+  sendViaTelegram: {
+    hy: "Ուղարկել Telegram-ով",
+    en: "Send via Telegram",
+    ru: "Отправить через Telegram",
+    pl: "Wyślij przez Telegram",
+  },
+  cancel: {
+    hy: "Չեղարկել",
+    en: "Cancel",
+    ru: "Отмена",
+    pl: "Anuluj",
+  },
+  orderSentTelegram: {
+    hy: "✅ Ձեր պատվերը հաջողությամբ ուղարկվել է Telegram-ով",
+    en: "✅ Your order has been successfully sent via Telegram",
+    ru: "✅ Ваш заказ успешно отправлен через Telegram",
+    pl: "✅ Twoje zamówienie zostało pomyślnie wysłane przez Telegram",
+  },
+  telegramError: {
+    hy: "❌ Չհաջողվեց ուղարկել Telegram-ով",
+    en: "❌ Failed to send via Telegram",
+    ru: "❌ Не удалось отправить через Telegram",
+    pl: "❌ Nie udało się wysłać przez Telegram",
   },
   phoneNumberRequired: {
     hy: "Խնդրում ենք լրացնել հեռախոսահամարը",
@@ -768,7 +811,7 @@ petNameLabel: {
     pl: "Typ projektu"
   },
   chooseMeatType: {
-    hy: "Ըտերել մսի տեսակը",
+    hy: "Ընտերել մսի տեսակը",
     en: "Choose meat type",
     ru: "Выберите тип мяса",
     pl: "Wybierz rodzaj mięsa",
@@ -896,7 +939,7 @@ petNameLabel: {
     pl: "Ryba"
   },
   chooseIngredients: {
-    hy: "Ըտերել բաղադրությունը",
+    hy: "Ընտերել բաղադրությունը",
     en: "Choose ingredients",
     ru: "Выберите ингредиенты",
     pl: "Wybierz składniki",
