@@ -51,6 +51,7 @@ export const translations: Translations = {
     ru: "О НАС",
     pl: "O NAS"
   },
+  
 
   aboutText: {
     hy: "Մեզ համար կենդանիները ընտանիքի անդամներ են։ Այդ իսկ պատճառով յուրաքանչյուր տորթ պատրաստում ենք մեծ սիրով ու ուշադրությամբ՝ մտածելով նրանց առողջության և ուրախության մասին։ Մեր տորթերը ոչ միայն համեղ են, այլև անվտանգ ու օգտակար ձեր չորքոտանի ընկերների համար։",
@@ -59,7 +60,6 @@ export const translations: Translations = {
     pl: "Dla nas zwierzęta są członkami rodziny. Dlatego każdy tort przygotowujemy z miłością i uwagą, dbając o ich zdrowie i radość. Nasze torty są nie tylko smaczne, ale także bezpieczne i pożywne dla Twoich czworonożnych przyjaciół."
   },
 
-  // Shop
   shopTitle: {
     hy: "ՄԵՐ ՏՈՐԹԵՐԸ",
     en: "SHOP OUR CAKES",
@@ -86,6 +86,84 @@ export const translations: Translations = {
     en: "Our Partners",
     ru: "Наши партнеры",
     pl: "Nasi partnerzy"
+  },
+  subtotal: {
+    hy: "Տորթի արժեք",
+    en: "Cake price",
+    ru: "Стоимость торта",
+    pl: "Cena tortu"
+  },
+  freeDelivery: {
+    hy: "Անվճար առաքում",
+    en: "Free delivery",
+    ru: "Бесплатная доставка",
+    pl: "Darmowa dostawa"
+  },
+  totalAmount: {
+    hy: "Ընդհանուր գումար",
+    en: "Total amount",
+    ru: "Общая сумма",
+    pl: "Kwota całkowita"
+  },
+  delivery: {
+    hy: "Առաքում",
+    en: "Delivery",
+    ru: "Доставка",
+    pl: "Dostawa"
+  },
+  deliveryOption: {
+    hy: "Առաքման տարբերակ",
+    en: "Delivery Option",
+    ru: "Вариант доставки",
+    pl: "Opcja dostawy"
+  },
+  pickup: {
+    hy: "Վերցնել տեղում",
+    en: "Pickup",
+    ru: "Самовывоз",
+    pl: "Odbiór osobisty"
+  },
+  pickupAddress: {
+    hy: "Տեղում վերցնելու հասցե",
+    en: "Pickup Address",
+    ru: "Адрес самовывоза",
+    pl: "Adres odbioru"
+  },
+  pickupInstructions: {
+    hy: "Տեղում ստացման տեղեկություն",
+    en: "Pickup Instructions",
+    ru: "Информация для самовывоза",
+    pl: "Informacje dotyczące odbioru"
+  },
+  deliveryFeeInfo: {
+    hy: "Առաքման վճարի մասին տեղեկություն",
+    en: "Delivery Fee Information",
+    ru: "Информация о стоимости доставки",
+    pl: "Informacje o kosztach dostawy"
+  },
+  distance: {
+    hy: "Հեռավորություն",
+    en: "Distance",
+    ru: "Расстояние",
+    pl: "Odległość"
+  },
+  deliveryFee: {
+    hy: "Առաքման վճար",
+    en: "Delivery Fee",
+    ru: "Стоимость доставки",
+    pl: "Koszt dostawy"
+  },
+  freeDeliveryApplied: {
+    hy: "Անվճար առաքում Երևանում",
+    en: "Free delivery in Yerevan",
+    ru: "Бесплатная доставка в Ереване",
+    pl: "Darmowa dostawa w Erywaniu",
+  },
+  freeDeliveryForOrdersAbove: {
+    hy: "Անվճար առաքում Երևանում՝ 6000 դրամից սկսած",
+    en: "Free delivery in Yerevan for orders above 6000 AMD",
+    ru: "Бесплатная доставка в Ереване при заказе от 6000 драм",
+    pl: "Darmowa dostawa w Erywaniu przy zamówieniach powyżej 6000 AMD",
   },
   petName: {
     hy: "Կենդանու անունը",

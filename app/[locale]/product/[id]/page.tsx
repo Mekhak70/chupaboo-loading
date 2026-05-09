@@ -1,9 +1,9 @@
 "use client"
 
-import { use, useEffect, useState, useRef } from "react"
+import { use, useEffect, useState, useRef, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, MessageCircle, Upload, X, Calendar, Clock, MapPin, Phone, CreditCard } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, Phone, CreditCard, Truck, Home } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { PRODUCTS, type Product } from "@/lib/products"
 import { notFound } from "next/navigation"
@@ -12,6 +12,7 @@ type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | ""
 type CreamType = "DAIRY" | "PLANTBASEDMILK" | "PLANTBASED" | ""
 type DesignType = "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | 'NAME_TEXT' | ""
 type PaymentMethod = "cash" | "CARD" | "bankTransfer" | ""
+type DeliveryOption = "delivery" | "pickup"
 
 interface ValidationErrors {
     cakeType?: string;
@@ -29,6 +30,18 @@ interface ValidationErrors {
     customText?: string;
 }
 
+// Constants
+const PICKUP_ADDRESS = "Երևան, Կիևյան 15"
+const FREE_DELIVERY_THRESHOLD = 6000
+const FREE_DELIVERY_MAX_DISTANCE = 10 // 10 km free delivery for orders >= 6000 AMD
+const BASE_DELIVERY_FEE = 1000
+const EXTRA_DISTANCE_FEE = 500
+const EXTRA_DISTANCE_THRESHOLD = 7 // km
+
+// Pickup coordinates (Yerevan, Kievyan 1)
+const PICKUP_LAT = 40.195059
+const PICKUP_LON = 44.488427
+
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
     const { t, language } = useLanguage()
@@ -43,64 +56,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [customText, setCustomText] = useState("");
     const [petName, setPetName] = useState("");
     const [isSending, setIsSending] = useState(false);
-
-    const sendToTelegram = async (productName: string, imageSrc:string) => {
-        try {
-            const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
-            const CHAT_IDS = ["8072053329",]
-            const caption = `🛒 New user:
-            📦 ${productName}
-            🕒 ${new Date().toLocaleString()}`
-            
-                    await Promise.all(
-                        CHAT_IDS.map((chat_id) =>
-                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    chat_id,
-                                    photo: imageSrc, // ✅ full URL
-                                    caption,
-                                }),
-                            })
-                        )
-                    )
-        } catch (err) {
-            console.error("Telegram error:", err)
-        }
-    }
-
-    const hasSent = useRef(false);
-
-    useEffect(() => {
-        if (product && !hasSent.current) {
-            hasSent.current = true;
-    
-            const fullImageUrl = product.image.src.startsWith("http")
-                ? product.image.src
-                : `${SITE_URL}${product.image.src}`;
-    
-            sendToTelegram(productName, fullImageUrl);
-        }
-    }, []);
-    // Additional fields
+    const [deliveryOption, setDeliveryOption] = useState<DeliveryOption>("delivery");
+    const [distance, setDistance] = useState<number | null>(null);
+    const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
+    const [deliveryFee, setDeliveryFee] = useState<number>(0);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [deliveryTime, setDeliveryTime] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
-    const getTodayDate = () => {
-        const today = new Date();
-        return today.toISOString().split("T")[0]; // YYYY-MM-DD
-    };
-
-    const [deliveryDate, setDeliveryDate] = useState(getTodayDate());
-
-    // Validation errors state
     const [errors, setErrors] = useState<ValidationErrors>({});
-    console.log(paymentMethod, 'paymentMethod')
+    const [isYerevanAddress, setIsYerevanAddress] = useState<boolean | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const product = getProductById(id)
     const [price, setPrice] = useState<number>(product ? product.priceInCents : 0)
+    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const addressCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toISOString().split("T")[0];
+    };
+
+    const [deliveryDate, setDeliveryDate] = useState(getTodayDate());
 
     if (!product) {
         notFound()
@@ -117,6 +95,220 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 : language === "pl"
                     ? product.name
                     : product.name
+
+    // Calculate delivery fee based on distance (first 5km = 1000, each additional 5km +500)
+    const calculateDeliveryFee = (distanceInKm: number): number => {
+        if (distanceInKm <= 0) return BASE_DELIVERY_FEE; // 1000
+        
+        let fee = BASE_DELIVERY_FEE; // start with 1000
+        
+        if (distanceInKm > EXTRA_DISTANCE_THRESHOLD) { // if > 5 km
+            const extraDistance = distanceInKm - EXTRA_DISTANCE_THRESHOLD;
+            const extraSegments = Math.ceil(extraDistance / EXTRA_DISTANCE_THRESHOLD);
+            fee += extraSegments * EXTRA_DISTANCE_FEE; // +500 for each additional 5km
+        }
+        
+        return fee;
+    };
+
+    // Get coordinates from address using Nominatim with proxy to avoid CORS
+    // Get coordinates from address using your proxy API
+const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+    if (!address || address.trim().length < 5) return null;
+    
+    try {
+        // Use your proxy endpoint
+        const encodedAddress = encodeURIComponent(address + ", Armenia");
+        const response = await fetch(`/api/geocode?q=${encodedAddress}`);
+        
+        if (!response.ok) {
+            console.error("Geocoding API error:", response.status);
+            return null;
+        }
+        
+        const data = await response.json();
+        
+        // Check if we got an error response
+        if (data.error) {
+            console.error("Geocoding error:", data.error);
+            return null;
+        }
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+            return {
+                lat: parseFloat(data[0].lat),
+                lon: parseFloat(data[0].lon)
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        return null;
+    }
+};
+    // Calculate distance between two coordinates using Haversine formula (fallback)
+    const calculateStraightDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    // Calculate driving distance using OSRM (CORS-friendly)
+    const calculateDrivingDistance = async (address: string): Promise<number | null> => {
+        if (!address || address.trim().length < 5) return null;
+        
+        setIsCalculatingDistance(true);
+        try {
+            const deliveryCoords = await getCoordinatesFromAddress(address);
+            if (!deliveryCoords) {
+                console.error("Could not get delivery address coordinates");
+                return null;
+            }
+
+            // OSRM API supports CORS, no proxy needed
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${PICKUP_LON},${PICKUP_LAT};${deliveryCoords.lon},${deliveryCoords.lat}?overview=false`;
+            
+            const response = await fetch(osrmUrl);
+            
+            if (!response.ok) {
+                console.warn("OSRM request failed with status:", response.status);
+                // Fallback to straight line distance
+                const dist = calculateStraightDistance(
+                    PICKUP_LAT, PICKUP_LON,
+                    deliveryCoords.lat, deliveryCoords.lon
+                );
+                return dist;
+            }
+            
+            const data = await response.json();
+            
+            if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                const distanceInMeters = data.routes[0].distance;
+                const distanceInKm = distanceInMeters / 1000;
+                return distanceInKm;
+            }
+            
+            console.warn("OSRM failed, falling back to straight line distance");
+            const dist = calculateStraightDistance(
+                PICKUP_LAT, PICKUP_LON,
+                deliveryCoords.lat, deliveryCoords.lon
+            );
+            return dist;
+        } catch (error) {
+            console.error("Driving distance calculation error:", error);
+            return null;
+        } finally {
+            setIsCalculatingDistance(false);
+        }
+    };
+
+    // Check if address is in Yerevan by text
+    const isAddressInYerevanByText = (address: string): boolean => {
+        const yerevanKeywords = [
+            'yerevan', 'erevan', 'երևան', 'երեւան',
+            'Երևան', 'Երեւան', 'Yerevan', 'Erevan'
+        ];
+        const lowerAddress = address.toLowerCase();
+        return yerevanKeywords.some(keyword => lowerAddress.includes(keyword));
+    };
+
+    // Main function to calculate delivery fee based on address and total
+    const updateDeliveryFee = useCallback(async (address: string, productTotal: number, option: DeliveryOption) => {
+        if (option === "pickup") {
+            setDeliveryFee(0);
+            setDistance(null);
+            setIsYerevanAddress(null);
+            return;
+        }
+        
+        if (!address || address.trim().length < 5) {
+            setDeliveryFee(0);
+            setDistance(null);
+            setIsYerevanAddress(null);
+            return;
+        }
+        
+        // Check if address is in Yerevan by text first (no API call needed)
+        const inYerevan = isAddressInYerevanByText(address);
+        setIsYerevanAddress(inYerevan);
+        
+        // Calculate distance
+        const dist = await calculateDrivingDistance(address);
+        if (dist !== null) {
+            setDistance(dist);
+            
+            // NEW LOGIC: If order total >= 6000 AMD
+            if (productTotal >= FREE_DELIVERY_THRESHOLD) {
+                // If distance <= 10km → FREE delivery
+                if (dist <= FREE_DELIVERY_MAX_DISTANCE) {
+                    setDeliveryFee(0);
+                    return;
+                }
+                // If distance > 10km → charge only for distance beyond 10km
+                else {
+                    const extraDistance = dist - FREE_DELIVERY_MAX_DISTANCE;
+                    const extraSegments = Math.ceil(extraDistance / EXTRA_DISTANCE_THRESHOLD);
+                    const fee = extraSegments * EXTRA_DISTANCE_FEE;
+                    setDeliveryFee(fee);
+                    return;
+                }
+            }
+            
+            // If order total < 6000 AMD → calculate full delivery fee based on distance
+            const fee = calculateDeliveryFee(dist);
+            setDeliveryFee(fee);
+        } else {
+            // Fallback if distance calculation fails
+            if (productTotal >= FREE_DELIVERY_THRESHOLD) {
+                setDeliveryFee(0);
+            } else {
+                setDeliveryFee(BASE_DELIVERY_FEE);
+            }
+            setDistance(null);
+        }
+    }, []);
+
+    // Debounced address change handler
+    useEffect(() => {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        
+        if (deliveryOption === "delivery" && deliveryAddress && deliveryAddress.trim().length > 5) {
+            debounceTimeoutRef.current = setTimeout(() => {
+                const productTotal = price * quantity;
+                updateDeliveryFee(deliveryAddress, productTotal, deliveryOption);
+            }, 1500); // Increased debounce to 1.5 seconds to prevent rate limiting
+        } else if (deliveryOption === "pickup") {
+            setDeliveryFee(0);
+            setDistance(null);
+            setIsYerevanAddress(null);
+        } else {
+            setDeliveryFee(0);
+            setDistance(null);
+            setIsYerevanAddress(null);
+        }
+        
+        return () => {
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+        };
+    }, [deliveryAddress, deliveryOption, price, quantity, updateDeliveryFee]);
+
+    // Update delivery fee when price/quantity changes
+    useEffect(() => {
+        if (deliveryOption === "delivery" && deliveryAddress && deliveryAddress.trim().length > 5) {
+            const productTotal = price * quantity;
+            updateDeliveryFee(deliveryAddress, productTotal, deliveryOption);
+        }
+    }, [price, quantity, deliveryOption, deliveryAddress, updateDeliveryFee]);
 
     const getSelectedVegetablesForMessage = () => {
         if (selectedVegetables.length === 0) return t("notSelected")
@@ -174,16 +366,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             isValid = false;
         }
 
-
         if (designType === "CUSTOM_TEXT" && !customText.trim()) {
             newErrors.customText = t("customTextRequired") || "Please enter custom text";
             isValid = false;
         }
-
-        // if (designType === "CUSTOM_PHOTO" && !customImageFile) {
-        //     newErrors.customImage = t("photoRequired") || "Please upload a photo";
-        //     isValid = false;
-        // }
 
         const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
         if (!phoneNumber.trim()) {
@@ -213,12 +399,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             }
         }
 
-        if (!deliveryAddress.trim()) {
-            newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address";
-            isValid = false;
-        } else if (deliveryAddress.trim().length < 5) {
-            newErrors.deliveryAddress = t("deliveryAddressTooShort") || "Please enter a valid delivery address";
-            isValid = false;
+        if (deliveryOption === "delivery") {
+            if (!deliveryAddress.trim()) {
+                newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address";
+                isValid = false;
+            } else if (deliveryAddress.trim().length < 5) {
+                newErrors.deliveryAddress = t("deliveryAddressTooShort") || "Please enter a valid delivery address";
+                isValid = false;
+            }
         }
 
         if (!deliveryTime) {
@@ -239,11 +427,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         setErrors(prev => ({ ...prev, [field]: undefined }));
     };
 
+    const totalPrice = (price * quantity) + deliveryFee;
+
     const whatsappMessage = `${t("whatsappMessageTextOne")}
 
 🎂 ${productName}
 📦 ${t("quantity")}: ${quantity}
-💰 ${t("price")}: ${quantity * price} ${t("currency")}
+💰 ${t("price")}: ${price * quantity} ${t("currency")}
+${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ${t("currency")}` : deliveryOption === "delivery" && deliveryFee === 0 && (price * quantity) >= FREE_DELIVERY_THRESHOLD ? `🚚 ${t("freeDelivery")}` : ""}
+💵 ${t("totalAmount")}: ${totalPrice} ${t("currency")}
 🍖 ${t("mainCakeType")}: ${cakeType ? t(cakeType) : t("notSelected")}
 🍦 ${t("creamType")}: ${creamType ? t(creamType) : t("notSelected")}
 🥩 ${t("meatType")}: ${cakeType === "MEAT" ? getSelectedAnimalForMessage() : t("notSelected")}
@@ -252,15 +444,18 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 ${designType === "CUSTOM_TEXT" ? `✏️ ${t("customDesign")}: ${customText || t("notProvided")}` : ""}
 ${designType === "NAME_TEXT" ? `✏️ ${t("petName")}: ${petName || t("notProvided")}` : ""}
 ${petName && designType !== "NAME_TEXT" ? `🐾 ${t("petName")}: ${petName}` : ""}
+${deliveryOption === "delivery" ? `🚚 ${t("deliveryOption")}: ${t("delivery")}
+📍 ${t("deliveryAddress")}: ${deliveryAddress || t("notProvided")}
+${distance ? `📏 ${t("distance")}: ${distance.toFixed(1)} km` : ""}
+` : `🏠 ${t("deliveryOption")}: ${t("pickup")}
+📍 ${t("pickupAddress")}: ${PICKUP_ADDRESS}`}
 📞 ${t("phoneNumber")}: ${phoneNumber || t("notProvided")}
 📅 ${t("deliveryDate")}: ${deliveryDate || t("notProvided")}
-📍 ${t("deliveryAddress")}: ${deliveryAddress || t("notProvided")}
 ⏰ ${t("preferredDeliveryTime")}: ${deliveryTime || t("notProvided")}
 💳 ${t("paymentMethod")}: ${t(paymentMethod)}
 
 ${SITE_URL}/${language}/product/${product.id}`
 
-    // Send to WhatsApp with photo
     const handleWhatsAppOrder = async () => {
         if (!validateForm()) {
             const firstErrorField = Object.keys(errors)[0];
@@ -274,81 +469,10 @@ ${SITE_URL}/${language}/product/${product.id}`
         }
 
         setIsSending(true);
-
         const textMessage = encodeURIComponent(whatsappMessage);
-
-        // If there's a photo for CUSTOM_PHOTO
-
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${textMessage}`;
         window.open(whatsappUrl, '_blank');
         setIsSending(false);
-
-    };
-
-    // Helper function to convert file to base64
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = error => reject(error);
-        });
-    };
-
-    // Helper function to copy image to clipboard
-    const copyImageToClipboard = async (file: File): Promise<void> => {
-        try {
-            const blob = new Blob([await file.arrayBuffer()], { type: file.type });
-            await navigator.clipboard.write([
-                new ClipboardItem({
-                    [blob.type]: blob
-                })
-            ]);
-        } catch (error) {
-            console.error("Clipboard API error:", error);
-            throw error;
-        }
-    };
-
-    // Download image and show notification
-    const downloadImageAndNotify = (imageSrc: string | null) => {
-        if (imageSrc) {
-            const link = document.createElement('a');
-            link.href = imageSrc;
-            link.download = `pet-photo-${Date.now()}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast(t("photoDownloaded") || "📸 Photo downloaded! Please attach it in WhatsApp");
-        }
-    };
-
-    // Simple toast notification
-    const showToast = (message: string) => {
-        const toast = document.createElement('div');
-        toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #25D366;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            z-index: 10000;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideUp 0.3s ease;
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.animation = 'slideDown 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -446,7 +570,11 @@ ${SITE_URL}/${language}/product/${product.id}`
         let finalPrice = basePrice + extra;
 
         if (product.category === 'small') {
-            finalPrice = Math.round(finalPrice / 3);
+            if (product.id === 'midi') {
+                finalPrice = Math.round(finalPrice / 2)
+            } else {
+                finalPrice = Math.round(finalPrice / 3)
+            }
         }
 
         if (product.category !== 'small' && designType === "CUSTOM_PHOTO") {
@@ -459,47 +587,55 @@ ${SITE_URL}/${language}/product/${product.id}`
         setPrice(finalPrice);
     }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product.category, designType]);
 
-    // Add animation styles
+    // Send to Telegram
+    const sendToTelegram = async (productName: string, imageSrc: string) => {
+        try {
+            const BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk"
+            const CHAT_IDS = ["8072053329"]
+            const caption = `🛒 New User View:
+            📦 ${productName}
+            🕒 ${new Date().toLocaleString()}`
+
+            await Promise.all(
+                CHAT_IDS.map((chat_id) =>
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            chat_id,
+                            photo: imageSrc,
+                            caption,
+                        }),
+                    })
+                )
+            )
+        } catch (err) {
+            console.error("Telegram error:", err)
+        }
+    }
+
+    const hasSent = useRef(false);
+
     useEffect(() => {
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateX(-50%) translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
-                }
-            }
-            @keyframes slideDown {
-                from {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translateX(-50%) translateY(20px);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        return () => style.remove();
-    }, []);
+        if (product && !hasSent.current) {
+            hasSent.current = true;
+            const fullImageUrl = product.image.src.startsWith("http")
+                ? product.image.src
+                : `${SITE_URL}${product.image.src}`;
+            sendToTelegram(productName, fullImageUrl);
+        }
+    }, [product, productName]);
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Link
-                href="/"
-                className="flex items-center gap-2 text-white hover:text-white/80 transition-colors w-full bg-[#69429a]"
-            >
+            <Link href="/" className="block w-full bg-[#69429a]">
                 <div className="bg-[#69429a] text-white py-4">
-                    <div className="container mx-auto px-4 flex">
+                    <div className="container mx-auto px-4 flex items-center gap-2">
                         <ArrowLeft className="w-5 h-5" />
                         <span>{t("mainPage")}</span>
                     </div>
-                </div></Link>
+                </div>
+            </Link>
 
             <div className="container mx-auto px-4 py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -520,588 +656,234 @@ ${SITE_URL}/${language}/product/${product.id}`
                             <p className="text-gray-600 text-xs">{t('cakeDescription')}</p>
                         </div>
 
+                        {/* Cake Type Selection */}
                         <div id="error-cakeType">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                {t("choosemaincake")}
-                            </p>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosemaincake")}</p>
                             <div className="flex flex-wrap gap-3">
-                                <button
-                                    onClick={() => {
-                                        setCakeType("MEAT");
-                                        clearFieldError('cakeType');
-                                        setSelectedVegetables(['POTATO', 'CARROT']);
-
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "MEAT"
-                                        ? "bg-[#ef4f27] text-white border-[#ef4f27] shadow-md scale-105"
-                                        : "bg-white text-[#ef4f27] border-[#ef4f27] hover:bg-[#ffece7]"
-                                        }`}
-                                >
-                                    🍖 {t("MEAT")}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setSelectedVegetables(['BANANA', 'APPLE']);
-                                        setCakeType("FRUIT");
-                                        clearFieldError('cakeType');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "FRUIT"
-                                        ? "bg-[#f4a2c6] text-white border-[#f4a2c6] shadow-md scale-105"
-                                        : "bg-white text-[#f4a2c6] border-[#f4a2c6] hover:bg-[#fff0f6]"
-                                        }`}
-                                >
-                                    🍓 {t("FRUIT")}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setCakeType("VEGETABLES");
-                                        clearFieldError('cakeType');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "VEGETABLES"
-                                        ? "bg-[#aed137] text-white border-[#aed137] shadow-md scale-105"
-                                        : "bg-white text-[#aed137] border-[#aed137] hover:bg-[#f0f8d0]"
-                                        }`}
-                                >
-                                    🥬 {t("VEGETABLES")}
-                                </button>
+                                <button onClick={() => { setCakeType("MEAT"); clearFieldError('cakeType'); setSelectedVegetables(['POTATO', 'CARROT']); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "MEAT" ? "bg-[#ef4f27] text-white border-[#ef4f27] shadow-md scale-105" : "bg-white text-[#ef4f27] border-[#ef4f27] hover:bg-[#ffece7]"}`}>🍖 {t("MEAT")}</button>
+                                <button onClick={() => { setSelectedVegetables(['BANANA', 'APPLE']); setCakeType("FRUIT"); clearFieldError('cakeType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "FRUIT" ? "bg-[#f4a2c6] text-white border-[#f4a2c6] shadow-md scale-105" : "bg-white text-[#f4a2c6] border-[#f4a2c6] hover:bg-[#fff0f6]"}`}>🍓 {t("FRUIT")}</button>
+                                <button onClick={() => { setCakeType("VEGETABLES"); clearFieldError('cakeType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "VEGETABLES" ? "bg-[#aed137] text-white border-[#aed137] shadow-md scale-105" : "bg-white text-[#aed137] border-[#aed137] hover:bg-[#f0f8d0]"}`}>🥬 {t("VEGETABLES")}</button>
                             </div>
-                            {errors.cakeType && (
-                                <p className="text-red-500 text-sm mt-2">{errors.cakeType}</p>
-                            )}
+                            {errors.cakeType && <p className="text-red-500 text-sm mt-2">{errors.cakeType}</p>}
                         </div>
 
+                        {/* Meat Type Selection */}
                         {cakeType === 'MEAT' && (
                             <div id="error-selectedAnimal">
-                                <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                    {t('chooseMeatType')}
-                                </p>
-                                <div>
-                                    <div className="flex flex-wrap gap-3">
-                                        {[
-                                            { key: "CHICKEN", label: t("chicken"), emoji: "🐔", color: "#F44336" },
-                                            { key: "BEEF", label: t("beef"), emoji: "🐄", color: "#8B4513" },
-                                            { key: "LAMB", label: t("lamb"), emoji: "🐑", color: "#FF8C00" },
-                                            { key: "TURKEY", label: t("turkey"), emoji: "🦃", color: "#DAA520" },
-                                        ].map((veg) => {
-                                            const isSelected = selectedAnimal === veg.key
-                                            return (
-                                                <button
-                                                    key={veg.key}
-                                                    onClick={() => {
-                                                        setSelectedAnimal(veg.key);
-                                                        clearFieldError('selectedAnimal');
-                                                    }}
-                                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all`}
-                                                    style={{
-                                                        backgroundColor: isSelected ? veg.color : "white",
-                                                        color: isSelected ? "white" : veg.color,
-                                                        borderColor: veg.color,
-                                                    }}
-                                                >
-                                                    {veg.emoji} {veg.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {errors.selectedAnimal && (
-                                        <p className="text-red-500 text-sm mt-2">{errors.selectedAnimal}</p>
-                                    )}
+                                <p className="text-lg font-semibold text-[#69429a] mb-3">{t('chooseMeatType')}</p>
+                                <div className="flex flex-wrap gap-3">
+                                    {[{ key: "CHICKEN", label: t("chicken"), emoji: "🐔", color: "#F44336" }, { key: "BEEF", label: t("beef"), emoji: "🐄", color: "#8B4513" }, { key: "LAMB", label: t("lamb"), emoji: "🐑", color: "#FF8C00" }, { key: "TURKEY", label: t("turkey"), emoji: "🦃", color: "#DAA520" }].map((veg) => {
+                                        const isSelected = selectedAnimal === veg.key
+                                        return (<button key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError('selectedAnimal'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all`} style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>);
+                                    })}
                                 </div>
+                                {errors.selectedAnimal && <p className="text-red-500 text-sm mt-2">{errors.selectedAnimal}</p>}
                             </div>
                         )}
 
+                        {/* Ingredients Selection */}
                         <div id="error-selectedVegetables">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                {t("chooseIngredients")}
-                            </p>
-                            <div>
-                                <div className="flex flex-wrap gap-3">
-                                    {[
-                                        { key: "POTATO", label: t('potato'), emoji: "🥔", color: "#D9A066" },
-                                        { key: "CARROT", label: t('carrot'), emoji: "🥕", color: "#FF8C42" },
-                                        { key: "BROCCOLI", label: t('broccoli'), emoji: "🥦", color: "#4CAF50" },
-                                        { key: "PUMPKIN", label: t('pumpkin'), emoji: "🎃", color: "#FFA500" },
-                                        { key: "PEPPER", label: t('greenPepper'), emoji: "🫑", color: "#00C853" },
-                                        { key: "ZUCCHINI", label: t('zucchini'), emoji: "🥒", color: "#76C043" },
-                                        { key: "CAULIFLOWER", label: t('cauliflower'), emoji: "🥬", color: "#B0BEC5" },
-                                        { key: "SWEET_POTATO", label: t('sweetPotato'), emoji: "🍠", color: "#FF5722" },
-                                        { key: "SPINACH", label: t('spinach'), emoji: "🥬", color: "#2E7D32" },
-                                        { key: "RICE", label: t('rice'), emoji: "🍚", color: "#B0BEC5" },
-                                        { key: "WHEAT", label: t('wheat'), emoji: "🌾", color: "#D9A066" },
-                                        { key: "OATS", label: t('oats'), emoji: "🥣", color: "#FFB74D" },
-                                        { key: "APPLE", label: t('apple'), emoji: "🍎", color: "#FF4D4D", type: 'FRUIT' },
-                                        { key: "BANANA", label: t('banana'), emoji: "🍌", color: "#FFE135", type: 'FRUIT' },
-                                        { key: "PEAR", label: t('pear'), emoji: "🍐", color: "#A2D149", type: 'FRUIT' },
-                                        { key: "ELDERBERRY", label: t('elderberry'), emoji: "🫐", color: "#6A0DAD", type: 'FRUIT' },
-                                        { key: "STRAWBERRY", label: t('strawberry'), emoji: "🍓", color: "#FF1654", type: 'FRUIT' },
-                                        { key: "MANGO", label: t('mango'), emoji: "🥭", color: "#FFB347", type: 'FRUIT' },
-                                    ].map((veg) => {
-                                        const isSelected = selectedVegetables.includes(veg.key);
-                                        const showIngredient = (cakeType === 'FRUIT' && veg.type === 'FRUIT') ||
-                                            (cakeType !== 'FRUIT' && veg.type !== 'FRUIT');
-
-                                        if (!showIngredient) return null;
-
-                                        return (
-                                            <button
-                                                key={veg.key}
-                                                onClick={() => handleVegetableToggle(veg.key)}
-                                                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all`}
-                                                style={{
-                                                    backgroundColor: isSelected ? veg.color : "white",
-                                                    color: isSelected ? "white" : veg.color,
-                                                    borderColor: veg.color,
-                                                }}
-                                            >
-                                                {veg.emoji} {veg.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {errors.selectedVegetables && (
-                                    <p className="text-red-500 text-sm mt-2">{errors.selectedVegetables}</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div id="error-creamType">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                {t("choosecream")}
-                            </p>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3">{t("chooseIngredients")}</p>
                             <div className="flex flex-wrap gap-3">
-                                <button
-                                    onClick={() => {
-                                        setCreamType("DAIRY");
-                                        clearFieldError('creamType');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY"
-                                        ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105"
-                                        : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"
-                                        }`}
-                                >
-                                    🐄 {t("DAIRY")}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setCreamType("PLANTBASEDMILK");
-                                        clearFieldError('creamType');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK"
-                                        ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105"
-                                        : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"
-                                        }`}
-                                >
-                                    🥥 {t("PLANTBASEDMILK")}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setCreamType("PLANTBASED");
-                                        clearFieldError('creamType');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED"
-                                        ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105"
-                                        : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"
-                                        }`}
-                                >
-                                    🥕 {t("PLANTBASED")}
-                                </button>
+                                {[{ key: "POTATO", label: t('potato'), emoji: "🥔", color: "#D9A066" }, { key: "CARROT", label: t('carrot'), emoji: "🥕", color: "#FF8C42" }, { key: "BROCCOLI", label: t('broccoli'), emoji: "🥦", color: "#4CAF50" }, { key: "PUMPKIN", label: t('pumpkin'), emoji: "🎃", color: "#FFA500" }, { key: "PEPPER", label: t('greenPepper'), emoji: "🫑", color: "#00C853" }, { key: "ZUCCHINI", label: t('zucchini'), emoji: "🥒", color: "#76C043" }, { key: "CAULIFLOWER", label: t('cauliflower'), emoji: "🥬", color: "#B0BEC5" }, { key: "SWEET_POTATO", label: t('sweetPotato'), emoji: "🍠", color: "#FF5722" }, { key: "SPINACH", label: t('spinach'), emoji: "🥬", color: "#2E7D32" }, { key: "RICE", label: t('rice'), emoji: "🍚", color: "#B0BEC5" }, { key: "WHEAT", label: t('wheat'), emoji: "🌾", color: "#D9A066" }, { key: "OATS", label: t('oats'), emoji: "🥣", color: "#FFB74D" }, { key: "APPLE", label: t('apple'), emoji: "🍎", color: "#FF4D4D", type: 'FRUIT' }, { key: "BANANA", label: t('banana'), emoji: "🍌", color: "#FFE135", type: 'FRUIT' }, { key: "PEAR", label: t('pear'), emoji: "🍐", color: "#A2D149", type: 'FRUIT' }, { key: "ELDERBERRY", label: t('elderberry'), emoji: "🫐", color: "#6A0DAD", type: 'FRUIT' }, { key: "STRAWBERRY", label: t('strawberry'), emoji: "🍓", color: "#FF1654", type: 'FRUIT' }, { key: "MANGO", label: t('mango'), emoji: "🥭", color: "#FFB347", type: 'FRUIT' }].map((veg) => {
+                                    const isSelected = selectedVegetables.includes(veg.key);
+                                    const showIngredient = (cakeType === 'FRUIT' && veg.type === 'FRUIT') || (cakeType !== 'FRUIT' && veg.type !== 'FRUIT');
+                                    if (!showIngredient) return null;
+                                    return (<button key={veg.key} onClick={() => handleVegetableToggle(veg.key)} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all`} style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>);
+                                })}
                             </div>
-                            {errors.creamType && (
-                                <p className="text-red-500 text-sm mt-2">{errors.creamType}</p>
-                            )}
+                            {errors.selectedVegetables && <p className="text-red-500 text-sm mt-2">{errors.selectedVegetables}</p>}
                         </div>
 
+                        {/* Cream Type Selection */}
+                        <div id="error-creamType">
+                            <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosecream")}</p>
+                            <div className="flex flex-wrap gap-3">
+                                <button onClick={() => { setCreamType("DAIRY"); clearFieldError('creamType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
+                                <button onClick={() => { setCreamType("PLANTBASEDMILK"); clearFieldError('creamType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK" ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105" : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"}`}>🥥 {t("PLANTBASEDMILK")}</button>
+                                <button onClick={() => { setCreamType("PLANTBASED"); clearFieldError('creamType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}</button>
+                            </div>
+                            {errors.creamType && <p className="text-red-500 text-sm mt-2">{errors.creamType}</p>}
+                        </div>
+
+                        {/* Design Type Selection for non-small products */}
                         {product.category !== 'small' && (
                             <>
                                 <div id="error-designType">
-                                    <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                        {t("chooseDesign")}
-                                    </p>
+                                    <p className="text-lg font-semibold text-[#69429a] mb-3">{t("chooseDesign")}</p>
                                     <div className="flex flex-wrap gap-3">
-                                        <button
-                                            onClick={() => {
-                                                setDesignType("STANDARD");
-                                                clearFieldError('designType');
-                                            }}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "STANDARD"
-                                                ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105"
-                                                : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#f3e8ff]"
-                                                }`}
-                                        >
-                                            🎂 {t("standardDesign")}
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setDesignType("CUSTOM_PHOTO");
-                                                clearFieldError('designType');
-                                            }}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_PHOTO"
-                                                ? "bg-[#fb7185] text-white border-[#fb7185] shadow-md scale-105"
-                                                : "bg-white text-[#fb7185] border-[#fb7185] hover:bg-[#ffe4e6]"
-                                                }`}
-                                        >
-                                            📸 {t("customMyDogPhotoDesign")}
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setDesignType("NAME_TEXT");
-                                                clearFieldError('designType');
-                                            }}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "NAME_TEXT"
-                                                ? "bg-[#4ade80] text-white border-[#4ade80] shadow-md scale-105"
-                                                : "bg-white text-[#4ade80] border-[#4ade80] hover:bg-[#ecfdf5]"
-                                                }`}
-                                        >
-                                            ✏️ {t('petName')}
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setDesignType("CUSTOM_TEXT");
-                                                clearFieldError('designType');
-                                            }}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_TEXT"
-                                                ? "bg-[#facc15] text-white border-[#facc15] shadow-md scale-105"
-                                                : "bg-white text-[#facc15] border-[#facc15] hover:bg-[#fff9db]"
-                                                }`}
-                                        >
-                                            ✏️ {t("customDesign")}
-                                        </button>
+                                        <button onClick={() => { setDesignType("STANDARD"); clearFieldError('designType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "STANDARD" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#f3e8ff]"}`}>🎂 {t("standardDesign")}</button>
+                                        <button onClick={() => { setDesignType("CUSTOM_PHOTO"); clearFieldError('designType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_PHOTO" ? "bg-[#fb7185] text-white border-[#fb7185] shadow-md scale-105" : "bg-white text-[#fb7185] border-[#fb7185] hover:bg-[#ffe4e6]"}`}>📸 {t("customMyDogPhotoDesign")}</button>
+                                        <button onClick={() => { setDesignType("NAME_TEXT"); clearFieldError('designType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "NAME_TEXT" ? "bg-[#4ade80] text-white border-[#4ade80] shadow-md scale-105" : "bg-white text-[#4ade80] border-[#4ade80] hover:bg-[#ecfdf5]"}`}>✏️ {t('petName')}</button>
+                                        <button onClick={() => { setDesignType("CUSTOM_TEXT"); clearFieldError('designType'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_TEXT" ? "bg-[#facc15] text-white border-[#facc15] shadow-md scale-105" : "bg-white text-[#facc15] border-[#facc15] hover:bg-[#fff9db]"}`}>✏️ {t("customDesign")}</button>
                                     </div>
-                                    {errors.designType && (
-                                        <p className="text-red-500 text-sm mt-2">{errors.designType}</p>
-                                    )}
+                                    {errors.designType && <p className="text-red-500 text-sm mt-2">{errors.designType}</p>}
                                 </div>
 
                                 {designType === "NAME_TEXT" && (
                                     <div id="error-petName">
-                                        <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                            {t("petNameLabel")}
-                                        </p>
-                                        <input
-                                            type="text"
-                                            value={petName}
-                                            onChange={(e) => {
-                                                setPetName(e.target.value);
-                                                if (e.target.value.trim()) {
-                                                    clearFieldError('petName');
-                                                }
-                                            }}
-                                            placeholder={t("petNameLabel")}
-                                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.petName ? 'border-red-500' : 'border-gray-300'}`}
-                                        />
-                                        {errors.petName && (
-                                            <p className="text-red-500 text-sm mt-2">{errors.petName}</p>
-                                        )}
+                                        <p className="text-lg font-semibold text-[#69429a] mb-3">{t("petNameLabel")}</p>
+                                        <input type="text" value={petName} onChange={(e) => { setPetName(e.target.value); if (e.target.value.trim()) clearFieldError('petName'); }} placeholder={t("petNameLabel")} className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.petName ? 'border-red-500' : 'border-gray-300'}`} />
+                                        {errors.petName && <p className="text-red-500 text-sm mt-2">{errors.petName}</p>}
                                     </div>
                                 )}
 
-                                {/* {designType === "CUSTOM_PHOTO" && (
-                                    <div id="error-customImage">
-                                        <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                            {t("uploadPetPhoto")}
-                                        </p>
-                                        {!customImage ? (
-                                            <label className={`flex flex-col items-center justify-center w-[40%] aspect-square border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${errors.customImage ? 'border-red-500' : 'border-gray-300'}`}>
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <Upload className="w-4 h-4 text-gray-400 mb-2" />
-                                                    <p className="text-sm text-gray-500">
-                                                        {t("clickToUpload")}
-                                                    </p>
-                                                </div>
-                                                <input
-                                                    ref={fileInputRef}
-                                                    type="file"
-                                                    className="hidden"
-                                                    accept="image/*"
-                                                    onChange={handleImageUpload}
-                                                />
-                                            </label>
-                                        ) : (
-                                            <div className="relative w-[40%] aspect-square rounded-lg overflow-hidden border-2 border-[#69429a] bg-gray-50">
-                                                <Image
-                                                    src={customImage}
-                                                    alt="Uploaded pet photo"
-                                                    fill
-                                                    className="object-cover"
-                                                />
-                                                <button
-                                                    onClick={removeImage}
-                                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors z-10"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        )}
-                                        {errors.customImage && (
-                                            <p className="text-red-500 text-sm mt-2">{errors.customImage}</p>
-                                        )}
-                                    </div>
-                                )} */}
-
                                 {designType === "CUSTOM_TEXT" && (
                                     <div id="error-customText">
-                                        <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                            {t("enterCustomText")}
-                                        </p>
-                                        <textarea
-                                            value={customText}
-                                            onChange={(e) => {
-                                                setCustomText(e.target.value);
-                                                if (e.target.value.trim()) {
-                                                    clearFieldError('customText');
-                                                }
-                                            }}
-                                            placeholder={t("enterCustomText")}
-                                            rows={3}
-                                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none ${errors.customText ? 'border-red-500' : 'border-gray-300'}`}
-                                        />
-                                        {errors.customText && (
-                                            <p className="text-red-500 text-sm mt-2">{errors.customText}</p>
-                                        )}
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {t("maxCharacters")} {customText.length}/50
-                                        </p>
+                                        <p className="text-lg font-semibold text-[#69429a] mb-3">{t("enterCustomText")}</p>
+                                        <textarea value={customText} onChange={(e) => { setCustomText(e.target.value); if (e.target.value.trim()) clearFieldError('customText'); }} placeholder={t("enterCustomText")} rows={3} className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none ${errors.customText ? 'border-red-500' : 'border-gray-300'}`} />
+                                        {errors.customText && <p className="text-red-500 text-sm mt-2">{errors.customText}</p>}
+                                        <p className="text-xs text-gray-500 mt-1">{t("maxCharacters")} {customText.length}/50</p>
                                     </div>
                                 )}
                             </>
                         )}
 
-                        <div id="error-phoneNumber">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <Phone className="w-5 h-5" />
-                                {t("phoneNumber")}
-                            </p>
-                            <input
-                                type="tel"
-                                value={phoneNumber}
-                                onChange={(e) => {
-                                    setPhoneNumber(e.target.value);
-                                    if (e.target.value.trim()) {
-                                        clearFieldError('phoneNumber');
-                                    }
-                                }}
-                                placeholder={t("enterPhoneNumber")}
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
-                                required
-                            />
-                            {errors.phoneNumber && (
-                                <p className="text-red-500 text-sm mt-2">{errors.phoneNumber}</p>
-                            )}
-                        </div>
-
-                        <div id="error-deliveryDate">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <Calendar className="w-5 h-5" />
-                                {t("deliveryDate")}
-                            </p>
-
-                            <div className="relative">
-                                <input
-                                    type="date"
-                                    value={deliveryDate}
-                                    onChange={(e) => {
-                                        setDeliveryDate(e.target.value);
-                                        if (e.target.value) {
-                                            clearFieldError('deliveryDate');
-                                        }
-                                    }}
-                                    min={getMinDate()}
-                                    max={getMaxDate()}
-                                    className={`w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    required
-                                />
+                        {/* Delivery Option Selection */}
+                        <div>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Truck className="w-5 h-5" />{t("deliveryOption")}</p>
+                            <div className="flex flex-wrap gap-3">
+                                <button onClick={() => { setDeliveryOption("delivery"); clearFieldError('deliveryAddress'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${deliveryOption === "delivery" ? "bg-[#69429a] text-white border-[#69429a] shadow-md scale-105" : "bg-white text-[#69429a] border-[#69429a] hover:bg-[#f3e8ff]"}`}>🚚 {t("delivery")}</button>
+                                <button onClick={() => { setDeliveryOption("pickup"); setDeliveryAddress(""); clearFieldError('deliveryAddress'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${deliveryOption === "pickup" ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105" : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"}`}>🏠 {t("pickup")}</button>
                             </div>
-
-                            {errors.deliveryDate && (
-                                <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>
-                            )}
                         </div>
 
-                        <div id="error-deliveryAddress">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <MapPin className="w-5 h-5" />
-                                {t("deliveryAddress")}
-                            </p>
-                            <textarea
-                                value={deliveryAddress}
-                                onChange={(e) => {
-                                    setDeliveryAddress(e.target.value);
-                                    if (e.target.value.trim().length >= 5) {
-                                        clearFieldError('deliveryAddress');
-                                    }
-                                }}
-                                placeholder={t("enterDeliveryAddress")}
-                                rows={3}
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none ${errors.deliveryAddress ? 'border-red-500' : 'border-gray-300'}`}
-                                required
-                            />
-                            {errors.deliveryAddress && (
-                                <p className="text-red-500 text-sm mt-2">{errors.deliveryAddress}</p>
-                            )}
+                        {/* Delivery Address */}
+                        {deliveryOption === "delivery" && (
+                            <div id="error-deliveryAddress">
+                                <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><MapPin className="w-5 h-5" />{t("deliveryAddress")}</p>
+                                <textarea 
+                                    value={deliveryAddress} 
+                                    onChange={(e) => { 
+                                        setDeliveryAddress(e.target.value); 
+                                        if (e.target.value.trim().length >= 5) clearFieldError('deliveryAddress'); 
+                                    }} 
+                                    placeholder={t("enterDeliveryAddress")} 
+                                    rows={3} 
+                                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none ${errors.deliveryAddress ? 'border-red-500' : 'border-gray-300'}`} 
+                                    required 
+                                />
+                                {errors.deliveryAddress && <p className="text-red-500 text-sm mt-2">{errors.deliveryAddress}</p>}
+                                
+                                {deliveryAddress && deliveryAddress.trim().length > 5 && !isCalculatingDistance && distance !== null && deliveryOption === "delivery" && (
+                                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <p className="text-sm text-blue-800 font-semibold">
+                                            🚚 {t("deliveryFee")}: {deliveryFee} {t("currency")}
+                                        </p>
+                                    </div>
+                                )}
+                                {isCalculatingDistance && (
+                                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                                        <p className="text-sm text-gray-600">⏳ {t("calculatingDistance")}...</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Pickup Address */}
+                        {deliveryOption === "pickup" && (
+                            <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p className="text-sm text-green-800 flex items-center gap-2"><Home className="w-4 h-4" /><span className="font-semibold">{t("pickupAddress")}:</span>{PICKUP_ADDRESS}</p>
+                                <p className="text-xs text-green-600 mt-1">ℹ️ {t("pickupInstructions")}</p>
+                            </div>
+                        )}
+
+                        {/* Phone Number */}
+                        <div id="error-phoneNumber">
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Phone className="w-5 h-5" />{t("phoneNumber")}</p>
+                            <input type="tel" value={phoneNumber} onChange={(e) => { setPhoneNumber(e.target.value); if (e.target.value.trim()) clearFieldError('phoneNumber'); }} placeholder={t("enterPhoneNumber")} className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`} required />
+                            {errors.phoneNumber && <p className="text-red-500 text-sm mt-2">{errors.phoneNumber}</p>}
                         </div>
 
+                        {/* Delivery Date */}
+                        <div id="error-deliveryDate">
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Calendar className="w-5 h-5" />{t("deliveryDate")}</p>
+                            <input type="date" value={deliveryDate} onChange={(e) => { setDeliveryDate(e.target.value); if (e.target.value) clearFieldError('deliveryDate'); }} min={getMinDate()} max={getMaxDate()} className={`w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryDate ? 'border-red-500' : 'border-gray-300'}`} required />
+                            {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
+                        </div>
+
+                        {/* Delivery Time */}
                         <div id="error-deliveryTime">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <Clock className="w-5 h-5" />
-                                {t("preferredDeliveryTime")}
-                            </p>
-                            <select
-                                value={deliveryTime}
-                                onChange={(e) => {
-                                    setDeliveryTime(e.target.value);
-                                    if (e.target.value) {
-                                        clearFieldError('deliveryTime');
-                                    }
-                                }}
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryTime ? 'border-red-500' : 'border-gray-300'}`}
-                            >
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Clock className="w-5 h-5" />{t("preferredDeliveryTime")}</p>
+                            <select value={deliveryTime} onChange={(e) => { setDeliveryTime(e.target.value); if (e.target.value) clearFieldError('deliveryTime'); }} className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] ${errors.deliveryTime ? 'border-red-500' : 'border-gray-300'}`}>
                                 <option value="">{t("selectDeliveryTime")}</option>
-                                <option value="09:00-12:00">09:00 - 12:00</option>
                                 <option value="12:00-15:00">12:00 - 15:00</option>
                                 <option value="15:00-18:00">15:00 - 18:00</option>
                                 <option value="18:00-21:00">18:00 - 21:00</option>
                                 <option value="21:00-24:00">21:00 - 24:00</option>
                             </select>
-                            {errors.deliveryTime && (
-                                <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>
-                            )}
+                            {errors.deliveryTime && <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>}
                         </div>
 
+                        {/* Payment Method */}
                         <div id="error-paymentMethod">
-                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                                <CreditCard className="w-5 h-5" />
-                                {t("paymentMethod")}
-                            </p>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" />{t("paymentMethod")}</p>
                             <div className="flex flex-wrap gap-3">
-                                <button
-                                    onClick={() => {
-                                        setPaymentMethod("cash");
-                                        clearFieldError('paymentMethod');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "cash"
-                                        ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
-                                        : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
-                                        }`}
-                                >
-                                    💵 {t("cash")}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setPaymentMethod("bankTransfer");
-                                        clearFieldError('paymentMethod');
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "bankTransfer"
-                                        ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105"
-                                        : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"
-                                        }`}
-                                >
-                                    🏦 {t("bankTransfer")}
-                                </button>
+                                <button onClick={() => { setPaymentMethod("cash"); clearFieldError('paymentMethod'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "cash" ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105" : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"}`}>💵 {t("cash")}</button>
+                                <button onClick={() => { setPaymentMethod("bankTransfer"); clearFieldError('paymentMethod'); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${paymentMethod === "bankTransfer" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"}`}>🏦 {t("bankTransfer")}</button>
                             </div>
-                            {errors.paymentMethod && (
-                                <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>
-                            )}
+                            {errors.paymentMethod && <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>}
                         </div>
 
+                        {/* Quantity */}
                         <div>
-                            <p className="text-lg font-semibold text-[#69429a] mb-3">
-                                {language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}
-                            </p>
+                            <p className="text-lg font-semibold text-[#69429a] mb-3">{language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}</p>
                             <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors"
-                                >
-                                    -
-                                </button>
-                                <span className="text-2xl font-bold text-[#69429a] w-12 text-center">
-                                    {quantity}
-                                </span>
-                                <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors"
-                                >
-                                    +
-                                </button>
+                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">-</button>
+                                <span className="text-2xl font-bold text-[#69429a] w-12 text-center">{quantity}</span>
+                                <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">+</button>
                             </div>
                         </div>
 
-                        <div style={{
-                            position: 'sticky',
-                            bottom: '20px',
-                            zIndex: 50,
-                            marginTop: 'auto',
-                            backgroundColor: 'white',
-                            borderRadius: '1rem',
-                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                            padding: '1rem',
-                            border: '1px solid rgba(105, 66, 154, 0.1)'
-                        }}>
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <div className="text-3xl font-bold text-[#69429a]">
-                                        {price * quantity} {t("currency")}
-                                        <sup className="text-sm font-normal text-gray-400 ml-1">*</sup>
-                                    </div>
-                                </div>
+                        {/* Price Summary */}
+                        <div style={{ position: 'sticky', bottom: '20px', zIndex: 50, marginTop: 'auto', backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', padding: '1rem', border: '1px solid rgba(105, 66, 154, 0.1)' }}>
+                            <div>
+                                <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {price * quantity} {t("currency")}</div>
+                                {deliveryFee > 0 && (<div className="text-sm text-gray-600 mt-1">{t("deliveryFee")}: {deliveryFee} {t("currency")}</div>)}
+                                {deliveryOption === "delivery" && deliveryFee === 0 && (price * quantity) >= FREE_DELIVERY_THRESHOLD && distance !== null && distance <= FREE_DELIVERY_MAX_DISTANCE && (
+                                    <div className="text-sm text-green-600 mt-1">✅ {t("freeDeliveryForOrdersAbove")}  </div>
+                                )}
+                                {deliveryOption === "delivery" && deliveryFee === 0 && (price * quantity) >= FREE_DELIVERY_THRESHOLD && distance === null && (
+                                    <div className="text-sm text-green-600 mt-1">✅ {t("freeDeliveryApplied")}</div>
+                                )}
+                               
+                                <div className="text-3xl font-bold text-[#69429a] mt-2">{t("total")}: {totalPrice} {t("currency")}<sup className="text-sm font-normal text-gray-400 ml-1">*</sup></div>
                             </div>
                             <div className="mt-3 pt-2 border-t border-dashed border-gray-200 flex items-start gap-1">
                                 <span className="text-[#69429a] text-sm font-bold">*</span>
-                                <span className="text-xs text-gray-400">
-                                    {t("priceDependsOnComponentsAndDesign")}
-                                </span>
+                                <span className="text-xs text-gray-400">{t("priceDependsOnComponentsAndDesign")}</span>
                             </div>
+                            
                         </div>
 
-                        <button
-                            onClick={handleWhatsAppOrder}
-                            disabled={isSending}
-                            className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#69429a] text-white font-semibold rounded-xl hover:bg-[#aed137] transition-colors text-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isSending ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    {t("sending") || "Sending..."}
-                                </>
-                            ) : (
-                                <>
-                                    {/* <MessageCircle className="w-6 h-6" /> */}
-                                    {t("orderNow")}
-                                </>
-                            )}
+                        {/* Order Button */}
+                        <button onClick={handleWhatsAppOrder} disabled={isSending} className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#69429a] text-white font-semibold rounded-xl hover:bg-[#aed137] transition-colors text-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+                            {isSending ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />{t("sending") || "Sending..."}</>) : (<>{t("orderNow")}</>)}
                         </button>
 
                         <p className="mt-2 text-gray-700 italic text-sm">
-                            🏠 {t('freeDeliveryHint')}
+                            {deliveryOption === "delivery" ? (
+                                isYerevanAddress === false ? (
+                                    `🚚 ${t('deliveryOutsideYerevan')}`
+                                ) : (price * quantity) >= FREE_DELIVERY_THRESHOLD ? (
+                                    distance !== null && distance > FREE_DELIVERY_MAX_DISTANCE
+                                        ? `🚚 ${FREE_DELIVERY_MAX_DISTANCE} km ${t('freeDelivery')}, ${t('extraDistanceCharged')}`
+                                        : `🚚 ${t('freeDeliveryForOrdersAbove')}  `
+                                ) : (
+                                    `🚚 ${t('deliveryFeeInfo')}`
+                                )
+                            ) : (
+                                `🏠 ${t('pickupHint')}`
+                            )}
                         </p>
 
+                        {/* Product Info */}
                         <div className="bg-white rounded-xl p-6 shadow-sm">
-                            <h3 className="font-semibold text-[#69429a] mb-3">
-                                {t('productInfo')}
-                            </h3>
+                            <h3 className="font-semibold text-[#69429a] mb-3">{t('productInfo')}</h3>
                             <ul className="space-y-2 text-gray-600">
-                                <li className="flex items-center gap-2">
-                                    <span className="text-[#aed137]">✓</span>
-                                    {t('safeIngredients')}
-                                </li>
-
-                                <li className="flex items-center gap-2">
-                                    <span className="text-[#aed137]">✓</span>
-                                    {t('freshDaily2')}
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="text-[#aed137]">✓</span>
-                                    {t('madeWithLove')}
-                                </li>
+                                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t('safeIngredients')}</li>
+                                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t('freshDaily2')}</li>
+                                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t('madeWithLove')}</li>
                             </ul>
                         </div>
                     </div>
