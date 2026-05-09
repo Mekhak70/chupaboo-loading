@@ -864,7 +864,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                         <p className="mt-2 text-gray-700 italic text-sm">
                             {deliveryOption === "delivery" ? (
                                 isYerevanAddress === false ? (
-                                    `🚚 ${t('deliveryOutsideYerevan')}`
+                                    ``
                                 ) : (price * quantity) >= FREE_DELIVERY_THRESHOLD ? (
                                     distance !== null && distance > FREE_DELIVERY_MAX_DISTANCE
                                         ? `🚚 ${FREE_DELIVERY_MAX_DISTANCE} km ${t('freeDelivery')}, ${t('extraDistanceCharged')}`
