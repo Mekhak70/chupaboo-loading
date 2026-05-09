@@ -165,6 +165,12 @@ export const translations: Translations = {
     ru: "Бесплатная доставка в Ереване при заказе от 6000 драм",
     pl: "Darmowa dostawa w Erywaniu przy zamówieniach powyżej 6000 AMD",
   },
+  placeholder: {
+    hy: "Երևան, Հալաբյան 10",
+    en: "Yerevan, Halabyan 10",
+    ru: "Ереван, Алабяна 10",
+    pl: "Erywań, Halabyan 10",
+  },
   petName: {
     hy: "Կենդանու անունը",
     en: "Pet Name",

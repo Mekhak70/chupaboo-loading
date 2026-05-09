@@ -758,7 +758,7 @@ ${SITE_URL}/${language}/product/${product.id}`
                                         setDeliveryAddress(e.target.value); 
                                         if (e.target.value.trim().length >= 5) clearFieldError('deliveryAddress'); 
                                     }} 
-                                    placeholder={t("enterDeliveryAddress")} 
+                                    placeholder={t("placeholder")} 
                                     rows={3} 
                                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none ${errors.deliveryAddress ? 'border-red-500' : 'border-gray-300'}`} 
                                     required 
