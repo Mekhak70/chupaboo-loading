@@ -521,6 +521,17 @@ ${SITE_URL}/${language}/product/${product.id}`
             basePrice = id === 'cookieboo' ? 14000 : 11000;
         }
         if (selectedVegetables.includes('SWEET_POTATO')) basePrice += 2000;
+        if (
+            selectedVegetables.includes('MANGO') 
+        ) {
+            basePrice += 2000;
+        }
+        if (
+           
+            selectedVegetables.includes('ELDERBERRY')
+        ) {
+            basePrice += 2000;
+        }
         let extra = 0;
         if (selectedVegetables.length === 3) {
             extra = creamType === 'PLANTBASEDMILK' ? 1000 + 3000 : 1000;
