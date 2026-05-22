@@ -17,6 +17,7 @@ export interface PartyShop {
 }
 
 import img1 from '@/public/cake-1.png'
+
 import img2 from '@/public/cake-2.png'
 import img3 from '@/public/cake-3.png'
 import img4 from '@/public/cake-4.png'
