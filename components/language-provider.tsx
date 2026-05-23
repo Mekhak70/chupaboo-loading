@@ -323,6 +323,12 @@ deliveryDate: {
   ru: "Дата доставки",
   pl: "Data dostawy"
 },
+partyshop: {
+  hy: "Փարթի Շոփ",
+  en: "Party Shop",
+  ru: "Пати Шоп",
+  pl: "Party Shop"
+},
 selectDeliveryTime: {
   hy: "Ընտրեք առաքման ժամը",
   en: "Select delivery time",
