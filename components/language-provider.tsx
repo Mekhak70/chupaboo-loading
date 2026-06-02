@@ -335,6 +335,12 @@ selectDeliveryTime: {
   ru: "Выберите время доставки",
   pl: "Wybierz czas dostawy"
 },
+"alreadyInCart": {
+  "hy": "Ավելացված է զամբյուղում",
+  "en": "Already in cart",
+  "ru": "Уже в корзине",
+  "pl": "Już w koszyku"
+},
 deliveryAddress: {
   hy: "Առաքման հասցե",
   en: "Delivery Address",

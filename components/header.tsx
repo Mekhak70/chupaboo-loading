@@ -1,19 +1,20 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useLanguage } from "@/components/language-provider"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import Image from "next/image"
-import Logo from "@/public/logo.svg"
-import { usePathname } from "next/navigation"
+import Link from "next/link";
+import { useState } from "react";
+import { Menu, X, ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/components/language-provider";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useCart } from "@/components/cart-context";
+import Image from "next/image";
+import Logo from "@/public/logo.svg";
+import { usePathname } from "next/navigation";
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { t, language } = useLanguage()
-  const pathname = usePathname()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t, language } = useLanguage();
+  const pathname = usePathname();
 
   const navItems = [
     { href: `/${language}`, label: t("home") },
@@ -21,11 +22,9 @@ export function Header() {
     { href: `/${language}/shop`, label: t("shop") },
     { href: `/${language}/contact`, label: t("contact") },
     { href: `/${language}/partyshop`, label: t("partyshop") },
+  ];
 
-  ]
-
-  const isActive = (href: string) =>
-    pathname === href 
+  const isActive = (href: string) => pathname === href;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,34 +38,47 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative pb-1 text-sm font-medium transition-colors
-                ${
-                  isActive(item.href)
-                    ? "text-[#69429a]"
-                    : "text-foreground/80 hover:text-primary"
-                }
-              `}
+              className={`relative pb-1 text-sm font-medium transition-colors ${
+                isActive(item.href)
+                  ? "text-[#69429a]"
+                  : "text-foreground/80 hover:text-primary"
+              }`}
             >
               {item.label}
-
               <span
-                className={`absolute left-0 -bottom-0.5 h-[2px] w-full rounded-full transition-all duration-300
-                  ${
-                    isActive(item.href)
-                      ? "bg-[#69429a] opacity-100"
-                      : "bg-transparent opacity-0"
-                  }
-                `}
+                className={`absolute left-0 -bottom-0.5 h-[2px] w-full rounded-full transition-all duration-300 ${
+                  isActive(item.href)
+                    ? "bg-[#69429a] opacity-100"
+                    : "bg-transparent opacity-0"
+                }`}
               />
             </Link>
           ))}
           <LanguageSwitcher />
+          <Link href={`/${language}/cart`} className="relative">
+            <Button variant="ghost" size="icon" className="relative">
+              {/* <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#69429a] text-[10px] font-bold text-white">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )} */}
+            </Button>
+          </Link>
         </nav>
 
-        {/* Mobile Button */}
         <div className="flex items-center gap-2 md:hidden">
           <LanguageSwitcher />
-
+          <Link href={`/${language}/cart`} className="relative">
+            <Button variant="ghost" size="icon" className="relative">
+              {/* <ShoppingCart className="h-5 w-5" /> */}
+              {/* {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#69429a] text-[10px] font-bold text-white">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )} */}
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
@@ -78,7 +90,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="border-t border-border bg-background md:hidden">
           <nav className="container mx-auto flex flex-col gap-2 px-4 py-4">
@@ -87,16 +98,13 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors
-                  ${
-                    isActive(item.href)
-                      ? "bg-muted text-[#69429a]"
-                      : "text-foreground/80 hover:bg-muted hover:text-primary"
-                  }
-                `}
+                className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  isActive(item.href)
+                    ? "bg-muted text-[#69429a]"
+                    : "text-foreground/80 hover:bg-muted hover:text-primary"
+                }`}
               >
                 {item.label}
-
                 {isActive(item.href) && (
                   <span className="absolute bottom-1 left-4 right-4 h-[2px] rounded-full bg-[#69429a]" />
                 )}
@@ -106,5 +114,5 @@ export function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }

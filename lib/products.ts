@@ -9,6 +9,7 @@ export interface Product {
 }
 
 export interface PartyShop {
+  price: number
   id: string
   name: string
   description: string
@@ -328,6 +329,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 1500,
     image: partyShop1,
+    price: 1500,
+
   },
   {
     id: 'animal-happy-birthday-banner-2',
@@ -335,6 +338,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
     priceInCents: 2000,
     image: partyShop20,
+    price: 2000,
+
   },
   {
     id: 'foil-balloon',
@@ -342,6 +347,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop8,
+    price: 1000,
+
   },
   {
     id: 'small-hat-with-bow-tie-2',
@@ -349,6 +356,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 1500,
     image: partyShop2,
+    price: 1500,
+
   },
   {
     id: 'animal-happy-birthday-banner',
@@ -356,6 +365,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
     priceInCents: 2000,
     image: partyShop5,
+    price: 2000,
+
   },
   
   {
@@ -364,6 +375,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
     image: partyShop7,
+    price: 1500,
+
   },
 
   {
@@ -372,6 +385,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
     priceInCents: 3500,
     image: partyShop9,
+    price: 3500,
+
   },
   {
     id: 'foil-balloon-2',
@@ -379,6 +394,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop10,
+    price: 1000,
+
   },
   {
     id: 'small-soft-hat',
@@ -386,6 +403,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Soft small party hat, comfortable and lightweight accessory for celebrations and costumes',
     priceInCents: 1000,
     image: partyShop11,
+    price: 1000,
+
   },
   {
     id: 'large-soft-hat',
@@ -393,6 +412,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
     priceInCents: 2500,
     image: partyShop12,
+    price: 2500,
+
   },
   {
     id: 'foil-balloon-3',
@@ -400,6 +421,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop14,
+    price: 1000,
+
   },
   {
     id: 'large-bow-tie-2',
@@ -407,6 +430,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
     image: partyShop15,
+    price: 1500,
+
   },
   {
     id: 'large-balloon-dog',
@@ -414,13 +439,17 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large balloon dog decoration, perfect for parties, kids events, and festive celebrations',
     priceInCents: 1000,
     image: partyShop17,
+    price: 1000,
+
   },
   {
     id: 'balloon-with-little-paws',
     name: 'Balloon with Little Paws',
     description: 'Cute decorative balloon with paw prints, ideal for animal-themed parties and celebrations',
-    priceInCents: 300,
+    priceInCents: 3000,
     image: partyShop18,
+    price: 3000,
+
   },
   {
     id: 'large-bow-tie-3',
@@ -428,6 +457,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
     image: partyShop19,
+    price: 1500
   },
   {
     id: 'small-bow-tie-and-hat-set',
@@ -435,13 +465,15 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
     priceInCents: 1000,
     image: partyShop21,
+    price: 1000
   },
   {
     id: 'large-hat-with-bow-tie',
     name: 'Large Hat with Bow Tie',
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    priceInCents: 3500,
+    price: 3500,
     image: partyShop25,
+    priceInCents: 3500
   },
 
 ]

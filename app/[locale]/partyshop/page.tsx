@@ -1,155 +1,61 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Dog, Cat, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ProductCard } from "@/components/product-card"
-import { useLanguage } from "@/components/language-provider"
-import { PRODUCTS, PARTYSHOPDATA } from "@/lib/products"
-import Image from "next/image"
-import Arrow from "@/public/arrow.png"
-import Cake from "@/public/cake.png"
-import { useParams } from "next/navigation"
-
-
-type Filter = "all" | "small" | "standart" 
+import { useState } from "react";
+import Image from "next/image";
+import { ShoppingCart, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/components/language-provider";
+import { PARTYSHOPDATA } from "@/lib/products";
+import { CartDrawer } from "@/components/CartDrawer";
+import partyShop from "@/public/party-shop-main.jpg";
+import { useCart } from "@/components/cart-context";
 
 export default function ShopPage() {
-    const { locale } = useParams()
-  
-  const { t } = useLanguage()
-  const [filter, setFilter] = useState<Filter>("all")
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [type, setType] = useState<string>("")
-  const [creamType, setCreamType] = useState<string>("")
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [pendingImage, setPendingImage] = useState<string | null>(null)
-  const filteredProducts =
-    filter === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === filter)
+  const { t } = useLanguage();
+  const { addToCart, getItemCount, cart, orderInfo } = useCart(); // No need for orderInfo here
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
+  const isProductInCart = (productId: string) => {
+    return cart.some((item: { id: string }) => item.id === productId);
+  };
 
+  const addToCartHandler = (product: (typeof PARTYSHOPDATA)[0]) => {
+    addToCart({
+      id: String(product.id),
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      quantity: 1,
+      options: null,
+    });
+  };
 
-  const handleSelectImage = (image: any) => {
-    setSelectedImage(image.src)  
-    setPendingImage(image.src)   
-    setIsModalOpen(true)
-  }
-  const SITE_URL = "https://www.chupaboo.com"
-
-
-  const whatsappMessage = selectedImage
-    ? `Բարև, ուզում եմ պատվիրել այս տորթը լինի ${type} և ${creamType}։ Նկարը՝ ${SITE_URL}${selectedImage}`
-    : "Բարև, ուզում եմ պատվիրել տորթ"
-
-  const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(
-    whatsappMessage
-  )}`
+  const cartCount = getItemCount();
 
   return (
     <>
       <div className="flex flex-col">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10 py-16 md:py-24" style={{ background: '#69429a' }}>
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-3xl text-center">
-              <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl" style={{ color: '#fff' }}>
-                {t("shopTitle")}
-              </h1>
-              <p className="text-lg text-muted-foreground md:text-xl" style={{ color: '#fff' }}>{t("shopDesc")}</p>
-            </div>
-          </div>
+        <section>
+          <Image
+            src={partyShop}
+            alt="Party Shop"
+            height={320}
+            className="w-full object-cover"
+          />
         </section>
 
-        {/* Filter & Products */}
-        <section >
+        {/* Products Grid */}
+        <section className="bg-white py-10">
           <div className="container mx-auto px-4">
-            {/* Filter Buttons */}
-            {/* <div className="mb-8 flex flex-wrap justify-center gap-3">
-            {filters.map((f) => (
-              <Button
-                key={f.value}
-                variant={filter === f.value ? "default" : "outline"}
-                onClick={() => setFilter(f.value)}
-                className={filter === f.value ? "bg-primary text-primary-foreground" : ""}
-              >
-                <f.icon className="mr-2 h-4 w-4" />
-                {f.label}
-              </Button>
-            ))}
-          </div> */}
-
-
-            {/* Products Grid */}
-            
-            <section className="bg-white py-10">
-          <div className="container mx-auto px-4">
-            {/* FILTER BUTTONS */}
-            <div className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap" style={{ paddingBottom: '20px' }}>
-              <button 
-                onClick={() => setFilter('all')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'all' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("all")}
-              </button>
-              <button 
-                onClick={() => setFilter('small')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'small' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("mini")}
-              </button>
-              <button 
-                onClick={() => setFilter('standart')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'standart' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("standard")}
-              </button>
-            </div>
-
-            {/* PRODUCTS GRID */}
-            <div
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-              style={{ paddingTop: "10px" }}
-            >
-              {PARTYSHOPDATA.length > 0 ? (
-                PARTYSHOPDATA.map((product) => (
-                  <Link
-                    key={product.id}
-                    href={`/${locale}/product/${product.id}`}
-                    className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {PARTYSHOPDATA.map((product) => {
+                const productId = String(product.id);
+                const inCart = isProductInCart(productId);
+                return (
+                  <div
+                    key={productId}
+                    className="group rounded-2xl overflow-hidden bg-white border border-gray-100/80 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="relative aspect-square">
                       <Image
@@ -160,66 +66,66 @@ export default function ShopPage() {
                         priority
                       />
                     </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-gray-500 text-lg">Ապրանքներ չկան</p>
-                </div>
-              )}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg text-gray-800 tracking-tight">
+                        {product.name}
+                      </h3>
+                      <p className="text-gray-500 mt-1 text-sm font-medium">
+                        {product.price} դրամ
+                      </p>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!inCart) addToCartHandler(product);
+                        }}
+                        disabled={inCart}
+                        className={`mt-3 w-full rounded-full py-2.5 text-sm font-medium tracking-wide transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none ${
+                          inCart
+                            ? "bg-emerald-500 hover:bg-emerald-600 cursor-not-allowed opacity-90 shadow-none"
+                            : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                        }`}
+                        style={{ color: "#fff", backgroundColor: inCart ? "#10b981" : "#69429a" }}
+                      >
+                        {inCart ? (
+                          <>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            {t("alreadyInCart") || "Ավելացված է զամբյուղում"}
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            {t("addToCart") || "Ավելացնել զամբյուղ"}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
-            {/* ORDER BUTTON */}
-            {/* <div className="container mx-auto py-10 text-center bg-white">
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-8 py-4 text-white font-semibold rounded-lg transition"
-                style={{ backgroundColor: "#69429a" }}
-              >
-                {t("orderNow")}
-              </a>
-            </div> */}
-          </div>
-        </section>
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center"
+          style={{ backgroundColor: "#69429a" }}
+        >
+          <ShoppingCart className="h-6 w-6" />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {cartCount}
+            </span>
+          )}
+        </button>
 
-        {/* Info Section */}
-        <section className="border-t border-border bg-muted/30 py-16">
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-3xl text-center">
-              <Image src={Cake} alt="cake" width={40} height={40} className="mb-4 mx-auto" priority/>
-              <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ color: '#69429a' }}>{t("customOrdersWelcome")}</h2>
-              <p className="mb-6 text-muted-foreground" style={{ color: '#69429a' }}>{t("customOrdersDesc")}</p>
-              <Button
-                asChild
-                variant="outline"
-                style={{ backgroundColor: '#69429a', color: '#fff' }}
-              >
-                <a
-                  href="https://wa.me/37433775750"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("contactUs")}
-                </a>
-              </Button>
-
-            </div>
-          </div>
-        </section>
+        <CartDrawer 
+          isOpen={isCartOpen} 
+          onClose={() => setIsCartOpen(false)}
+          orderInfo={orderInfo}
+         
+        />
       </div>
-      <style jsx>{`
-      @media (max-width: 450px) {
-        .responsive-text {
-          font-size: 10.5px !important;
-          line-height: 1.2;
-          gap: 6px !important;
-        }
-      }
-    `}</style>
     </>
-  )
+  );
 }

@@ -5,6 +5,7 @@ import "@/app/globals.css"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import type { ReactNode, JSX } from "react";
+import { CartProvider } from "@/components/cart-context";
 
 
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800"] })
@@ -186,8 +187,11 @@ export default async function RootLayout({ children, params }: LayoutProps) {
         </Script>
       </head>
       <body className="font-sans antialiased">
+      <CartProvider>
+
         <RootLayoutContent params={{ locale }}>{children}</RootLayoutContent>
         <Analytics />
+        </CartProvider>
       </body>
     </html>
   );
