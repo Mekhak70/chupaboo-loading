@@ -268,17 +268,23 @@ export const translations: Translations = {
     ru: "В корзину",
     pl: "Dodaj do koszyka"
   },
+  cartEmpty: {
+    hy: "Զամբյուղը դատարկ է",
+    en: "The cart is empty",
+    ru: "Корзина пуста",
+    pl: "Koszyk jest pusty"
+  },
   checkout: {
     hy: "Վճարում",
     en: "Checkout",
     ru: "Оформить",
     pl: "Przejdź do kasy"
   },
-  cart: {
-    hy: "Զամբյուղ",
-    en: "Cart",
-    ru: "Корзина",
-    pl: "Koszyk"
+  product: {
+    hy: "Ապրանք",
+    en: "Product",
+    ru: "Товар",
+    pl: "Produkt"
   },
   all: {
     hy: "ԲՈԼՈՐԸ",
@@ -346,6 +352,12 @@ deliveryAddress: {
   en: "Delivery Address",
   ru: "Адрес доставки",
   pl: "Adres dostawy"
+},
+cart: {
+  hy: "Զամբյուղ",
+  en: "Cart",
+  ru: "Корзина",
+  pl: "Koszyk"
 },
 enterDeliveryAddress: {
   hy: "Մուտքագրեք առաքման հասցեն",
@@ -849,7 +861,69 @@ petNameLabel: {
     ru: "Каждый торт создан вручную нашей командой с любовью.",
     pl: "Każdy tort jest ręcznie wykonany przez nasz pełen pasji zespół. Wkładamy serce w każde dzieło, ponieważ wiemy, jak bardzo Twoje zwierzęta są dla Ciebie ważne."
   },
-
+  cake: {
+    hy: "Տորթ",
+    en: "Cake",
+    ru: "Торт",
+    pl: "Ciasto"
+  },
+  discounted: {
+    hy: "Զեղչված",
+    en: "Discounted",
+    ru: "Со скидкой",
+    pl: "Z przeceną"
+  },
+  closeDetails: {
+    hy: "Փակել մանրամասները",
+    en: "Close details",
+    ru: "Закрыть подробности",
+    pl: "Zamknij szczegóły"
+  },
+  deliveryDetails: {
+    hy: "Առաքման տվյալներ",
+    en: "Delivery details",
+    ru: "Данные доставки",
+    pl: "Dane dostawy"
+  },
+  close: {
+    hy: "Փակել",
+    en: "Close",
+    ru: "Закрыть",
+    pl: "Zamknij"
+  },
+  
+  seeMore: {
+    hy: "Տեսնել ավելին",
+    en: "See more",
+    ru: "Увидеть больше",
+    pl: "Zobacz więcej"
+  },
+ 
+  cakeDiscountCondition: {
+    hy: "Տորթ պատվիրելու դեպքում յուրաքանչյուր partshop ապրանքի գնից զեղչվում է",
+    en: "When ordering a cake, a discount is applied to the price of each Partshop product",
+    ru: "При заказе торта предоставляется скидка на цену каждого товара Partshop",
+    pl: "Przy zamówieniu ciasta rabat jest stosowany do ceny każdego produktu Partshop"
+  },
+  deliveryDetail: {
+    hy: "Առաքման մանրամասներ",
+    en: "Delivery details",
+    ru: "Детали доставки",
+    pl: "Szczegóły dostawy"
+  },
+  
+  seeCakeComposition: {
+    hy: "Տեսնել տորթի կազմը",
+    en: "See cake composition",
+    ru: "Посмотреть состав торта",
+    pl: "Zobacz skład ciasta"
+  },
+  cakeComposition: {
+    hy: "Տորթի կազմը",
+    en: "Cake composition",
+    ru: "Состав торта",
+    pl: "Skład ciasta"
+  },
   petHappiness: {
     hy: "Կենդանու ուրախություն",
     en: "Pet Happiness",
@@ -865,11 +939,11 @@ petNameLabel: {
   },
 
   // Checkout
-  cartEmpty: {
-    hy: "Ձեր զամբյուղը դատարկ է",
-    en: "Your cart is empty",
-    ru: "Корзина пуста",
-    pl: "Twój koszyk jest pusty"
+  continueShopping: {
+    hy: "Շարունակել գնումները",
+    en: "Continue shopping",
+    ru: "Продолжить покупки",
+    pl: "Kontynuuj zakupy"
   },
 
   cartEmptyDesc: {

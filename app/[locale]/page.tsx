@@ -5,17 +5,16 @@ import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, Chev
 import { useLanguage } from "@/components/language-provider";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { PRODUCTS, PARTYSHOPDATA } from "@/lib/products";
-import MainImgAm from "@/public/home-arm.png";
-import MainImgRu from "@/public/home-rus.png";
-import MainImgEn from "@/public/home-eng.png";
-import MainImgPl from "@/public/home-pl.png";
-import PetSlider from "@/components/PetSlider";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { StaticImport } from "next/dist/shared/lib/get-img-props";
 import { useCart } from "@/components/cart-context";
 import { CartDrawer } from "@/components/CartDrawer";
 import { motion, useInView, useAnimation } from "framer-motion";
+import homepage from "@/public/fon.png";
+import main1 from "@/public/main1.png";
+import main2 from "@/public/main2.png";
+import main3 from "@/public/main3.png";
 
 type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
 
@@ -40,30 +39,12 @@ interface Ad {
 const heroSlides = [
   {
     id: 1,
-    image: MainImgAm,
-    title: "Բնական տորթեր ընտանի կենդանիների համար",
-    subtitle: "Միայն թարմ, մարդու համար պիտանի բաղադրիչներ",
-    ctaText: "Պատվիրել",
-    ctaLink: "/shop",
-    bgColor: "from-[#69429a] to-[#8b5fcf]",
-  },
-  {
-    id: 2,
-    image: MainImgRu,
-    title: "Անհատական դիզայն",
-    subtitle: "Ստեղծեք ձեր կենդանու երազանքի տորթը",
-    ctaText: "Իմանալ ավելին",
-    ctaLink: "/about",
-    bgColor: "from-[#4a90e2] to-[#2c5aa0]",
-  },
-  {
-    id: 3,
-    image: MainImgEn,
-    title: "Արագ առաքում Երևանում",
-    subtitle: "Անվճար առաքում 6000 դրամից",
-    ctaText: "Տես տեսականին",
-    ctaLink: "/shop",
-    bgColor: "from-[#e67e22] to-[#f39c12]",
+    image: homepage,
+    title: "",
+    subtitle: "",
+    ctaText: "",
+    ctaLink: "",
+    bgColor: "",
   },
 ];
 
@@ -162,7 +143,7 @@ export default function HomePage() {
 
   const { locale } = useParams();
   const SITE_URL = "https://www.chupaboo.com";
-  
+
   const { addToCart, getItemCount, cart, orderInfo } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -322,13 +303,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   }, []);
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setIsAutoPlaying(false);
-    if (autoPlayRef.current) clearTimeout(autoPlayRef.current);
-    autoPlayRef.current = setTimeout(() => setIsAutoPlaying(true), 5000);
-  };
-
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
@@ -337,20 +311,52 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     return () => clearInterval(interval);
   }, [isAutoPlaying, nextSlide]);
 
-  const [touchStart, setTouchStart] = useState(0);
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEnd = e.changedTouches[0].clientX;
-    if (touchStart - touchEnd > 50) nextSlide();
-    if (touchStart - touchEnd < -50) prevSlide();
-  };
+  // Products slider state
+  const [isProductsAutoPlaying, setIsProductsAutoPlaying] = useState(true);
+  const productsControls = useAnimation();
+
+  // PartyShop slider state
+  const [isPartyShopAutoPlaying, setIsPartyShopAutoPlaying] = useState(true);
+  const partyShopControls = useAnimation();
+
+  // Products slider animation
+  useEffect(() => {
+    if (isProductsAutoPlaying) {
+      productsControls.start({
+        x: [0, -((filteredProducts.slice(0, 6).length * (320 + 24)))],
+        transition: {
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+          repeatType: "loop"
+        }
+      });
+    } else {
+      productsControls.stop();
+    }
+  }, [isProductsAutoPlaying, filteredProducts, productsControls]);
+
+  // PartyShop slider animation
+  useEffect(() => {
+    if (isPartyShopAutoPlaying) {
+      partyShopControls.start({
+        x: [-(PARTYSHOPDATA.slice(0, 6).length * (320 + 24)), 0],
+        transition: {
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+          repeatType: "loop"
+        }
+      });
+    } else {
+      partyShopControls.stop();
+    }
+  }, [isPartyShopAutoPlaying, partyShopControls]);
 
   return (
-    <>  
+    <>
       <div className="flex flex-col">
-        {/* Floating Cart Button - moved outside conditional to always show when cart has items */}
+        {/* Floating Cart Button */}
         {getItemCount() > 0 && (
           <button
             onClick={() => setIsCartOpen(true)}
@@ -365,35 +371,105 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             )}
           </button>
         )}
-        
-        {/* Cart Drawer - orderInfo comes from context, no need to pass as prop */}
-        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)}  orderInfo={orderInfo} />
+
+        {/* Cart Drawer */}
+        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} orderInfo={orderInfo} />
 
         {/* ========== HERO SLIDER ========== */}
         <ScrollReveal direction="up" delay={0}>
-          <section 
-            className="relative bg-gradient-to-br from-[#69429a] to-[#8b5fcf] overflow-hidden"
+          <section
             onMouseEnter={() => setIsAutoPlaying(false)}
             onMouseLeave={() => setIsAutoPlaying(true)}
+            className="relative overflow-hidden"
           >
-            <div className="relative h-[65vh] min-h-[500px] md:h-[75vh]">
+            <div className="relative w-full h-[100px] md:h-[380px] ">
               {heroSlides.map((slide, idx) => (
                 <div
                   key={slide.id}
-                  className={`absolute inset-0 transition-all duration-700 ease-out ${
-                    idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-                  }`}
+                  className={`absolute inset-0 transition-all duration-700 ease-out ${idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                    }`}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20 z-10" />
+                  {/* Gradient overlay */}
+                  <div className="relative w-full h-auto min-h-[380px]" />
+
+                  {/* Background Image */}
                   <Image
                     src={slide.image}
                     alt={slide.title}
                     fill
-                    className="object-cover"
-                    priority={idx === 0}
+                    className="w-full h-auto object-contain"
+                                        priority={idx === 0}
+                    sizes="100vw"
+                    quality={100}
                   />
-                  <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-4 max-w-3xl mx-auto">
-                    <motion.h1 
+
+                  {/* Floating Images - with CSS animations */}
+                  <div className="absolute inset-0 z-20">
+                    {/* Կենտրոնական նկար */}
+                    <div
+                      className="absolute animate-float-center"
+                      style={{
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: "min(260px, 24vw)",
+                        height: "min(268px, 25vw)",
+                      }}
+                    >
+                      <Image
+                        src={main2}
+                        alt="floating image 1"
+                        width={367}
+                        height={379}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+
+                    {/* Ձախ կողմի նկար */}
+                    <div
+                      className="absolute hidden md:block animate-float-left"
+                      style={{
+                        top: "50%",
+                        left: "68%",
+                        width: "min(300px, 30vw)",
+                        height: "min(300px, 30vw)",
+                      }}
+                    >
+                      <Image
+                        src={main1}
+                        alt="floating image 2"
+                        width={401}
+                        height={402}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+
+                    {/* Աջ կողմի նկար */}
+                    <div
+                      className="absolute hidden md:block animate-float-right"
+                      style={{
+                        top: "55%",
+                        left: "33%",
+                        width: "min(290px, 29vw)",
+                        height: "min(285px, 28vw)",
+                      }}
+                    >
+                      <Image
+                        src={main3}
+                        alt="floating image 3"
+                        width={407}
+                        height={399}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-30 h-full flex flex-col items-center justify-center text-center px-4 max-w-3xl mx-auto">
+                    <motion.h1
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -401,7 +477,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     >
                       {slide.title}
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.4 }}
@@ -409,17 +485,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     >
                       {slide.subtitle}
                     </motion.p>
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.6 }}
-                    >
-                      <Link href={`/${locale}${slide.ctaLink}`}>
-                        <button className="px-7 py-3 bg-[#aed137] hover:bg-[#c5e55a] text-gray-900 font-semibold rounded-full transition-all hover:scale-105 shadow-lg">
-                          {slide.ctaText} →
-                        </button>
-                      </Link>
-                    </motion.div>
                   </div>
                 </div>
               ))}
@@ -427,18 +492,18 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 transition-all hover:scale-110"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 transition-all hover:scale-110"
             >
               <ChevronLeft className="w-5 h-5 text-white" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 transition-all hover:scale-110"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-2 transition-all hover:scale-110"
             >
               <ChevronRight className="w-5 h-5 text-white" />
             </button>
 
-            <div className="absolute bottom-6 left-0 right-0 z-30 flex flex-col items-center gap-2">
+            <div className="absolute bottom-6 left-0 right-0 z-40 flex flex-col items-center gap-2">
               <div className="flex gap-2">
                 {heroSlides.map((_, idx) => (
                   <button
@@ -448,15 +513,14 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       setIsAutoPlaying(false);
                       setTimeout(() => setIsAutoPlaying(true), 5000);
                     }}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === currentSlide ? "w-8 bg-[#aed137]" : "w-2 bg-white/50 hover:bg-white/80"
-                    }`}
+                    className={`h-2 rounded-full transition-all ${idx === currentSlide ? "w-8 bg-[#aed137]" : "w-2 bg-white/50 hover:bg-white/80"
+                      }`}
                   />
                 ))}
               </div>
               {isAutoPlaying && (
                 <div className="w-16 h-0.5 bg-white/30 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-[#aed137] rounded-full"
                     style={{ animation: `progress 5s linear infinite` }}
                   />
@@ -466,7 +530,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
           </section>
         </ScrollReveal>
 
-        {/* PRODUCTS SECTION */}
+        {/* PRODUCTS SECTION - rotates LEFT to RIGHT */}
         <section className="bg-white py-12 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
@@ -476,14 +540,18 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               </div>
             </ScrollReveal>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="overflow-hidden w-full"
+            <div
+              className="relative overflow-hidden w-full"
+              onMouseEnter={() => setIsProductsAutoPlaying(false)}
+              onMouseLeave={() => setIsProductsAutoPlaying(true)}
             >
-              <div className="slider-track flex gap-6 pb-4">
+              <motion.div
+                className="flex gap-6"
+                animate={productsControls}
+                style={{
+                  width: "max-content",
+                }}
+              >
                 {[...filteredProducts.slice(0, 6), ...filteredProducts.slice(0, 6)].map((product, idx) => (
                   <Link
                     key={`${product.id}-${idx}`}
@@ -497,6 +565,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                           alt={product.name}
                           fill
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 280px, 320px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
@@ -508,8 +577,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     </div>
                   </Link>
                 ))}
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
 
             <ScrollReveal direction="up" delay={0.2}>
               <div className="flex justify-center mt-12">
@@ -523,8 +592,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
           </div>
         </section>
 
-        {/* PARTY SHOP SECTION */}
-        <section className="bg-white py-20">
+        {/* PARTY SHOP SECTION - rotates RIGHT to LEFT (opposite direction) */}
+        <section className="bg-white py-20 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
               <div className="text-center mb-12">
@@ -533,26 +602,49 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               </div>
             </ScrollReveal>
 
-            <StaggerContainer className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {PARTYSHOPDATA.slice(0, 3).map((item) => (
-                <StaggerItem key={item.id}>
-                  <Link
-                    href={`/${locale}/partyshop`}
-                    className="group block rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
+            <div
+              className="relative overflow-hidden w-full"
+              onMouseEnter={() => setIsPartyShopAutoPlaying(false)}
+              onMouseLeave={() => setIsPartyShopAutoPlaying(true)}
+            >
+              <motion.div
+                className="flex gap-6"
+                animate={partyShopControls}
+                style={{
+                  width: "max-content",
+                }}
+              >
+                {[...PARTYSHOPDATA.slice(0, 6), ...PARTYSHOPDATA.slice(0, 6)].map((item, idx) => (
+                  <div
+                    key={`${item.id}-${idx}`}
+                    className="min-w-[280px] md:min-w-[320px] group flex-shrink-0"
                   >
-                    <div className="relative aspect-square overflow-hidden">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
-                    </div>
-                  </Link>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                    <Link
+                      href={`/${locale}/partyshop`}
+                      className="group block rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
+                    >
+                      <div className="relative aspect-square overflow-hidden">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 280px, 320px"
+                        />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
+                      </div>
+                      {item.name && (
+                        <div className="p-4 text-center bg-white">
+                          <h3 className="font-semibold text-gray-800 text-lg group-hover:text-[#69429a] transition-colors">
+                            {item.name}
+                          </h3>
+                        </div>
+                      )}
+                    </Link>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
 
             <ScrollReveal direction="up" delay={0.3}>
               <div className="flex justify-center mt-12">
@@ -577,7 +669,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </ScrollReveal>
 
             <StaggerContainer className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              {/* 1 */}
               <StaggerItem>
                 <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
                   <div className="flex items-start gap-5">
@@ -595,7 +686,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 </div>
               </StaggerItem>
 
-              {/* 2 */}
               <StaggerItem>
                 <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
                   <div className="flex items-start gap-5">
@@ -613,7 +703,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 </div>
               </StaggerItem>
 
-              {/* 3 */}
               <StaggerItem>
                 <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
                   <div className="flex items-start gap-5">
@@ -630,7 +719,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 </div>
               </StaggerItem>
 
-              {/* 4 */}
               <StaggerItem>
                 <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
                   <div className="flex items-start gap-5">
@@ -648,7 +736,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 </div>
               </StaggerItem>
 
-              {/* 5 - full width */}
               <StaggerItem className="md:col-span-2 max-w-2xl mx-auto w-full">
                 <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
                   <div className="flex items-start gap-5">
@@ -704,9 +791,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
       {isAdVisible && currentAd && (
         <div
           key={currentAd.id}
-          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 will-change-transform ${
-            isClosing ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
-          }`}
+          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 will-change-transform ${isClosing ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
+            }`}
           style={{
             transform: isClosing ? "translateY(100%)" : "translateY(0)",
             opacity: isClosing ? 0 : 1,
@@ -746,52 +832,76 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
       )}
 
       <style>{`
-        .slider-track {
-          width: max-content;
-          animation: productsSlider 30s linear infinite;
-          will-change: transform;
-        }
-        .slider-track:hover {
-          animation-play-state: paused;
-        }
-        @keyframes productsSlider {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(calc(-50% - 12px));
-          }
-        }
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeInUp {
-          animation: fadeInUp 0.8s ease-out forwards;
-        }
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
-        }
         @keyframes progress {
           0% { width: 0%; }
           100% { width: 100%; }
         }
+      @keyframes floatCenter {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translate(-50%, -50%) translateY(-30px) rotate(6deg) scale(1.03);
+  }
+  40% {
+    transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+  }
+  60% {
+    transform: translate(-50%, -50%) translateY(25px) rotate(-5deg) scale(0.97);
+  }
+  80% {
+    transform: translate(-50%, -50%) translateY(-15px) rotate(3deg) scale(1.01);
+  }
+}
+
+@keyframes floatLeft {
+  0%, 100% {
+    transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+  }
+  15% {
+    transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-35px) translateY(-15px) rotate(-10deg) scale(0.96);
+  }
+  35% {
+    transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(-25px) rotate(0deg) scale(1);
+  }
+  55% {
+    transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(30px) translateY(15px) rotate(8deg) scale(1.04);
+  }
+  75% {
+    transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-20px) translateY(20px) rotate(-6deg) scale(0.98);
+  }
+}
+
+@keyframes floatRight {
+  0%, 100% {
+    transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(30px) translateY(-20px) rotate(8deg) scale(1.03);
+  }
+  38% {
+    transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-25px) translateY(15px) rotate(-7deg) scale(0.97);
+  }
+  58% {
+    transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(20px) translateY(-30px) rotate(6deg) scale(1.02);
+  }
+  78% {
+    transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-30px) translateY(-10px) rotate(-8deg) scale(0.96);
+  }
+}
+
+.animate-float-center {
+  animation: floatCenter 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.animate-float-left {
+  animation: floatLeft 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.animate-float-right {
+  animation: floatRight 11s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}  
+      
       `}</style>
     </>
   );
