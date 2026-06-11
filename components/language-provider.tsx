@@ -643,7 +643,72 @@ petNameLabel: {
     ru: "Изображение:",
     pl: "Obrazek:"
   },
-
+  seeMoreLabel: {
+    hy: "Տեսնել ավելին",
+    en: "See more",
+    ru: "Узнать больше",
+    pl: "Zobacz więcej"
+},
+viewAllProductsLabel: {
+  hy: "Դիտել բոլոր ապրանքները",
+  en: "View all products",
+  ru: "Посмотреть все товары",
+  pl: "Zobacz wszystkie produkty"
+},
+faqLabel: {
+  hy: "Հաճախ տրվող հարցեր",
+  en: "Frequently Asked Questions",
+  ru: "Часто задаваемые вопросы",
+  pl: "Często zadawane pytania"
+},
+ourCakesLabel: {
+  hy: "Մեր Տորթերը",
+  en: "Our Cakes",
+  ru: "Наши торты",
+  pl: "Nasze ciasta"
+},
+freeDeliveryYerevanLabel: {
+  hy: "Երևանի ներսում առաքումն անվճա՞ր է",
+  en: "Is delivery free within Yerevan?",
+  ru: "Доставка в пределах Еревана бесплатна?",
+  pl: "Czy dostawa w obrębie Erywania jest bezpłatna?"
+},
+cakeOrderAdvanceLabel: {
+  hy: "Քանի՞ օր շուտ պետք է պատվիրեմ տորթը",
+  en: "How many days in advance should I order the cake?",
+  ru: "За сколько дней нужно заказать торт?",
+  pl: "Z iloma dniami wyprzedzenia należy zamówić tort?"
+},
+collaborationLabel: {
+  hy: "Ինչպե՞ս կարող ենք համագործակցել ձեզ հետ",
+  en: "How can we collaborate with you?",
+  ru: "Как мы можем сотрудничать с вами?",
+  pl: "Jak możemy z Państwem współpracować?"
+},
+collaborationDescLabel: {
+  hy: "Կարող եք գրել մեր էջին կամ ուղարկել նամակ, և մեր թիմը կկապնվի ձեզ հետ՝ քննարկելու համագործակցության մանրամասները:",
+  en: "You can write to our page or send an email, and our team will contact you to discuss the collaboration details.",
+  ru: "Вы можете написать на нашу страницу или отправить письмо, и наша команда свяжется с вами для обсуждения деталей сотрудничества.",
+  pl: "Możesz napisać do naszej strony lub wysłać e-mail, a nasz zespół skontaktuje się z Tobą, aby omówić szczegóły współpracy."
+},
+ownDesignLabel: {
+  hy: "Կարո՞ղ ենք առաջարկել մեր դիզայնը",
+  en: "Can we suggest our own design?",
+  ru: "Можем ли мы предложить свой дизайн?",
+  pl: "Czy możemy zaproponować własny wzór?"
+},
+customDesignResponseLabel: {
+  hy: "Այո, կարող եք ուղարկել լուսանկարը կամ նկարագրությունը, և մենք կպատրաստենք ձեր ուզած տարբերակով",
+  en: "Yes, you can send the photo or description, and we will prepare it according to your desired version",
+  ru: "Да, вы можете отправить фото или описание, и мы приготовим в желаемом вами варианте",
+  pl: "Tak, możesz wysłać zdjęcie lub opis, a my przygotujemy tort według twojego życzenia"
+},
+onlyDogsCatsLabel: {
+  hy: "Միայն շների և կատուների համա՞ր են տորթերը",
+  en: "Are the cakes only for dogs and cats?",
+  ru: "Торты только для собак и кошек?",
+  pl: "Czy torty są tylko dla psów i kotów?"
+},
   name: { hy: "Անուն", en: "Name", ru: "Имя", pl: "Imię" },
   email: { hy: "Էլ. հասցե", en: "Email", ru: "Эл. почта", pl: "Email" },
   message: { hy: "Հաղորդագրություն", en: "Message", ru: "Сообщение", pl: "Wiadomość" },
@@ -897,6 +962,19 @@ petNameLabel: {
     en: "See more",
     ru: "Увидеть больше",
     pl: "Zobacz więcej"
+  },
+
+  confirmAndContinue: {
+    hy: "Հաստատել և շարունակել",
+    en: "Confirm and Continue",
+    ru: "Подтвердить и продолжить",
+    pl: "Potwierdź i kontynuuj"
+  },
+  confirmOrder: {
+    hy: "Հաստատել պատվերը",
+    en: "Confirm Order",
+    ru: "Подтвердить заказ",
+    pl: "Potwierdź zamówienie"
   },
  
   cakeDiscountCondition: {

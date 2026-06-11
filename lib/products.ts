@@ -48,31 +48,26 @@ import img28 from '@/public/cake-28.png'
 import img29 from '@/public/cake-29.png'
 import img30 from '@/public/cake-30.png'
 
-import partyShop1 from '@/public/party1.jpeg'
-import partyShop2 from '@/public/party2.jpeg'
-import partyShop3 from '@/public/party3.jpeg'
-import partyShop4 from '@/public/party4.jpg'
-import partyShop5 from '@/public/party5.jpg'
-import partyShop6 from '@/public/party6.jpg'
-import partyShop7 from '@/public/party7.jpg'
-import partyShop8 from '@/public/party8.jpg'
-import partyShop9 from '@/public/party9.jpg'
-import partyShop10 from '@/public/party10.jpg'
-import partyShop11 from '@/public/party11.jpg'
-import partyShop12 from '@/public/party12.jpg'
-import partyShop13 from '@/public/party13.jpg'
-import partyShop14 from '@/public/party14.jpg'
-import partyShop15 from '@/public/party15.jpg'
-import partyShop16 from '@/public/party16.jpg'
-import partyShop17 from '@/public/party17.jpeg'
-import partyShop18 from '@/public/party18.jpeg'
-import partyShop19 from '@/public/party19.jpeg'
-import partyShop20 from '@/public/party20.jpeg'
-import partyShop21 from '@/public/party21.jpeg'
-import partyShop22 from '@/public/party22.jpeg'
-import partyShop23 from '@/public/party23.jpeg'
-import partyShop24 from '@/public/party24.jpeg'
-import partyShop25 from '@/public/party25.jpg'
+import partyShop1 from '@/public/party1.png'
+import partyShop2 from '@/public/party2.png'
+import partyShop3 from '@/public/party3.png'
+import partyShop4 from '@/public/party4.png'
+import partyShop5 from '@/public/party5.png'
+import partyShop6 from '@/public/party6.png'
+import partyShop7 from '@/public/party7.png'
+import partyShop8 from '@/public/party8.png'
+import partyShop9 from '@/public/party9.png'
+import partyShop10 from '@/public/party10.png'
+import partyShop11 from '@/public/party11.png'
+import partyShop12 from '@/public/party12.png'
+import partyShop13 from '@/public/party13.png'
+import partyShop14 from '@/public/party14.png'
+import partyShop15 from '@/public/party15.png'
+import partyShop16 from '@/public/party16.png'
+import partyShop17 from '@/public/party17.png'
+import partyShop18 from '@/public/party18.png'
+import partyShop19 from '@/public/party19.png'
+import partyShop20 from '@/public/party20.png'
 
 
 export const PRODUCTS: Product[] = [
@@ -337,7 +332,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Animal Happy Birthday Banner',
     description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
     priceInCents: 2000,
-    image: partyShop20,
+    image: partyShop2,
     price: 2000,
 
   },
@@ -346,7 +341,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Foil Balloon',
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
-    image: partyShop8,
+    image: partyShop3,
     price: 1000,
 
   },
@@ -355,7 +350,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Small Hat with Bow Tie',
     description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 1500,
-    image: partyShop2,
+    image: partyShop4,
     price: 1500,
 
   },
@@ -374,7 +369,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Bow Tie',
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
-    image: partyShop7,
+    image: partyShop6,
     price: 1500,
 
   },
@@ -384,7 +379,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Hat with Bow Tie',
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
     priceInCents: 3500,
-    image: partyShop9,
+    image: partyShop7,
     price: 3500,
 
   },
@@ -393,7 +388,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Foil Balloon',
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
-    image: partyShop10,
+    image: partyShop8,
     price: 1000,
 
   },
@@ -402,7 +397,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Small Soft Hat',
     description: 'Soft small party hat, comfortable and lightweight accessory for celebrations and costumes',
     priceInCents: 1000,
-    image: partyShop11,
+    image: partyShop9,
     price: 1000,
 
   },
@@ -411,7 +406,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Soft Hat',
     description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
     priceInCents: 2500,
-    image: partyShop12,
+    image: partyShop10,
     price: 2500,
 
   },
@@ -420,7 +415,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Foil Balloon',
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
-    image: partyShop14,
+    image: partyShop11,
     price: 1000,
 
   },
@@ -429,7 +424,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Bow Tie',
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
-    image: partyShop15,
+    image: partyShop12,
     price: 1500,
 
   },
@@ -438,7 +433,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Balloon Dog',
     description: 'Large balloon dog decoration, perfect for parties, kids events, and festive celebrations',
     priceInCents: 1000,
-    image: partyShop17,
+    image: partyShop13,
     price: 1000,
 
   },
@@ -447,7 +442,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Balloon with Little Paws',
     description: 'Cute decorative balloon with paw prints, ideal for animal-themed parties and celebrations',
     priceInCents: 3000,
-    image: partyShop18,
+    image: partyShop14,
     price: 3000,
 
   },
@@ -456,7 +451,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Bow Tie',
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
-    image: partyShop19,
+    image: partyShop15,
     price: 1500
   },
   {
@@ -464,7 +459,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Small Bow Tie and Hat Set',
     description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
     priceInCents: 1000,
-    image: partyShop21,
+    image: partyShop16,
     price: 1000
   },
   {
@@ -472,10 +467,33 @@ export const PARTYSHOPDATA: PartyShop[] = [
     name: 'Large Hat with Bow Tie',
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
     price: 3500,
-    image: partyShop25,
+    image: partyShop17,
     priceInCents: 3500
   },
-
+  {
+    id: 'small-bow-tie-and-hat-set',
+    name: 'Small Bow Tie and Hat Set',
+    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
+    priceInCents: 1000,
+    image: partyShop18,
+    price: 1000
+  },
+  {
+    id: 'large-hat-with-bow-tie',
+    name: 'Large Hat with Bow Tie',
+    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
+    price: 3500,
+    image: partyShop19,
+    priceInCents: 3500
+  },
+  {
+    id: 'large-hat-with-bow-tie',
+    name: 'Large Hat with Bow Tie',
+    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
+    price: 3500,
+    image: partyShop20,
+    priceInCents: 3500
+  }
 ]
 export function formatPrice(priceInCents: number): string {
   return `$${(priceInCents / 100).toFixed(2)}`
