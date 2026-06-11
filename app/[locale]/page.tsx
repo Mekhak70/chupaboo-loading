@@ -24,7 +24,7 @@ import main1Mobile from "@/public/main-mobile1.png";
 import main2Mobile from "@/public/main-mobile2.png";
 import main3Mobile from "@/public/main-mobile3.png";
 
-type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
+type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart" ;
 
 interface Product {
   id: string | number;
