@@ -556,7 +556,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         </ScrollReveal>
 
         {/* PRODUCTS SECTION */}
-        <section className="bg-white py-8 md:py-12 overflow-hidden">
+        <section className="bg-gray-50 py-8 md:py-12 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
               <div className="text-center mb-8 md:mb-12">
@@ -618,7 +618,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         </section>
 
         {/* PARTY SHOP SECTION */}
-        <section className="bg-white py-12 md:py-20 overflow-hidden">
+        <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
               <div className="text-center mb-8 md:mb-12">
