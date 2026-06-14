@@ -91,6 +91,8 @@ console.log("orderInfo", orderInfo);
     });
   };
 
+  
+
   const removeFromCart = (id: string, options?: any) => {
     setCart((prev) =>
       prev.filter(

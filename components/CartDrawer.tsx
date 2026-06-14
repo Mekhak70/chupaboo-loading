@@ -160,7 +160,7 @@ const isAddressInYerevanByText = (address: string): boolean => {
 
 export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDrawerProps) {
   const router = useRouter();
-  const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, addToCart } = useCart();
+  const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, addToCart, clearCart } = useCart();
   const { t,language } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(false);
@@ -418,14 +418,51 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   // Build product images links string
   const buildProductImagesLinks = (): string => {
-    const imageLinks = cart.map(item => {
-      const fullUrl = item.image.startsWith('http') 
-        ? item.image 
-        : `${window.location.origin}${item.image}`;
-      return `• ${item.name}: ${fullUrl}`;
-    }).join('\n');
-    return imageLinks;
-  };
+    if (!cart || !Array.isArray(cart)) return '';
+    
+    try {
+        const imageLinks = cart
+            .map(item => {
+                // Պաշտպանություն startsWith-ի համար
+                let imageUrl = '';
+                
+                // Փորձել ստանալ նկարի URL-ը
+                if (item.image) {
+                    if (typeof item.image === 'string') {
+                        imageUrl = item.image;
+                    } else if (typeof item.image === 'object') {
+                       // @ts-ignore
+                        imageUrl = item.image?.url || item.image?.src || '';
+                    }
+                }
+                
+                // Եթե դատարկ է կամ ոչ տող
+                if (!imageUrl || typeof imageUrl !== 'string') {
+                    return null; // բաց թողնել այս item-ը
+                }
+                
+                // Ապահով ստուգել startsWith-ը
+                let fullUrl = imageUrl;
+                if (imageUrl.startsWith('http')) {
+                    fullUrl = imageUrl;
+                } else if (imageUrl.startsWith('/')) {
+                    fullUrl = `${window.location.origin}${imageUrl}`;
+                } else {
+                    fullUrl = `${window.location.origin}/${imageUrl}`;
+                }
+                
+                return `• ${item.name || 'Ապրանք'}: ${fullUrl}`;
+            })
+            .filter(link => link !== null) // հեռացնել null արժեքները
+            .join('\n');
+        
+        return imageLinks || 'Նկարներ չկան';
+        
+    } catch (error) {
+        console.error('Error in buildProductImagesLinks:', error);
+        return 'Նկարներ չկան';
+    }
+};
 
   // Build order message
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
@@ -496,7 +533,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   // Handle "Confirm Order" button click
   const handleOrderClick = () => {
-    if (hasCake) {
+    if (hasCake ||  tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate) {
       if (existingOrderInfo && existingOrderInfo.phoneNumber && existingOrderInfo.deliveryDate) {
         setShowMessengerSelector(true);
       }
@@ -510,7 +547,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     const isValid = tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate !== "";
     if (isValid) {
       setShowDeliveryForm(false);
-      setShowMessengerSelector(true);
+      // setShowMessengerSelector(true);
     }
   };
 
@@ -529,16 +566,23 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const redirectToMessenger = (platform: 'whatsapp' | 'telegram') => {
     const message = buildOrderMessage(platform);
     const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = '37433775750';
+    console.log(999, '999');
     
     if (platform === 'whatsapp') {
-      window.open(`https://wa.me/37433775750?text=${encodedMessage}`, '_blank');
+        window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
     } else {
-      window.open(`https://t.me/37433775750?text=${encodedMessage}`, '_blank');
+        // Telegram-ի դեպքում պատճենել համարը clipboard-ում
+        navigator.clipboard.writeText(phoneNumber);
+        alert('Հեռախոսահամարը պատճենված է: Բացեք Telegram-ը և կպցրեք որոնման դաշտում');
+        // Կամ բացել Telegram-ի հավելվածը
+        window.open('tg://resolve?domain=your_username', '_blank');
     }
     
     setShowMessengerSelector(false);
-    onClose();
-  };
+    clearCart();
+        onClose();
+};
 
   const deliveryInfo = formatDeliveryInfo();
 
@@ -624,7 +668,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                 )}
                               </div>
                               {/* Edit button for cakes only */}
-                              {isCake && (
+                              {/* {isCake && (
                                 <button
                                   onClick={() => handleEditCake(item)}
                                   className="text-[#69429a] hover:text-[#8b5cf6] p-1 transition"
@@ -632,7 +676,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                 >
                                   <Edit2 className="h-4 w-4" />
                                 </button>
-                              )}
+                              )} */}
                             </div>
 
                             <div className="flex items-center gap-2 flex-wrap mt-1">

@@ -322,9 +322,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     id: 'small-hat-with-bow-tie',
     name: 'Small Hat with Bow Tie',
     description: 'Small party hat with bow tie, perfect for celebrations and themed events',
-    priceInCents: 1500,
+    priceInCents: 1000,
     image: partyShop1,
-    price: 1500,
+    price: 1000,
 
   },
   {
@@ -333,7 +333,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
     priceInCents: 2000,
     image: partyShop2,
-    price: 2000,
+    price: 1000,
 
   },
   {
@@ -342,7 +342,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop3,
-    price: 1000,
+    price: 1500,
 
   },
   {
@@ -351,7 +351,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 1500,
     image: partyShop4,
-    price: 1500,
+    price: 2000,
 
   },
   {
@@ -360,7 +360,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
     priceInCents: 2000,
     image: partyShop5,
-    price: 2000,
+    price: 500,
 
   },
   
@@ -370,7 +370,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
     image: partyShop6,
-    price: 1500,
+    price: 2000,
 
   },
 
@@ -380,7 +380,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
     priceInCents: 3500,
     image: partyShop7,
-    price: 3500,
+    price: 2000,
 
   },
   {
@@ -389,7 +389,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop8,
-    price: 1000,
+    price: 500,
 
   },
   {
@@ -398,7 +398,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Soft small party hat, comfortable and lightweight accessory for celebrations and costumes',
     priceInCents: 1000,
     image: partyShop9,
-    price: 1000,
+    price: 2000,
 
   },
   {
@@ -407,7 +407,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
     priceInCents: 2500,
     image: partyShop10,
-    price: 2500,
+    price: 500,
 
   },
   {
@@ -416,7 +416,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop11,
-    price: 1000,
+    price: 2000,
 
   },
   {
@@ -425,7 +425,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
     priceInCents: 1500,
     image: partyShop12,
-    price: 1500,
+    price: 300,
 
   },
   {
@@ -434,65 +434,65 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: 'Large balloon dog decoration, perfect for parties, kids events, and festive celebrations',
     priceInCents: 1000,
     image: partyShop13,
-    price: 1000,
+    price: 500,
 
   },
   {
     id: 'balloon-with-little-paws',
     name: 'Balloon with Little Paws',
     description: 'Cute decorative balloon with paw prints, ideal for animal-themed parties and celebrations',
-    priceInCents: 3000,
+    priceInCents: 1000,
     image: partyShop14,
-    price: 3000,
+    price: 1000,
 
   },
   {
     id: 'large-bow-tie-3',
     name: 'Large Bow Tie',
     description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
-    priceInCents: 1500,
+    priceInCents: 1000,
     image: partyShop15,
+    price: 1000
+  },
+  {
+    id: 'small-bow-tie-and-hat-set',
+    name: 'Small Bow Tie and Hat Set',
+    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
+    priceInCents: 2000,
+    image: partyShop16,
+    price: 2000
+  },
+  {
+    id: 'large-hat-with-bow-tie',
+    name: 'Large Hat with Bow Tie',
+    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
+    price: 1500,
+    image: partyShop17,
+    priceInCents: 1500
+  },
+  {
+    id: 'small-bow-tie-and-hat-set',
+    name: 'Small Bow Tie and Hat Set',
+    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
+    priceInCents: 1500,
+    image: partyShop18,
     price: 1500
   },
   {
-    id: 'small-bow-tie-and-hat-set',
-    name: 'Small Bow Tie and Hat Set',
-    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
-    priceInCents: 1000,
-    image: partyShop16,
-    price: 1000
-  },
-  {
     id: 'large-hat-with-bow-tie',
     name: 'Large Hat with Bow Tie',
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    price: 3500,
-    image: partyShop17,
-    priceInCents: 3500
-  },
-  {
-    id: 'small-bow-tie-and-hat-set',
-    name: 'Small Bow Tie and Hat Set',
-    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
-    priceInCents: 1000,
-    image: partyShop18,
-    price: 1000
-  },
-  {
-    id: 'large-hat-with-bow-tie',
-    name: 'Large Hat with Bow Tie',
-    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    price: 3500,
+    price: 1500,
     image: partyShop19,
-    priceInCents: 3500
+    priceInCents: 1500
   },
   {
     id: 'large-hat-with-bow-tie',
     name: 'Large Hat with Bow Tie',
     description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    price: 3500,
+    price: 1000,
     image: partyShop20,
-    priceInCents: 3500
+    priceInCents: 1000
   }
 ]
 export function formatPrice(priceInCents: number): string {
