@@ -705,8 +705,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       <div>
                         <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('freeDeliveryYerevanLabel')}</h3>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          Այո՝ <span className="font-semibold text-[#69429a]">6000 դրամը</span> գերազանցող պատվերների դեպքում՝
-                          Երևանում և հարակից տարածքներում:
+                          {t('freeDeliveryYerevanDesc')}
                         </p>
                       </div>
                     </div>
@@ -722,8 +721,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       <div>
                         <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('cakeOrderAdvanceLabel')}</h3>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          Նվազագույնը <span className="font-semibold text-[#69429a]">մեկ օր առաջ</span>: Մեծ քանակի կամ բարդ դիզայնի
-                          դեպքում՝ 2–3 օր նախապես:
+                         {t('orderLeadTimeDesc')}
                         </p>
                       </div>
                     </div>
@@ -777,8 +775,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       <div>
                         <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('onlyDogsCatsLabel')}</h3>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          Ոչ, <span className="font-semibold text-[#69429a]">բոլոր կենդանիների</span> համար: Պարզապես նշեք՝ ինչ
-                          կենդանի է, և մենք կառաջարկենք հատուկ բաղադրատոմս:
+                         {t('allAnimalsDesc')}
                         </p>
                       </div>
                     </div>

@@ -7,10 +7,10 @@ type Language = "hy" | "en" | "ru" | "pl"
 
 type Translations = {
   [key: string]: {
-    hy: string
-    en: string
-    ru: string
-    pl: string
+    hy: string | any
+    en: string | any
+    ru: string | any
+    pl: string | any
   }
 }
 
@@ -690,6 +690,89 @@ collaborationDescLabel: {
   en: "You can write to our page or send an email, and our team will contact you to discuss the collaboration details.",
   ru: "Вы можете написать на нашу страницу или отправить письмо, и наша команда свяжется с вами для обсуждения деталей сотрудничества.",
   pl: "Możesz napisać do naszej strony lub wysłać e-mail, a nasz zespół skontaktuje się z Tobą, aby omówić szczegóły współpracy."
+},
+
+freeDeliveryYerevanDesc: {
+  hy: (
+    <span>
+      Այո՝ <span className="font-semibold text-[#69429a]">6000 դրամը</span> գերազանցող պատվերների դեպքում՝
+      <span > Երևանում</span> և 
+      <span > հարակից տարածքներում</span>:
+    </span>
+  ),
+  en: (
+    <span>
+      Yes, for orders exceeding <span className="font-semibold text-[#69429a]">6000 AMD</span> in 
+      <span > Yerevan</span> and 
+      <span > surrounding areas</span>:
+    </span>
+  ),
+  ru: (
+    <span>
+      Да, для заказов на сумму более <span className="font-semibold text-[#69429a]">6000 драмов</span> в 
+      <span > Ереване</span> и 
+      <span > прилегающих районах</span>:
+    </span>
+  ),
+  pl: (
+    <span>
+      Tak, dla zamówień powyżej <span className="font-semibold text-[#69429a]">6000 AMD</span> w 
+      <span > Erywaniu</span> i 
+      <span > okolicznych obszarach</span>:
+    </span>
+  ),
+},
+orderLeadTimeDesc: {
+  hy: (
+    <span>
+      Նվազագույնը <span className="font-semibold text-[#69429a]">մեկ օր առաջ</span>:
+      Մեծ քանակի կամ բարդ դիզայնի դեպքում՝ 2–3 օր նախապես:
+    </span>
+  ),
+  en: (
+    <span>
+      Minimum <span className="font-semibold text-[#69429a]">one day</span> in advance:
+      For large quantities or complex designs: 2–3 days in advance.
+    </span>
+  ),
+  ru: (
+    <span>
+      Минимум <span className="font-semibold text-[#69429a]">за один день</span>:
+      Для больших объемов или сложного дизайна: за 2–3 дня.
+    </span>
+  ),
+  pl: (
+    <span>
+      Minimum <span className="font-semibold text-[#69429a]">jeden dzień</span> wcześniej:
+      W przypadku dużych ilości lub skomplikowanych projektów: 2–3 dni wcześniej.
+    </span>
+  ),
+},
+allAnimalsDesc: {
+  hy: (
+    <span>
+      Ոչ, <span className="font-semibold text-[#69429a]">բոլոր կենդանիների</span> համար:
+      Պարզապես նշեք՝ ինչ կենդանի է, և մենք կառաջարկենք հատուկ բաղադրատոմս:
+    </span>
+  ),
+  en: (
+    <span>
+      No, for <span className="font-semibold text-[#69429a]">all animals</span>:
+      Just specify what animal it is, and we will offer a special recipe.
+    </span>
+  ),
+  ru: (
+    <span>
+      Нет, для <span className="font-semibold text-[#69429a]">всех животных</span>:
+      Просто укажите, какое это животное, и мы предложим специальный рецепт.
+    </span>
+  ),
+  pl: (
+    <span>
+      Nie, dla <span className="font-semibold text-[#69429a]">wszystkich zwierząt</span>:
+      Wystarczy podać, jakie to zwierzę, a my zaoferujemy specjalny przepis.
+    </span>
+  ),
 },
 ownDesignLabel: {
   hy: "Կարո՞ղ ենք առաջարկել մեր դիզայնը",
