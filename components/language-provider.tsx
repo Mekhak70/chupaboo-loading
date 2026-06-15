@@ -82,10 +82,16 @@ export const translations: Translations = {
     pl: "Ciasta przygotowywane są z naturalnych i świeżych składników, bez cukru i sztucznych dodatków."
   },
   partners: {
-    hy: "Մեր գործընկերներ",
+    hy: "Մեր գործընկերները",
     en: "Our Partners",
     ru: "Наши партнеры",
     pl: "Nasi partnerzy"
+  },
+  cakes: {
+    hy: "Տորթեր",
+    en: "Cakes",
+    ru: "Торты",
+    pl: "Ciasta"
   },
   subtotal: {
     hy: "Տորթի արժեք",

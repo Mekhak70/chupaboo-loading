@@ -18,10 +18,11 @@ export function Header() {
 
   const navItems = [
     { href: `/${language}`, label: t("home") },
-    { href: `/${language}/about`, label: t("about") },
-    { href: `/${language}/shop`, label: t("shop") },
-    { href: `/${language}/contact`, label: t("contact") },
+    { href: `/${language}/cakes`, label: t("cakes") },
     { href: `/${language}/partyshop`, label: t("partyshop") },
+    { href: `/${language}/about`, label: t("about") },
+    { href: `/${language}/contact`, label: t("contact") },
+
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -38,19 +39,17 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative pb-1 text-sm font-medium transition-colors ${
-                isActive(item.href)
+              className={`relative pb-1 text-sm font-medium transition-colors ${isActive(item.href)
                   ? "text-[#69429a]"
                   : "text-foreground/80 hover:text-primary"
-              }`}
+                }`}
             >
               {item.label}
               <span
-                className={`absolute left-0 -bottom-0.5 h-[2px] w-full rounded-full transition-all duration-300 ${
-                  isActive(item.href)
+                className={`absolute left-0 -bottom-0.5 h-[2px] w-full rounded-full transition-all duration-300 ${isActive(item.href)
                     ? "bg-[#69429a] opacity-100"
                     : "bg-transparent opacity-0"
-                }`}
+                  }`}
               />
             </Link>
           ))}
@@ -98,11 +97,10 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
+                className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors ${isActive(item.href)
                     ? "bg-muted text-[#69429a]"
                     : "text-foreground/80 hover:bg-muted hover:text-primary"
-                }`}
+                  }`}
               >
                 {item.label}
                 {isActive(item.href) && (

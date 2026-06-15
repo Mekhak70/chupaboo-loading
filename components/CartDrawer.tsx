@@ -79,7 +79,7 @@ const paymentMethodDisplayMap: Record<string, string> = {
 
 const deliveryOptionDisplayMap: Record<string, string> = {
   delivery: "🚚 Առաքում",
-  pickup: "🏠 Ինքնակառավարում",
+  pickup: "🏠 Տեղում վերցնել",
 };
 
 // ========== DELIVERY CONSTANTS ==========

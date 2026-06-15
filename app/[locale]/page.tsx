@@ -92,6 +92,9 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }:
     }
   }, [isInView, controls]);
 
+
+
+  
   return (
     <motion.div
       ref={ref}
@@ -147,6 +150,58 @@ const StaggerItem = ({ children, className = "" }: { children: React.ReactNode; 
 };
 
 export default function HomePage() {
+
+  const [isHovering, setIsHovering] = useState(false);
+  const scrollRef = useRef(null);
+  const animationRef = useRef(null);
+  const positionRef = useRef(0);
+  const speed = 0.8; // արագությունը (քիչ = դանդաղ)
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let lastTimestamp = 0;
+    
+    const animate = (timestamp:any) => {
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+        //@ts-ignore
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      if (!isHovering) {
+        // Շարժումը միայն եթե hover չկա
+        positionRef.current -= speed;
+        
+        // Վերականգնում առանց դխկոցի
+                //@ts-ignore
+
+        const halfWidth = scrollContainer.scrollWidth / 2;
+        if (Math.abs(positionRef.current) >= halfWidth) {
+          positionRef.current = 0;
+        }
+                //@ts-ignore
+
+        scrollContainer.style.transform = `translateX(${positionRef.current}px)`;
+      }
+      
+      lastTimestamp = timestamp;
+              //@ts-ignore
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+        //@ts-ignore
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isHovering, speed]);
   const { t, language } = useLanguage();
   const [filter, setFilter] = useState<Filter>("all");
   const [type, setType] = useState<string>("");
@@ -362,21 +417,30 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   const partyShopControls = useAnimation();
 
   // Products slider animation
+  const visibleProductsCount = useMemo(
+    () => Math.min(filteredProducts.length, 6),
+    [filteredProducts.length]
+  );
+  
   useEffect(() => {
-    if (isProductsAutoPlaying) {
-      productsControls.start({
-        x: [0, -((filteredProducts.slice(0, 6).length * (320 + 24)))],
-        transition: {
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop"
-        }
-      });
-    } else {
+    if (!isProductsAutoPlaying) {
       productsControls.stop();
+      return;
     }
-  }, [isProductsAutoPlaying, filteredProducts, productsControls]);
+    
+    const itemWidth = 320 + 24;
+    const totalWidth = visibleProductsCount * itemWidth;
+    
+    productsControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 30,
+        repeat: Infinity,
+        ease: "linear",
+        repeatType: "loop"
+      }
+    });
+  }, [isProductsAutoPlaying, visibleProductsCount]); // Only when necessary
 
   // PartyShop slider animation
   useEffect(() => {
@@ -394,6 +458,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
       partyShopControls.stop();
     }
   }, [isPartyShopAutoPlaying, partyShopControls]);
+
+   
 
   // Get current slide's image (desktop or mobile)
   const currentSlideData = heroSlides[currentSlide];
@@ -424,8 +490,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         {/* ========== HERO SLIDER ========== */}
         <ScrollReveal direction="up" delay={0}>
           <section
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
+      onMouseEnter={() => setIsHovering(true)}   
+      onMouseLeave={() => setIsHovering(false)} 
             className="relative overflow-hidden"
           >
             <div className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] lg:h-[480px]">
@@ -440,8 +506,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     src={idx === currentSlide ? currentBgImage! : (isMobile ? slide.imageMobile : slide.imageDesktop)}
                     alt={slide.title || "Hero background"}
                     fill
-                    className="w-full h-full  object-center"
-                    priority={idx === 0}
+                    className="w-full h-full object-center"
+                                                            priority={idx === 0}
                     sizes="(max-width: 768px) 100vw, 100vw"
                     quality={90}
                   />
@@ -607,7 +673,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
             <ScrollReveal direction="up" delay={0.2}>
               <div className="flex justify-center mt-8 md:mt-12">
-                <Link href={`/${locale}/shop`}>
+                <Link href={`/${locale}/cakes`}>
                   <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl">
                     {t('seeMoreLabel')} →
                   </button>
@@ -988,6 +1054,14 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     .animate-float-right {
       animation: floatRightMobile 7s ease-in-out infinite;
     }
+  }
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .carousel-track {
+    animation: scroll 20s linear infinite;
   }
 `}</style>
     </>
