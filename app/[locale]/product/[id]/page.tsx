@@ -20,7 +20,6 @@ import { PRODUCTS, type Product } from "@/lib/products";
 import { notFound } from "next/navigation";
 import { useCart } from "@/components/cart-context";
 import { CartDrawer } from "@/components/CartDrawer";
-
 // ========== TYPES (unchanged) ==========
 type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | "";
 type CreamType = "DAIRY" | "PLANTBASEDMILK" | "PLANTBASED" | "";
@@ -68,7 +67,7 @@ interface ValidationErrors {
 }
 
 // ========== CONSTANTS (unchanged) ==========
-const PICKUP_ADDRESS = "Երևան, Կիևյան 15";
+const PICKUP_ADDRESS =  "Yerevan, Kievan 15";
 const FREE_DELIVERY_THRESHOLD = 6000;
 const FREE_DELIVERY_MAX_DISTANCE = 10;
 const BASE_DELIVERY_FEE = 1000;

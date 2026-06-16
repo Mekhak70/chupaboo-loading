@@ -319,36 +319,38 @@ export const PRODUCTS: Product[] = [
 
 export const PARTYSHOPDATA: PartyShop[] = [
   {
-    id: 'small-hat-with-bow-tie',
-    name: 'Small Hat with Bow Tie',
-    description: 'Small party hat with bow tie, perfect for celebrations and themed events',
+    id: 'foil-balloon',
+    name: 'Foil Balloon',
+    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
     priceInCents: 1000,
     image: partyShop1,
     price: 1000,
 
   },
   {
-    id: 'animal-happy-birthday-banner-2',
-    name: 'Animal Happy Birthday Banner',
-    description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
-    priceInCents: 2000,
+    id: 'foil-balloon-2',
+    name: 'Foil Balloon',
+    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
+   priceInCents: 2000,
     image: partyShop2,
     price: 1000,
 
   },
   {
-    id: 'foil-balloon',
-    name: 'Foil Balloon',
-    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
+    id: 'small-hat-with-bow-tie',
+    name: 'Small Hat with Bow Tie',
+    description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 1000,
     image: partyShop3,
     price: 1500,
 
   },
   {
-    id: 'small-hat-with-bow-tie-2',
-    name: 'Small Hat with Bow Tie',
-    description: 'Small party hat with bow tie, perfect for celebrations and themed events',
+    id: 'large-soft-hat',
+    name: 'Large Soft Hat',
+    description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
+    
+    
     priceInCents: 1500,
     image: partyShop4,
     price: 2000,
@@ -402,9 +404,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
 
   },
   {
-    id: 'large-soft-hat',
-    name: 'Large Soft Hat',
-    description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
+    id: 'small-hat-with-bow-tie-2',
+    name: 'Small Hat with Bow Tie',
+    description: 'Small party hat with bow tie, perfect for celebrations and themed events',
     priceInCents: 2500,
     image: partyShop10,
     price: 500,

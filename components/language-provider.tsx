@@ -171,11 +171,29 @@ export const translations: Translations = {
     ru: "Бесплатная доставка в Ереване при заказе от 6000 драм",
     pl: "Darmowa dostawa w Erywaniu przy zamówieniach powyżej 6000 AMD",
   },
+  free: {
+    hy: "Անվճար",
+    en: "Free",
+    ru: "Бесплатно",
+    pl: "Darmowe"
+  },
   placeholder: {
-    hy: "Երևան, Հալաբյան 10",
-    en: "Yerevan, Halabyan 10",
-    ru: "Ереван, Алабяна 10",
-    pl: "Erywań, Halabyan 10",
+    hy: "Երևան, Կիևյան 15",
+    en: "Yerevan, Kievan 15",
+    ru: "Ереван, Киевян 15",
+    pl: "Erywań, Kiewian 15"
+  },
+  pickupHint: {
+    hy: "Պատվերը կվերցնեք տեղում",
+    en: "Order pickup at our location",
+    ru: "Самовывоз заказа",
+    pl: "Odbiór osobisty zamówienia"
+  },
+  greeting: {
+    hy: "Բարև Ձեզ, ես ուզում եմ պատվիրել",
+    en: "Hello, I would like to place an order",
+    ru: "Здравствуйте, я хочу сделать заказ",
+    pl: "Dzień dobry, chciałbym złożyć zamówienie"
   },
 
   petName: {
@@ -1275,6 +1293,12 @@ onlyDogsCatsLabel: {
     en: "Standard design",
     ru: "Стандартный дизайн",
     pl: "Projekt standardowy"
+  },
+  pickupAddressText: {
+    hy: "Երևան, Կիևյան 15",
+    en: "Yerevan, Kievan 15",
+    ru: "Ереван, Киевян 15",
+    pl: "Erywań, Kiewian 15"
   },
   customMyDogPhotoDesign: {
     hy: "Իմ շան լուսանկարով",

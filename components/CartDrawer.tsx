@@ -7,7 +7,6 @@ import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { navigate } from "next/dist/client/components/segment-cache/navigation";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -23,67 +22,8 @@ interface CartDrawerProps {
   };
 }
 
-// Maps for displaying values
-const cakeTypeDisplayMap: Record<string, string> = {
-  MEAT: "Մսային",
-  FRUIT: "Մրգային",
-  VEGETABLES: "Բուսական",
-};
-
-const creamTypeDisplayMap: Record<string, string> = {
-  DAIRY: "Կաթնամթերք",
-  PLANTBASEDMILK: "Բուսական կաթ",
-  PLANTBASED: "Բուսական",
-};
-
-const designTypeDisplayMap: Record<string, string> = {
-  STANDARD: "Ստանդարտ",
-  CUSTOM_PHOTO: "Լուսանկարով",
-  NAME_TEXT: "Կենդանու անուն",
-  CUSTOM_TEXT: "Հատուկ տեքստ",
-};
-
-const animalTypeDisplayMap: Record<string, string> = {
-  CHICKEN: "Հավ",
-  BEEF: "Տավար",
-  LAMB: "Գառ",
-  TURKEY: "Հնդկահավ",
-};
-
-const vegetableDisplayMap: Record<string, string> = {
-  POTATO: "Կարտոֆիլ",
-  CARROT: "Գազար",
-  BROCCOLI: "Բրոկկոլի",
-  PUMPKIN: "Դդում",
-  PEPPER: "Կանաչ պղպեղ",
-  ZUCCHINI: "Ցուկկինի",
-  CAULIFLOWER: "Ծաղկակաղամբ",
-  SWEET_POTATO: "Քաղցր կարտոֆիլ",
-  SPINACH: "Սպանախ",
-  RICE: "Բրինձ",
-  WHEAT: "Ցորեն",
-  OATS: "Վարսակ",
-  APPLE: "Խնձոր",
-  BANANA: "Բանան",
-  PEAR: "Տանձ",
-  ELDERBERRY: "Երախտածաղիկ",
-  STRAWBERRY: "Ելակ",
-  MANGO: "Մանգո",
-};
-
-const paymentMethodDisplayMap: Record<string, string> = {
-  cash: "💵 Կանխիկ",
-  bankTransfer: "🏦 Բանկային փոխանցում",
-  CARD: "💳 Կարտով",
-};
-
-const deliveryOptionDisplayMap: Record<string, string> = {
-  delivery: "🚚 Առաքում",
-  pickup: "🏠 Տեղում վերցնել",
-};
-
 // ========== DELIVERY CONSTANTS ==========
-const PICKUP_ADDRESS = "Երևան, Կիևյան 15";
+const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const PICKUP_LAT = 40.195059;
 const PICKUP_LON = 44.488427;
 const FREE_DELIVERY_THRESHOLD = 6000;
@@ -102,14 +42,6 @@ interface TempOrderInfo {
   deliveryFee: number;
   distance: number | null;
   isCalculating: boolean;
-}
-
-interface EditCakeData {
-  id: string;
-  name: string;
-  image: string;
-  quantity: number;
-  options: any;
 }
 
 function getTodayDate() {
@@ -153,18 +85,13 @@ const calculateStraightDistance = (lat1: number, lon1: number, lat2: number, lon
   return R * c;
 };
 
-const isAddressInYerevanByText = (address: string): boolean => {
-  const yerevanKeywords = ["yerevan", "erevan", "երևան", "երեւան", "Երևան", "Երեւան", "Yerevan", "Erevan"];
-  return yerevanKeywords.some((keyword) => address.toLowerCase().includes(keyword));
-};
-
 export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDrawerProps) {
   const router = useRouter();
-  const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, addToCart, clearCart } = useCart();
-  const { t,language } = useLanguage();
+  const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, clearCart } = useCart();
+  const { t, language } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(false);
-  const navigate= useRouter();
+  
   // States for flow
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showMessengerSelector, setShowMessengerSelector] = useState(false);
@@ -183,7 +110,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const hasCake = cart.some((item) => item.options?.cakeType);
-  const hasOnlyAccessories = cart.length > 0 && !hasCake;
   
   // Priority: use context orderInfo if available, otherwise use prop
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
@@ -305,21 +231,12 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     };
     sessionStorage.setItem('editingCake', JSON.stringify(editData));
     onClose();
-    const productId = item.id.split('/').pop(); // gets "miniboo-1" from "hy/product/miniboo-1"
-  
-    // OR if item.id is already just "miniboo-1"
     const cleanId = item.id.includes('/') ? item.id.split('/').pop() : item.id;
-    
-    // ✅ Correct URL
     router.push(`/${language}/product/${cleanId}?edit=true`);
-    };
+  };
 
   const toggleItemExpand = (itemId: string) => {
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
-  };
-
-  const getVegetableDisplay = (vegKey: string): string => {
-    return vegetableDisplayMap[vegKey] || vegKey;
   };
 
   const formatCakeOptions = (options: any) => {
@@ -327,30 +244,124 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     
     const details: { emoji: string; label: string; value: string }[] = [];
     
-    if (options.cakeType && cakeTypeDisplayMap[options.cakeType]) {
-      details.push({ emoji: "🍰", label: "Տորթի տեսակ", value: cakeTypeDisplayMap[options.cakeType] });
+    // Cake type
+    if (options.cakeType) {
+      const cakeTypeKey = options.cakeType.toLowerCase();
+      const typeMap: Record<string, string> = {
+        meat: t('MEAT'),
+        fruit: t('FRUIT'),
+        vegetables: t('VEGETABLES'),
+      };
+      details.push({ 
+        emoji: "🍰", 
+        label: t('mainCake') || "Տորթի հիմնական տեսակը", 
+        value: typeMap[options.cakeType.toLowerCase()] || options.cakeType 
+      });
     }
-    if (options.creamType && creamTypeDisplayMap[options.creamType]) {
-      details.push({ emoji: "🍦", label: "Կրեմի տեսակ", value: creamTypeDisplayMap[options.creamType] });
+    
+    // Cream type
+    if (options.creamType) {
+      const creamMap: Record<string, string> = {
+        dairy: t('DAIRY'),
+        plantbasedmilk: t('PLANTBASEDMILK'),
+        plantbased: t('PLANTBASED'),
+      };
+      details.push({ 
+        emoji: "🍦", 
+        label: t('creamType') || "Կրեմի տեսակը", 
+        value: creamMap[options.creamType.toLowerCase()] || options.creamType 
+      });
     }
+    
+    // Vegetables
     if (options.selectedVegetables && options.selectedVegetables.length > 0) {
-      const vegNames = options.selectedVegetables.map((v: string) => getVegetableDisplay(v));
-      details.push({ emoji: "🥗", label: "Բաղադրիչներ", value: vegNames.join(", ") });
+      const vegNames = options.selectedVegetables.map((v: string) => {
+        const vegKey = v.toLowerCase();
+        const vegMap: Record<string, string> = {
+          potato: t('potato'),
+          carrot: t('carrot'),
+          broccoli: t('broccoli'),
+          pumpkin: t('pumpkin'),
+          pepper: t('greenPepper'),
+          zucchini: t('zucchini'),
+          cauliflower: t('cauliflower'),
+          sweet_potato: t('sweetPotato'),
+          spinach: t('spinach'),
+          rice: t('rice'),
+          wheat: t('wheat'),
+          oats: t('oats'),
+          apple: t('apple'),
+          banana: t('banana'),
+          pear: t('pear'),
+          elderberry: t('elderberry'),
+          strawberry: t('strawberry'),
+          mango: t('mango'),
+        };
+        return vegMap[vegKey] || v;
+      });
+      details.push({ 
+        emoji: "🥗", 
+        label: t('ingredients') || "Բաղադրիչներ", 
+        value: vegNames.join(", ") 
+      });
     }
-    if (options.selectedAnimal && animalTypeDisplayMap[options.selectedAnimal]) {
-      details.push({ emoji: "🍗", label: "Մսի տեսակ", value: animalTypeDisplayMap[options.selectedAnimal] });
+    
+    // Animal type (meat)
+    if (options.selectedAnimal) {
+      const animalMap: Record<string, string> = {
+        chicken: t('chicken'),
+        beef: t('beef'),
+        lamb: t('lamb'),
+        turkey: t('turkey'),
+        fish: t('fish'),
+      };
+      details.push({ 
+        emoji: "🍗", 
+        label: t('meatType') || "Մսի տեսակը", 
+        value: animalMap[options.selectedAnimal.toLowerCase()] || options.selectedAnimal 
+      });
     }
-    if (options.designType && designTypeDisplayMap[options.designType]) {
-      details.push({ emoji: "🎨", label: "Դիզայն", value: designTypeDisplayMap[options.designType] });
+    
+    // Design type
+    if (options.designType) {
+      const designMap: Record<string, string> = {
+        standard: t('standardDesign'),
+        custom_photo: t('customMyDogPhotoDesign'),
+        name_text: t('petNameLabel'),
+        custom_text: t('enterCustomText'),
+      };
+      details.push({ 
+        emoji: "🎨", 
+        label: t('designType') || "Դիզայնի տեսակը", 
+        value: designMap[options.designType.toLowerCase()] || options.designType 
+      });
     }
+    
+    // Pet name
     if (options.petName && options.petName.trim()) {
-      details.push({ emoji: "🐾", label: "Ընտանի կենդանու անուն", value: options.petName });
+      details.push({ 
+        emoji: "🐾", 
+        label: t('petNameLabel') || "Ընտանի կենդանու անունը", 
+        value: options.petName 
+      });
     }
+    
+    // Custom text
     if (options.customText && options.customText.trim()) {
-      details.push({ emoji: "📝", label: "Հատուկ տեքստ", value: `"${options.customText}"` });
+      details.push({ 
+        emoji: "📝", 
+        label: t('enterCustomText') || "Հատուկ տեքստ", 
+        value: `"${options.customText}"` 
+      });
     }
+    
+    // Custom image
     if (options.customImage && options.designType === "CUSTOM_PHOTO") {
-      details.push({ emoji: "🖼️", label: "Կցված նկար", value: "Նկարը կցված է" });
+      details.push({ 
+        emoji: "🖼️", 
+        label: t('uploadPetPhoto') || "Կցված նկար", 
+        value: t('uploadPetPhoto') || "Նկարը կցված է" 
+      });
     }
     
     return details;
@@ -362,55 +373,79 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     
     const details: { emoji: string; label: string; value: string }[] = [];
     
+    // Phone
     if (info.phoneNumber && info.phoneNumber.trim()) {
-      details.push({ emoji: "📞", label: "Հեռախոս", value: info.phoneNumber });
+      details.push({ emoji: "📞", label: t('phone') || "Հեռախոս", value: info.phoneNumber });
     } else {
-      details.push({ emoji: "📞", label: "Հեռախոս", value: "նշված չէ" });
+      details.push({ emoji: "📞", label: t('phone') || "Հեռախոս", value: t('notSpecified') || "նշված չէ" });
     }
     
+    // Delivery option
+    const deliveryOptionMap: Record<string, string> = {
+      delivery: t('delivery') || "Առաքում",
+      pickup: t('pickup') || "Տեղում վերցնել",
+    };
     details.push({ 
       emoji: "🚚", 
-      label: "Առաքման տարբերակ", 
-      value: deliveryOptionDisplayMap[info.deliveryOption] || info.deliveryOption 
+      label: t('deliveryOption') || "Առաքման տարբերակ", 
+      value: deliveryOptionMap[info.deliveryOption] || info.deliveryOption 
     });
     
+    // Address
     if (info.deliveryOption === "delivery") {
       if (info.deliveryAddress && info.deliveryAddress.trim()) {
-        details.push({ emoji: "📍", label: "Առաքման հասցե", value: info.deliveryAddress });
+        details.push({ emoji: "📍", label: t('deliveryAddress') || "Առաքման հասցե", value: info.deliveryAddress });
       } else {
-        details.push({ emoji: "📍", label: "Առաքման հասցե", value: "նշված չէ" });
+        details.push({ emoji: "📍", label: t('deliveryAddress') || "Առաքման հասցե", value: t('notSpecified') || "նշված չէ" });
       }
     } else {
-      details.push({ emoji: "🏠", label: "Վերցման կետ", value: PICKUP_ADDRESS });
+      details.push({ emoji: "🏠", label: t('pickupAddress') || "Վերցման կետ", value: PICKUP_ADDRESS });
     }
     
+    // Date
     if (info.deliveryDate) {
       const formattedDate = info.deliveryDate.split("-").reverse().join(".");
-      details.push({ emoji: "📅", label: "Առաքման ամսաթիվ", value: formattedDate });
+      details.push({ emoji: "📅", label: t('deliveryDate') || "Առաքման ամսաթիվ", value: formattedDate });
     } else {
-      details.push({ emoji: "📅", label: "Առաքման ամսաթիվ", value: "նշված չէ" });
+      details.push({ emoji: "📅", label: t('deliveryDate') || "Առաքման ամսաթիվ", value: t('notSpecified') || "նշված չէ" });
     }
     
+    // Time
     if (info.deliveryTime && info.deliveryTime.trim()) {
-      details.push({ emoji: "⏰", label: "Նախընտրելի ժամ", value: info.deliveryTime });
+      details.push({ emoji: "⏰", label: t('preferredDeliveryTime') || "Նախընտրելի ժամ", value: info.deliveryTime });
     } else {
-      details.push({ emoji: "⏰", label: "Նախընտրելի ժամ", value: "նշված չէ" });
+      details.push({ emoji: "⏰", label: t('preferredDeliveryTime') || "Նախընտրելի ժամ", value: t('notSpecified') || "նշված չէ" });
     }
     
+    // Payment method
+    const paymentMap: Record<string, string> = {
+      cash: t('cash') || "Կանխիկ",
+      bankTransfer: t('bankTransfer') || "Բանկային փոխանցում",
+      CARD: "💳 " + (t('bankTransfer') || "Կարտով"),
+    };
     if (info.paymentMethod) {
       details.push({ 
         emoji: "💳", 
-        label: "Վճարման եղանակ", 
-        value: paymentMethodDisplayMap[info.paymentMethod] || info.paymentMethod 
+        label: t('paymentMethod') || "Վճարման եղանակ", 
+        value: paymentMap[info.paymentMethod] || info.paymentMethod 
       });
     } else {
-      details.push({ emoji: "💳", label: "Վճարման եղանակ", value: "նշված չէ" });
+      details.push({ emoji: "💳", label: t('paymentMethod') || "Վճարման եղանակ", value: t('notSpecified') || "նշված չէ" });
     }
     
+    // Delivery fee
     if (info.deliveryOption === "delivery" && 'deliveryFee' in info && info.deliveryFee > 0) {
-      details.push({ emoji: "💰", label: "Առաքման վճար", value: `${info.deliveryFee} ${t('currency')}` });
+      details.push({ 
+        emoji: "💰", 
+        label: t('deliveryFee') || "Առաքման վճար", 
+        value: `${info.deliveryFee} ${t('currency')}` 
+      });
     } else if (info.deliveryOption === "delivery" && 'deliveryFee' in info && info.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
-      details.push({ emoji: "🎉", label: "Առաքման վճար", value: "Անվճար (6000+ դրամի դեպքում)" });
+      details.push({ 
+        emoji: "🎉", 
+        label: t('deliveryFee') || "Առաքման վճար", 
+        value: t('freeDelivery') || "Անվճար" 
+      });
     }
     
     return details;
@@ -423,25 +458,22 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     try {
         const imageLinks = cart
             .map(item => {
-                // Պաշտպանություն startsWith-ի համար
                 let imageUrl = '';
                 
-                // Փորձել ստանալ նկարի URL-ը
                 if (item.image) {
                     if (typeof item.image === 'string') {
                         imageUrl = item.image;
                     } else if (typeof item.image === 'object') {
-                       // @ts-ignore
-                        imageUrl = item.image?.url || item.image?.src || '';
+
+                      //@ts-ignore
+                       imageUrl = item.image?.url || item.image?.src || '';
                     }
                 }
                 
-                // Եթե դատարկ է կամ ոչ տող
                 if (!imageUrl || typeof imageUrl !== 'string') {
-                    return null; // բաց թողնել այս item-ը
+                    return null;
                 }
                 
-                // Ապահով ստուգել startsWith-ը
                 let fullUrl = imageUrl;
                 if (imageUrl.startsWith('http')) {
                     fullUrl = imageUrl;
@@ -451,41 +483,95 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     fullUrl = `${window.location.origin}/${imageUrl}`;
                 }
                 
-                return `• ${item.name || 'Ապրանք'}: ${fullUrl}`;
+                return `• ${item.name || t('product')}: ${fullUrl}`;
             })
-            .filter(link => link !== null) // հեռացնել null արժեքները
+            .filter(link => link !== null)
             .join('\n');
         
-        return imageLinks || 'Նկարներ չկան';
+        return imageLinks || t('noImages') || 'Նկարներ չկան';
         
     } catch (error) {
         console.error('Error in buildProductImagesLinks:', error);
-        return 'Նկարներ չկան';
+        return t('noImages') || 'Նկարներ չկան';
     }
-};
+  };
 
   // Build order message
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
     const deliveryInfoToUse = hasCake ? existingOrderInfo : tempOrderInfo;
     
-    let message = "Բարև Ձեզ, ես ուզում եմ պատվիրել՝\n\n";
+    let message = `${t('greeting') || "Բարև Ձեզ, ես ուզում եմ պատվիրել"}\n\n`;
     
-    message += "📦 *ԱՊՐԱՆՔՆԵՐ*\n";
+    message += `📦 *${t('products') || "ԱՊՐԱՆՔՆԵՐ"}*\n`;
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
       let finalPrice = item.price;
       if (hasCakeInCart && !isCake) {
         finalPrice = Math.max(0, finalPrice - DISCOUNT_AMOUNT);
       }
-      message += `▸ ${item.name} — ${item.quantity} հատ — ${finalPrice * item.quantity} դրամ\n`;
+      message += `▸ ${item.name} — ${item.quantity} ${t('quantity') || "հատ"} — ${finalPrice * item.quantity} ${t('currency')}\n`;
       if (isCake && item.options) {
-        if (item.options.cakeType) message += `   🍰 ${cakeTypeDisplayMap[item.options.cakeType]}\n`;
-        if (item.options.creamType) message += `   🍦 ${creamTypeDisplayMap[item.options.creamType]}\n`;
-        if (item.options.selectedVegetables?.length) {
-          message += `   🥗 ${item.options.selectedVegetables.map((v: string) => getVegetableDisplay(v)).join(", ")}\n`;
+        if (item.options.cakeType) {
+          const typeMap: Record<string, string> = {
+            meat: t('MEAT'),
+            fruit: t('FRUIT'),
+            vegetables: t('VEGETABLES'),
+          };
+          message += `   🍰 ${typeMap[item.options.cakeType.toLowerCase()] || item.options.cakeType}\n`;
         }
-        if (item.options.selectedAnimal) message += `   🍗 ${animalTypeDisplayMap[item.options.selectedAnimal]}\n`;
-        if (item.options.designType) message += `   🎨 ${designTypeDisplayMap[item.options.designType]}\n`;
+        if (item.options.creamType) {
+          const creamMap: Record<string, string> = {
+            dairy: t('DAIRY'),
+            plantbasedmilk: t('PLANTBASEDMILK'),
+            plantbased: t('PLANTBASED'),
+          };
+          message += `   🍦 ${creamMap[item.options.creamType.toLowerCase()] || item.options.creamType}\n`;
+        }
+        if (item.options.selectedVegetables?.length) {
+          const vegNames = item.options.selectedVegetables.map((v: string) => {
+            const vegMap: Record<string, string> = {
+              potato: t('potato'),
+              carrot: t('carrot'),
+              broccoli: t('broccoli'),
+              pumpkin: t('pumpkin'),
+              pepper: t('greenPepper'),
+              zucchini: t('zucchini'),
+              cauliflower: t('cauliflower'),
+              sweet_potato: t('sweetPotato'),
+              spinach: t('spinach'),
+              rice: t('rice'),
+              wheat: t('wheat'),
+              oats: t('oats'),
+              apple: t('apple'),
+              banana: t('banana'),
+              pear: t('pear'),
+              elderberry: t('elderberry'),
+              strawberry: t('strawberry'),
+              mango: t('mango'),
+            };
+            return vegMap[v.toLowerCase()] || v;
+          });
+          message += `   🥗 ${vegNames.join(", ")}\n`;
+        }
+        if (item.options.selectedAnimal) {
+          const animalMap: Record<string, string> = {
+            chicken: t('chicken'),
+            beef: t('beef'),
+            lamb: t('lamb'),
+            turkey: t('turkey'),
+            fish: t('fish'),
+          };
+          message += `   🍗 ${animalMap[item.options.selectedAnimal.toLowerCase()] || item.options.selectedAnimal}\n`;
+        }
+        if (item.options.designType) {
+          const designMap: Record<string, string> = {
+            standard: t('standardDesign'),
+            custom_photo: t('customMyDogPhotoDesign'),
+            name_text: t('petNameLabel'),
+            custom_text: t('enterCustomText'),
+          };
+          message += `   🎨 ${designMap[item.options.designType.toLowerCase()] || item.options.designType}\n`;
+        }
         if (item.options.petName) message += `   🐾 ${item.options.petName}\n`;
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
@@ -495,47 +581,53 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     message += buildProductImagesLinks();
     
     if (deliveryInfoToUse && deliveryInfoToUse.phoneNumber) {
-      message += "\n🚚 *ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ*\n";
-      message += `▸ 📞 Հեռախոս: ${deliveryInfoToUse.phoneNumber || "նշված չէ"}\n`;
-      message += `▸ 🚚 Առաքման տարբերակ: ${deliveryOptionDisplayMap[deliveryInfoToUse.deliveryOption] || deliveryInfoToUse.deliveryOption}\n`;
+      message += `\n🚚 *${t('deliveryDetails') || "ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ"}*\n`;
+      message += `▸ 📞 ${t('phone') || "Հեռախոս"}: ${deliveryInfoToUse.phoneNumber || t('notSpecified') || "նշված չէ"}\n`;
+      const deliveryOptMap: Record<string, string> = {
+        delivery: t('delivery') || "Առաքում",
+        pickup: t('pickup') || "Տեղում վերցնել",
+      };
+      message += `▸ 🚚 ${t('deliveryOption') || "Առաքման տարբերակ"}: ${deliveryOptMap[deliveryInfoToUse.deliveryOption] || deliveryInfoToUse.deliveryOption}\n`;
       
       if (deliveryInfoToUse.deliveryOption === "delivery") {
-        message += `▸ 📍 Հասցե: ${deliveryInfoToUse.deliveryAddress || "նշված չէ"}\n`;
+        message += `▸ 📍 ${t('deliveryAddress') || "Հասցե"}: ${deliveryInfoToUse.deliveryAddress || t('notSpecified') || "նշված չէ"}\n`;
         if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee > 0) {
-          message += `▸ 💰 Առաքման վճար: ${deliveryInfoToUse.deliveryFee} դրամ\n`;
+          message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${deliveryInfoToUse.deliveryFee} ${t('currency')}\n`;
         } else if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
-          message += `▸ 💰 Առաքման վճար: Անվճար (6000+ դրամի դեպքում)\n`;
+          message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${t('free') || "Անվճար"}\n`;
         }
       } else {
-        message += `▸ 🏠 Վերցման կետ: ${PICKUP_ADDRESS}\n`;
+        message += `▸ 🏠 ${t('pickupAddress') || "Վերցման կետ"}: ${PICKUP_ADDRESS}\n`;
       }
       
-      message += `▸ 📅 Ամսաթիվ: ${deliveryInfoToUse.deliveryDate || "նշված չէ"}\n`;
-      message += `▸ ⏰ Ժամ: ${deliveryInfoToUse.deliveryTime || "նշված չէ"}\n`;
-      message += `▸ 💳 Վճարման եղանակ: ${paymentMethodDisplayMap[deliveryInfoToUse.paymentMethod] || deliveryInfoToUse.paymentMethod}\n`;
+      message += `▸ 📅 ${t('deliveryDate') || "Ամսաթիվ"}: ${deliveryInfoToUse.deliveryDate || t('notSpecified') || "նշված չէ"}\n`;
+      message += `▸ ⏰ ${t('preferredDeliveryTime') || "Ժամ"}: ${deliveryInfoToUse.deliveryTime || t('notSpecified') || "նշված չէ"}\n`;
+      
+      const paymentMap: Record<string, string> = {
+        cash: t('cash') || "Կանխիկ",
+        bankTransfer: t('bankTransfer') || "Բանկային փոխանցում",
+        CARD: "💳 " + (t('bankTransfer') || "Կարտով"),
+      };
+      message += `▸ 💳 ${t('paymentMethod') || "Վճարման եղանակ"}: ${paymentMap[deliveryInfoToUse.paymentMethod] || deliveryInfoToUse.paymentMethod}\n`;
     }
     
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
-    message += `💰 ԸՆԴՀԱՆՈՒՐ: ${effectiveTotal} դրամ\n`;
+    message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${effectiveTotal} ${t('currency')}\n`;
     
-    if (hasCakeInCart) {
-      message += `\n✨ Տորթի հետ միասին partshop ապրանքներից\n   յուրաքանչյուրից զեղչվում է ${DISCOUNT_AMOUNT} դրամ\n`;
-    }
-    
-    if (platform === 'telegram') {
-      message += `\n📱 Պատվերը ուղարկված է Telegram-ից`;
-    } else {
-      message += `\n📱 Պատվերը ուղարկված է WhatsApp-ից`;
-    }
+   
     
     return message;
   };
 
   // Handle "Confirm Order" button click
   const handleOrderClick = () => {
-    if (hasCake ||  tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate) {
+    if (hasCake || (tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate)) {
       if (existingOrderInfo && existingOrderInfo.phoneNumber && existingOrderInfo.deliveryDate) {
         setShowMessengerSelector(true);
+      } else if (!hasCake && tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate) {
+        setShowMessengerSelector(true);
+      } else {
+        setShowDeliveryForm(true);
       }
     } else {
       setShowDeliveryForm(true);
@@ -547,7 +639,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     const isValid = tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate !== "";
     if (isValid) {
       setShowDeliveryForm(false);
-      // setShowMessengerSelector(true);
     }
   };
 
@@ -567,22 +658,23 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     const message = buildOrderMessage(platform);
     const encodedMessage = encodeURIComponent(message);
     const phoneNumber = '37433775750';
-    console.log(999, '999');
-    
+  
     if (platform === 'whatsapp') {
-        window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+      window.open(
+        `https://wa.me/${phoneNumber}?text=${encodedMessage}`,
+        '_blank'
+      );
     } else {
-        // Telegram-ի դեպքում պատճենել համարը clipboard-ում
-        navigator.clipboard.writeText(phoneNumber);
-        alert('Հեռախոսահամարը պատճենված է: Բացեք Telegram-ը և կպցրեք որոնման դաշտում');
-        // Կամ բացել Telegram-ի հավելվածը
-        window.open('tg://resolve?domain=your_username', '_blank');
+      window.open(
+        `https://t.me/Chupaboo?text=${encodedMessage}`,
+        '_blank'
+      );
     }
-    
+  
     setShowMessengerSelector(false);
     clearCart();
-        onClose();
-};
+    onClose();
+  };
 
   const deliveryInfo = formatDeliveryInfo();
 
@@ -661,32 +753,22 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                               <div className="flex items-center gap-2">
                                 <h3 className="font-semibold text-gray-800 text-sm">{item.name}</h3>
                                 {isCake && (
-                                  <span className="text-xs bg-gradient-to-r from-[#69429a] to-[#8b5cf6] text-white px-2 py-0.5 rounded-full">🎂 {t("cake")}</span>
+                                  <span className="text-xs bg-gradient-to-r from-[#69429a] to-[#8b5cf6] text-white px-2 py-0.5 rounded-full">🎂 {t('cake')}</span>
                                 )}
                                 {hasCakeInCart && !isCake && effectivePrice !== originalPrice && (
                                   <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">🔥 {t('discounted')}</span>
                                 )}
                               </div>
-                              {/* Edit button for cakes only */}
-                              {/* {isCake && (
-                                <button
-                                  onClick={() => handleEditCake(item)}
-                                  className="text-[#69429a] hover:text-[#8b5cf6] p-1 transition"
-                                  title={t('edit') || "Խմբագրել"}
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </button>
-                              )} */}
                             </div>
 
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                               {hasCakeInCart && !isCake && effectivePrice !== originalPrice ? (
                                 <>
-                                  <span className="text-md font-bold text-green-600">{effectivePrice} {t("currency")}</span>
-                                  <span className="text-xs text-gray-400 line-through">{originalPrice} {t("currency")}</span>
+                                  <span className="text-md font-bold text-green-600">{effectivePrice} {t('currency')}</span>
+                                  <span className="text-xs text-gray-400 line-through">{originalPrice} {t('currency')}</span>
                                 </>
                               ) : (
-                                <span className="text-md font-bold text-[#69429a]">{effectivePrice} {t("currency")}</span>
+                                <span className="text-md font-bold text-[#69429a]">{effectivePrice} {t('currency')}</span>
                               )}
                             </div>
 
@@ -823,7 +905,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Truck className="w-5 h-5" />
-                            {t("deliveryOption")}
+                            {t('deliveryOption')}
                           </p>
                           <div className="flex flex-wrap gap-3">
                             <button
@@ -834,7 +916,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                   : "bg-white text-[#69429a] border-[#69429a] hover:bg-[#f3e8ff]"
                               }`}
                             >
-                              🚚 {t("delivery")}
+                              🚚 {t('delivery')}
                             </button>
                             <button
                               onClick={() => handleTempOrderChange("deliveryOption", "pickup")}
@@ -844,7 +926,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                   : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
                               }`}
                             >
-                              🏠 {t("pickup")}
+                              🏠 {t('pickup')}
                             </button>
                           </div>
                         </div>
@@ -854,12 +936,12 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           <div>
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                               <MapPin className="w-5 h-5" />
-                              {t("deliveryAddress")}
+                              {t('deliveryAddress')}
                             </p>
                             <textarea
                               value={tempOrderInfo.deliveryAddress}
                               onChange={(e) => handleTempOrderChange("deliveryAddress", e.target.value)}
-                              placeholder={t("placeholder") || "քաղաք, փողոց, տուն"}
+                              placeholder={t('placeholder') || "քաղաք, փողոց, տուն"}
                               rows={3}
                               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none border-gray-300"
                               required
@@ -868,21 +950,21 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                               <div className="mt-2">
                                 {tempOrderInfo.isCalculating ? (
                                   <div className="p-2 bg-gray-50 rounded-lg">
-                                    <p className="text-xs text-gray-500">⏳ {t("calculatingDistance") || "Հաշվարկում ենք հեռավորությունը..."}</p>
+                                    <p className="text-xs text-gray-500">⏳ {t('calculatingDistance') || "Հաշվարկում ենք հեռավորությունը..."}</p>
                                   </div>
                                 ) : tempOrderInfo.distance !== null && (
                                   <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
                                     <p className="text-xs text-blue-700">
-                                      🚚 {t("deliveryFee")}: {tempOrderInfo.deliveryFee} {t("currency")}
+                                      🚚 {t('deliveryFee')}: {tempOrderInfo.deliveryFee} {t('currency')}
                                       {tempOrderInfo.distance && (
                                         <span className="text-gray-500 ml-1">(~{Math.round(tempOrderInfo.distance)} կմ)</span>
                                       )}
                                     </p>
                                     {productsTotal >= FREE_DELIVERY_THRESHOLD && tempOrderInfo.distance <= FREE_DELIVERY_MAX_DISTANCE && (
-                                      <p className="text-xs text-green-600 mt-1">✅ {t("freeDeliveryForOrdersAbove")} {FREE_DELIVERY_THRESHOLD} {t("currency")}</p>
+                                      <p className="text-xs text-green-600 mt-1">✅ {t('freeDeliveryForOrdersAbove')}</p>
                                     )}
                                     {productsTotal >= FREE_DELIVERY_THRESHOLD && tempOrderInfo.distance > FREE_DELIVERY_MAX_DISTANCE && (
-                                      <p className="text-xs text-orange-600 mt-1">⚠️ {FREE_DELIVERY_MAX_DISTANCE} կմ-ից ավելի, մասնակի վճար</p>
+                                      <p className="text-xs text-orange-600 mt-1">⚠️ {t('freeDeliveryHint') || "10 կմ-ից ավելի, մասնակի վճար"}</p>
                                     )}
                                   </div>
                                 )}
@@ -896,10 +978,10 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                             <p className="text-sm text-green-800 flex items-center gap-2">
                               <Home className="w-4 h-4" />
-                              <span className="font-semibold">{t("pickupAddress")}:</span> {PICKUP_ADDRESS}
+                              <span className="font-semibold">{t('pickupAddress')}:</span> {PICKUP_ADDRESS}
                             </p>
                             <p className="text-xs text-green-600 mt-1">
-                              ℹ️ {t("pickupInstructions") || "Դուք կարող եք ինքնակառավարել ձեր պատվերը նշված հասցեից"}
+                              ℹ️ {t('pickupInstructions')}
                             </p>
                           </div>
                         )}
@@ -908,13 +990,13 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Phone className="w-5 h-5" />
-                            {t("phoneNumber")}
+                            {t('phoneNumber')}
                           </p>
                           <input
                             type="tel"
                             value={tempOrderInfo.phoneNumber}
                             onChange={(e) => handleTempOrderChange("phoneNumber", e.target.value)}
-                            placeholder={t("enterPhoneNumber") || "+374 XX XX XX XX"}
+                            placeholder={t('enterPhoneNumber') || "+374 XX XX XX XX"}
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                             required
                           />
@@ -924,7 +1006,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
-                            {t("deliveryDate")}
+                            {t('deliveryDate')}
                           </p>
                           <input
                             type="date"
@@ -941,14 +1023,14 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Clock className="w-5 h-5" />
-                            {t("preferredDeliveryTime")}
+                            {t('preferredDeliveryTime')}
                           </p>
                           <select
                             value={tempOrderInfo.deliveryTime}
                             onChange={(e) => handleTempOrderChange("deliveryTime", e.target.value)}
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                           >
-                            <option value="">{t("selectDeliveryTime")}</option>
+                            <option value="">{t('selectDeliveryTime')}</option>
                             <option value="12:00-15:00">12:00 - 15:00</option>
                             <option value="15:00-18:00">15:00 - 18:00</option>
                             <option value="18:00-21:00">18:00 - 21:00</option>
@@ -960,7 +1042,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <CreditCard className="w-5 h-5" />
-                            {t("paymentMethod")}
+                            {t('paymentMethod')}
                           </p>
                           <div className="flex flex-wrap gap-3">
                             <button
@@ -971,7 +1053,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                   : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
                               }`}
                             >
-                              💵 {t("cash")}
+                              💵 {t('cash')}
                             </button>
                             <button
                               onClick={() => handleTempOrderChange("paymentMethod", "bankTransfer")}
@@ -981,7 +1063,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                   : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"
                               }`}
                             >
-                              🏦 {t("bankTransfer")}
+                              🏦 {t('bankTransfer')}
                             </button>
                           </div>
                         </div>
@@ -995,7 +1077,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                               : "bg-gray-300 cursor-not-allowed"
                           }`}
                         >
-                          ✅ {t("confirmAndContinue") || "Հաստատել և շարունակել"}
+                          ✅ {t('confirmAndContinue')}
                         </button>
                       </motion.div>
                     )}
@@ -1021,19 +1103,19 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                 {/* Price Breakdown */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">{t('subtotal') || "Ենթագումար"}</span>
+                    <span className="text-gray-600">{t('subtotal')}</span>
                     <span className="font-medium">{productsTotal} {t('currency')}</span>
                   </div>
                   {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">{t('deliveryFee') || "Առաքման վճար"}</span>
+                      <span className="text-gray-600">{t('deliveryFee')}</span>
                       <span className="font-medium">{tempOrderInfo.deliveryFee} {t('currency')}</span>
                     </div>
                   )}
                   {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">{t('deliveryFee') || "Առաքման վճար"}</span>
-                      <span className="font-medium text-green-600">Անվճար</span>
+                      <span className="text-gray-600">{t('deliveryFee')}</span>
+                      <span className="font-medium text-green-600">{t('free')}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 mt-2">
@@ -1050,58 +1132,91 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   onClick={handleOrderClick}
                   className="w-full text-center py-3 rounded-lg font-semibold shadow-md flex items-center justify-center gap-2 bg-[#69429a] hover:bg-[#7c4fb3] text-white"
                 >
-                  <span>📱</span> {t("confirmOrder") || "Հաստատել պատվերը"}
+                  <span>📱</span> {t('confirmOrder')}
                 </motion.button>
               </motion.div>
             )}
 
             {/* Messenger Selector Modal */}
-            <AnimatePresence>
-              {showMessengerSelector && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
-                  onClick={() => setShowMessengerSelector(false)}
-                >
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl w-full"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="text-center">
-                      <div className="text-4xl mb-3">📱</div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">{t("chooseMessenger") || "Ընտրեք մեսենջեր"}</h3>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => redirectToMessenger('whatsapp')}
-                          className="flex-1 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-                          style={{ backgroundColor: "#25D366", color: "#fff" }}
-                        >
-                          <span>📱</span> WhatsApp
-                        </button>
-                        <button
-                          onClick={() => redirectToMessenger('telegram')}
-                          className="flex-1 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-                          style={{ backgroundColor: "#0088cc", color: "#fff" }}
-                        >
-                          <span>✈️</span> Telegram
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => setShowMessengerSelector(false)}
-                        className="mt-4 text-sm text-gray-500 hover:text-gray-700"
-                      >
-                        {t("cancel") || "Չեղարկել"}
-                      </button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Messenger Selector Modal */}
+<AnimatePresence>
+  {showMessengerSelector && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={() => setShowMessengerSelector(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.85, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="bg-white rounded-2xl p-8 max-w-sm mx-4 shadow-2xl w-full border border-gray-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center">
+          {/* Icon with gradient background */}
+          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#69429a] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-purple-200">
+            <span className="text-4xl">📱</span>
+          </div>
+          
+          <h3 className="text-xl font-bold text-gray-800 mb-2">
+            {t('chooseSendMethod') || "Ընտրեք ուղարկման եղանակը"}
+          </h3>
+          
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+            {t('chooseSendMethodDesc') || "Պատվերը հաստատելու համար ընտրեք մեսսենջեր"}</p>
+          
+          <div className="flex flex-col gap-3">
+            {/* WhatsApp Button */}
+            <motion.button
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => redirectToMessenger('whatsapp')}
+              className="w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg"
+              style={{ 
+                background: "linear-gradient(135deg, #25D366, #128C7E)",
+                color: "#fff" 
+              }}
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              <span>{t('sendViaWhatsApp') || "Ուղարկել WhatsApp-ով"}</span>
+            </motion.button>
+            
+            {/* Telegram Button */}
+            <motion.button
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => redirectToMessenger('telegram')}
+              className="w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg"
+              style={{ 
+                background: "linear-gradient(135deg, #0088cc, #006699)",
+                color: "#fff" 
+              }}
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
+                <path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+              <span>{t('sendViaTelegram') || "Ուղարկել Telegram-ով"}</span>
+            </motion.button>
+          </div>
+          
+          {/* Close button */}
+          <button
+            onClick={() => setShowMessengerSelector(false)}
+            className="mt-5 text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium"
+          >
+            {t('cancel') || "Չեղարկել"}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
           </motion.div>
         </>
       )}
