@@ -319,19 +319,19 @@ export const PRODUCTS: Product[] = [
 
 export const PARTYSHOPDATA: PartyShop[] = [
   {
-    id: 'foil-balloon',
-    name: 'Foil Balloon',
-    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
-    priceInCents: 1000,
+    id: 'dog-foil-balloon',
+    name: 'Dog Foil Balloon',
+    description: 'Shiny dog foil balloon for parties and celebrations, durable and reusable decorative balloon',
+    priceInCents: 1500,
     image: partyShop1,
-    price: 1000,
+    price: 1500,
 
   },
   {
     id: 'foil-balloon-2',
     name: 'Foil Balloon',
     description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
-   priceInCents: 2000,
+    priceInCents: 2000,
     image: partyShop2,
     price: 1000,
 
@@ -349,152 +349,150 @@ export const PARTYSHOPDATA: PartyShop[] = [
     id: 'large-soft-hat',
     name: 'Large Soft Hat',
     description: 'Large soft party hat, comfortable and lightweight accessory for festive events and costumes',
-    
-    
-    priceInCents: 1500,
+    priceInCents: 3000,
     image: partyShop4,
-    price: 2000,
+    price: 3000,
 
   },
   {
-    id: 'animal-happy-birthday-banner',
-    name: 'Animal Happy Birthday Banner',
-    description: 'Colorful happy birthday banner with animal theme, perfect for pet parties and kids celebrations',
+    id: 'happy-birthday-paper-hat',
+    name: ' Happy Birthday Paper Hat',
+    description: 'Colorful happy birthday  paper hat, perfect for pet parties and pets celebrations',
     priceInCents: 2000,
     image: partyShop5,
     price: 500,
 
   },
-  
+
   {
-    id: 'Large-Bow-Tie',
-    name: 'Large Bow Tie',
-    description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
-    priceInCents: 1500,
+    id: "let's-pawty-foil-balloon",
+    name: "Let's Pawty foil balloon",
+    description: 'Festive foil balloon with bow tie design. Ideal for parties, celebrations, and themed costumes.',
+    priceInCents: 3000,
     image: partyShop6,
-    price: 2000,
+    price: 3000,
 
   },
 
   {
-    id: 'large-hat-with-bow-tie',
-    name: 'Large Hat with Bow Tie',
-    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    priceInCents: 3500,
+    id: 'animal-happy-birthday-banner',
+    name: "Animal Happy Birthday Banner",
+    description: "Colorful animal-themed happy birthday banner, ideal for parties, decorations, and festive celebrations",
+    priceInCents: 2000,
     image: partyShop7,
     price: 2000,
 
   },
   {
-    id: 'foil-balloon-2',
-    name: 'Foil Balloon',
-    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
-    priceInCents: 1000,
+    id: 'dog-bandana',
+    name: "Dog Bandana",
+    description: "Fashionable dog bandana made from soft, durable fabric. Ideal for everyday use, parties, and pet photoshoots",
+    priceInCents: 1500,
     image: partyShop8,
-    price: 500,
+    price: 1500,
 
   },
   {
-    id: 'small-soft-hat',
-    name: 'Small Soft Hat',
-    description: 'Soft small party hat, comfortable and lightweight accessory for celebrations and costumes',
+    id: "big-dog-foil-balloon",
+    name: "Big Dog Foil Balloon",
+    description: "Eye-catching big dog foil balloon for parties and festive decorations. Lightweight, durable, and easy to inflate",
     priceInCents: 1000,
     image: partyShop9,
     price: 2000,
 
   },
   {
-    id: 'small-hat-with-bow-tie-2',
-    name: 'Small Hat with Bow Tie',
-    description: 'Small party hat with bow tie, perfect for celebrations and themed events',
-    priceInCents: 2500,
+    id: 'dog-bandana-2',
+    name: "Dog Bandana",
+    description: "Fashionable dog bandana made from soft, durable fabric. Ideal for everyday use, parties, and pet photoshoots",
+    priceInCents: 1500,
     image: partyShop10,
-    price: 500,
+    price: 1500,
 
   },
   {
-    id: 'foil-balloon-3',
-    name: 'Foil Balloon',
-    description: 'Shiny foil balloon for parties and celebrations, durable and reusable decorative balloon',
-    priceInCents: 1000,
+    id: 'animal-happy-birthday-banner-5',
+    name: 'Animal Happy Birthday Banner',
+    description: "Colorful animal-themed happy birthday banner, ideal for parties, decorations, and festive celebrations",
+    priceInCents: 2000,
     image: partyShop11,
     price: 2000,
 
   },
   {
-    id: 'large-bow-tie-2',
-    name: 'Large Bow Tie',
-    description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
-    priceInCents: 1500,
+    id: "paw-balloon",
+    name: "Paw Balloon",
+    description: "Cute paw-print foil balloon designed for pet lovers, ideal for birthday parties, decorations, and themed events",
+    priceInCents: 500,
     image: partyShop12,
-    price: 300,
-
-  },
-  {
-    id: 'large-balloon-dog',
-    name: 'Large Balloon Dog',
-    description: 'Large balloon dog decoration, perfect for parties, kids events, and festive celebrations',
-    priceInCents: 1000,
-    image: partyShop13,
     price: 500,
 
   },
   {
-    id: 'balloon-with-little-paws',
-    name: 'Balloon with Little Paws',
-    description: 'Cute decorative balloon with paw prints, ideal for animal-themed parties and celebrations',
+    id: "small-soft-hat-1",
+    name: "Small Soft Hat",
+    description: "Small soft party hat, perfect for festive celebrations, costumes, and themed events",
+    priceInCents: 1200,
+    image: partyShop13,
+    price: 1200,
+
+  },
+  {
+    id: "happy-birthday-foil-balloon",
+    name: "Happy Birthday Foil Balloon",
+    description: "Cute decorative foil balloon with paw prints, ideal for animal-themed parties and celebrations",
     priceInCents: 1000,
     image: partyShop14,
     price: 1000,
 
   },
   {
-    id: 'large-bow-tie-3',
-    name: 'Large Bow Tie',
-    description: 'Big decorative bow tie for parties and costumes, perfect for festive outfits and events',
-    priceInCents: 1000,
+    id: "frame-foil-balloon-3",
+    name: "Frame Foil Balloon",
+    description: "Decorative frame foil balloon, perfect for party setups, photo zones, and festive decorations",
+    priceInCents: 2000,
     image: partyShop15,
-    price: 1000
+    price: 2000
   },
   {
-    id: 'small-bow-tie-and-hat-set',
-    name: 'Small Bow Tie and Hat Set',
-    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
+    id: "small-soft-hat",
+    name: "Small Soft Hat",
+    description: "Small soft party hat, perfect for festive celebrations, costumes, and themed events",
     priceInCents: 2000,
     image: partyShop16,
     price: 2000
   },
   {
-    id: 'large-hat-with-bow-tie',
-    name: 'Large Hat with Bow Tie',
-    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
+    id: "small-hat-with-bow-tie-7",
+    name: "Small Hat with Bow Tie",
+    description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     price: 1500,
     image: partyShop17,
     priceInCents: 1500
   },
   {
-    id: 'small-bow-tie-and-hat-set',
-    name: 'Small Bow Tie and Hat Set',
-    description: 'Small party set including a bow tie and hat, perfect for festive celebrations and costumes',
+    id: "small-hat-with-bow-tie-8",
+    name: "Small Hat with Bow Tie",
+    description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     priceInCents: 1500,
     image: partyShop18,
     price: 1500
   },
   {
-    id: 'large-hat-with-bow-tie',
-    name: 'Large Hat with Bow Tie',
-    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
+    id: "small-hat-with-bow-tie-5",
+    name: "Small Hat with Bow Tie",
+    description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     price: 1500,
     image: partyShop19,
     priceInCents: 1500
   },
   {
-    id: 'large-hat-with-bow-tie',
-    name: 'Large Hat with Bow Tie',
-    description: 'Large party hat with matching bow tie, ideal for festive celebrations and themed events',
-    price: 1000,
+    id: 'dog-foil-balloon',
+    name: 'Dog Foil Balloon',
+    description: 'Shiny dog foil balloon for parties and celebrations, durable and reusable decorative balloon',
+    priceInCents: 1500,
     image: partyShop20,
-    priceInCents: 1000
+    price: 1500,
   }
 ]
 export function formatPrice(priceInCents: number): string {
