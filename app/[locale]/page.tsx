@@ -673,7 +673,9 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               </motion.div>
             </div>
 
-            <ScrollReveal direction="up" delay={0.2}>
+            
+          </div>
+          <ScrollReveal direction="up" delay={0.2}>
 
             <div className="flex justify-center mt-8 md:mt-12">
   <Link href={`/${locale}/cakes`}>
@@ -716,7 +718,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   </Link>
 </div>
             </ScrollReveal>
-          </div>
         </section>
 
         {/* PARTY SHOP SECTION */}
