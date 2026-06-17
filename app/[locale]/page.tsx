@@ -24,7 +24,7 @@ import main1Mobile from "@/public/main-mobile1.png";
 import main2Mobile from "@/public/main-mobile2.png";
 import main3Mobile from "@/public/main-mobile3.png";
 
-type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart" ;
+type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
 
 interface Product {
   id: string | number;
@@ -94,7 +94,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }:
 
 
 
-  
+
   return (
     <motion.div
       ref={ref}
@@ -162,8 +162,8 @@ export default function HomePage() {
     if (!scrollContainer) return;
 
     let lastTimestamp = 0;
-    
-    const animate = (timestamp:any) => {
+
+    const animate = (timestamp: any) => {
       if (!lastTimestamp) {
         lastTimestamp = timestamp;
         //@ts-ignore
@@ -174,25 +174,25 @@ export default function HomePage() {
       if (!isHovering) {
         // Շարժումը միայն եթե hover չկա
         positionRef.current -= speed;
-        
+
         // Վերականգնում առանց դխկոցի
-                //@ts-ignore
+        //@ts-ignore
 
         const halfWidth = scrollContainer.scrollWidth / 2;
         if (Math.abs(positionRef.current) >= halfWidth) {
           positionRef.current = 0;
         }
-                //@ts-ignore
+        //@ts-ignore
 
         scrollContainer.style.transform = `translateX(${positionRef.current}px)`;
       }
-      
+
       lastTimestamp = timestamp;
-              //@ts-ignore
+      //@ts-ignore
 
       animationRef.current = requestAnimationFrame(animate);
     };
-        //@ts-ignore
+    //@ts-ignore
 
     animationRef.current = requestAnimationFrame(animate);
 
@@ -247,60 +247,60 @@ export default function HomePage() {
   // ADS
   const ads: Ad[] = useMemo(
     () => [
-      {
-        id: 1,
-        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
-        description: "Հասեք 1000+ հաճախորդների ամեն օր",
-        ctaText: "Մանրամասն →",
-        ctaLink: "https://www.chupaboo.com/contact",
-        bgColor: "from-[#69429a] to-[#8b5fcf]",
-        icon: "📢",
-      },
-      {
-        id: 2,
-        title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
-        description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://pettaxi.am",
-        bgColor: "from-[#4a90e2] to-[#2c5aa0]",
-        icon: "🚕",
-      },
-      {
-        id: 3,
-        title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
-        description: "Գովազդեք ձեր ապրանքը մեր կայքում",
-        ctaText: "Իմանալ ավելին →",
-        ctaLink: "https://www.chupaboo.com/promotion",
-        bgColor: "from-[#e74c3c] to-[#c0392b]",
-        icon: "🎁",
-      },
-      {
-        id: 4,
-        title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
-        description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://www.chupaboo.com/order-ad",
-        bgColor: "from-[#2ecc71] to-[#27ae60]",
-        icon: "⭐",
-      },
-      {
-        id: 5,
-        title: "🔥 Սահմանափակ առաջարկ",
-        description: "Առաջին 3 ամիսը 20% զեղչ",
-        ctaText: "Օգտվել →",
-        ctaLink: "https://www.chupaboo.com/discount",
-        bgColor: "from-[#f39c12] to-[#e67e22]",
-        icon: "🔥",
-      },
-      {
-        id: 6,
-        title: "💎 Պրեմիում գովազդ",
-        description: "Լավագույն դիրքը կայքում",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://www.chupaboo.com/premium",
-        bgColor: "from-[#1abc9c] to-[#16a085]",
-        icon: "💎",
-      },
+      // {
+      //   id: 1,
+      //   title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
+      //   description: "Հասեք 1000+ հաճախորդների ամեն օր",
+      //   ctaText: "Մանրամասն →",
+      //   ctaLink: "https://www.chupaboo.com/contact",
+      //   bgColor: "from-[#69429a] to-[#8b5fcf]",
+      //   icon: "📢",
+      // },
+      // {
+      //   id: 2,
+      //   title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
+      //   description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
+      //   ctaText: "Պատվիրել →",
+      //   ctaLink: "https://pettaxi.am",
+      //   bgColor: "from-[#4a90e2] to-[#2c5aa0]",
+      //   icon: "🚕",
+      // },
+      // {
+      //   id: 3,
+      //   title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
+      //   description: "Գովազդեք ձեր ապրանքը մեր կայքում",
+      //   ctaText: "Իմանալ ավելին →",
+      //   ctaLink: "https://www.chupaboo.com/promotion",
+      //   bgColor: "from-[#e74c3c] to-[#c0392b]",
+      //   icon: "🎁",
+      // },
+      // {
+      //   id: 4,
+      //   title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
+      //   description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
+      //   ctaText: "Պատվիրել →",
+      //   ctaLink: "https://www.chupaboo.com/order-ad",
+      //   bgColor: "from-[#2ecc71] to-[#27ae60]",
+      //   icon: "⭐",
+      // },
+      // {
+      //   id: 5,
+      //   title: "🔥 Սահմանափակ առաջարկ",
+      //   description: "Առաջին 3 ամիսը 20% զեղչ",
+      //   ctaText: "Օգտվել →",
+      //   ctaLink: "https://www.chupaboo.com/discount",
+      //   bgColor: "from-[#f39c12] to-[#e67e22]",
+      //   icon: "🔥",
+      // },
+      // {
+      //   id: 6,
+      //   title: "💎 Պրեմիում գովազդ",
+      //   description: "Լավագույն դիրքը կայքում",
+      //   ctaText: "Պատվիրել →",
+      //   ctaLink: "https://www.chupaboo.com/premium",
+      //   bgColor: "from-[#1abc9c] to-[#16a085]",
+      //   icon: "💎",
+      // },
     ],
     []
   );
@@ -421,16 +421,16 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     () => Math.min(filteredProducts.length, 6),
     [filteredProducts.length]
   );
-  
+
   useEffect(() => {
     if (!isProductsAutoPlaying) {
       productsControls.stop();
       return;
     }
-    
+
     const itemWidth = 320 + 24;
     const totalWidth = visibleProductsCount * itemWidth;
-    
+
     productsControls.start({
       x: [0, -totalWidth],
       transition: {
@@ -459,7 +459,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     }
   }, [isPartyShopAutoPlaying, partyShopControls]);
 
-   
+
 
   // Get current slide's image (desktop or mobile)
   const currentSlideData = heroSlides[currentSlide];
@@ -490,8 +490,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         {/* ========== HERO SLIDER ========== */}
         <ScrollReveal direction="up" delay={0}>
           <section
-      onMouseEnter={() => setIsHovering(true)}   
-      onMouseLeave={() => setIsHovering(false)} 
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
             className="relative overflow-hidden"
           >
             <div className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] lg:h-[480px]">
@@ -507,7 +507,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     alt={slide.title || "Hero background"}
                     fill
                     className="w-full h-full object-center"
-                                                            priority={idx === 0}
+                    priority={idx === 0}
                     sizes="(max-width: 768px) 100vw, 100vw"
                     quality={90}
                   />
@@ -625,10 +625,12 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         <section className="bg-gray-50 py-8 md:py-12 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
-              <div className="text-center mb-8 md:mb-12">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h2>
-                <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
-              </div>
+              <Link href={`/${locale}/cakes`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
+              </Link>
             </ScrollReveal>
 
             <div
@@ -674,9 +676,9 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             <ScrollReveal direction="up" delay={0.2}>
               <div className="flex justify-center mt-8 md:mt-12">
                 <Link href={`/${locale}/cakes`}>
-                  <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl">
+                  <span className="inline-flex px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl">
                     {t('seeMoreLabel')} →
-                  </button>
+                  </span>
                 </Link>
               </div>
             </ScrollReveal>
@@ -687,10 +689,12 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
+            <Link href={`/${locale}/partyshop`}>
               <div className="text-center mb-8 md:mb-12">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t("partyshop")}</h2>
                 <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
               </div>
+              </Link>
             </ScrollReveal>
 
             <div
@@ -787,7 +791,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       <div>
                         <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('cakeOrderAdvanceLabel')}</h3>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                         {t('orderLeadTimeDesc')}
+                          {t('orderLeadTimeDesc')}
                         </p>
                       </div>
                     </div>
@@ -841,7 +845,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       <div>
                         <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('onlyDogsCatsLabel')}</h3>
                         <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                         {t('allAnimalsDesc')}
+                          {t('allAnimalsDesc')}
                         </p>
                       </div>
                     </div>
