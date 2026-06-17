@@ -116,7 +116,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   });
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
-console.log(orderInfo, 'orderInfoorderInfoorderInfoorderInfo')
   const fileInputRef = useRef<HTMLInputElement>(null);
   const product = getProductById(id);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -298,7 +297,6 @@ console.log(orderInfo, 'orderInfoorderInfoorderInfoorderInfo')
     setPrice(finalPrice);
   }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product.category, designType]);
 
-  // ------------------- Validation (unchanged) -------------------
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
     let isValid = true;
@@ -380,7 +378,6 @@ console.log(orderInfo, 'orderInfoorderInfoorderInfoorderInfo')
     setIsCartOpen(true);
   };
 
-  // ------------------- WhatsApp message using global cart -------------------
   const getWhatsAppMessage = () => {
     if (cart.length === 0) return "";
 

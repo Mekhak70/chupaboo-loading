@@ -15,6 +15,8 @@ export default function ShopPage() {
   const { addToCart, getItemCount, cart, orderInfo } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const TELEGRAM_BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk";
+const TELEGRAM_CHAT_ID = "8072053329";
 
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
@@ -51,6 +53,23 @@ export default function ShopPage() {
 
   const cartCount = getItemCount();
 
+  const sendToTelegramProductView = async (productName: string, price?: string) => {
+    try {
+      const message = `🛒 New User View:\n📦 ${productName}\n💰 ${price || 'N/A'}\n🕒 ${new Date().toLocaleString()}\n🌐 ${window.location.href}`;
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          chat_id: TELEGRAM_CHAT_ID, 
+          text: message 
+        }),
+      });
+    } catch (err) {
+      console.error("Telegram error:", err);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col">
@@ -76,6 +95,7 @@ export default function ShopPage() {
                   <div
                     key={productId}
                     className="group rounded-2xl overflow-hidden bg-white border border-gray-100/80 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  onClick={(e)=>{e.stopPropagation(),sendToTelegramProductView(product.name, String(product.price))}}
                   >
                     <div className="relative aspect-square">
                       <Image
