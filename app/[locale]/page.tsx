@@ -674,12 +674,13 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </div>
 
             <ScrollReveal direction="up" delay={0.2}>
+
               <div className="flex justify-center mt-8 md:mt-12">
-                <Link
-                  href={`/${locale}/cakes`}
-                  className="inline-flex px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer relative z-10"
-                >
-                  {t('seeMoreLabel')} →
+              <Link
+                  href={`/${locale}/cakes`}>
+                  <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg">
+                    {t('seeMoreLabel')} →
+                  </button>
                 </Link>
               </div>
             </ScrollReveal>
