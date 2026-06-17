@@ -119,13 +119,87 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
     @apply bg-background text-foreground;
+    /* iPhone-ի համար ավելի հարթ տեքստ */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Կանխում է տեքստի չափի փոփոխությունը iPhone-ում */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Բարելավված scroll behavior */
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer utilities {
   .tap-highlight-transparent {
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* iPhone-ի համար հարթ անցումներ */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Կանխում է iOS-ի զանգվածային ընտրությունը */
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Safe area padding-ի համար */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Բարելավված focus state մատչելիության համար */
+  .focus-ring-custom {
+    @apply focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2;
+  }
+  
+  /* iPhone-ի active state կոճակների համար */
+  .btn-touch {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+  
+  /* Smooth image loading */
+  .image-loading {
+    @apply blur-sm scale-105 transition-all duration-700;
+  }
+  
+  .image-loaded {
+    @apply blur-0 scale-100;
+  }
+}
+
+/* ===== iPhone-ի հատուկ ուղղումներ ===== */
+@supports (-webkit-touch-callout: none) {
+  /* Safari-ի համար */
+  input, textarea, button, select {
+    font-size: 16px; /* Կանխում է zoom-ը input-ների վրա */
+  }
+  
+  /* Կանխում է double-tap zoom-ը */
+  button, a, [role="button"] {
+    cursor: pointer;
+  }
+}
+
+/* ===== Dark mode-ի ավտոմատ անցում (ըստ ցանկության) ===== */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* Ավտոմատ dark mode, եթե ցանկանաք */
+    /* --background: oklch(0.145 0 0); */
+    /* --foreground: oklch(0.985 0 0); */
   }
 }
