@@ -675,14 +675,45 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
             <ScrollReveal direction="up" delay={0.2}>
 
-              <div className="flex justify-center mt-8 md:mt-12">
-              <Link
-                  href={`/${locale}/cakes`}>
-                  <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg">
-                    {t('seeMoreLabel')} →
-                  </button>
-                </Link>
-              </div>
+            <div className="flex justify-center mt-8 md:mt-12">
+  <Link href={`/${locale}/cakes`}>
+    <button 
+      className="
+        group relative px-6 md:px-8 py-2.5 md:py-3 
+        rounded-full 
+        bg-[#69429a] text-white 
+        font-semibold text-base md:text-lg 
+        transition-all duration-300 ease-out 
+        hover:bg-[#7c4fb3] 
+        hover:scale-105 hover:-translate-y-0.5 
+        active:scale-95 active:translate-y-0
+        shadow-lg hover:shadow-xl 
+        active:shadow-md
+        overflow-hidden
+        cursor-pointer
+        select-none
+        touch-manipulation
+        tap-highlight-transparent
+        focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
+      "
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
+      }}
+    >
+      {/* Shine effect - desktop only */}
+      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      
+      {/* Content */}
+      <span className="relative flex items-center gap-2">
+        <span>{t('seeMoreLabel')}</span>
+        <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-0">
+          →
+        </span>
+      </span>
+    </button>
+  </Link>
+</div>
             </ScrollReveal>
           </div>
         </section>
