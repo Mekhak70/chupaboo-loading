@@ -675,10 +675,11 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
             <ScrollReveal direction="up" delay={0.2}>
               <div className="flex justify-center mt-8 md:mt-12">
-                <Link href={`/${locale}/cakes`}>
-                  <span className="inline-flex px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl">
-                    {t('seeMoreLabel')} →
-                  </span>
+                <Link
+                  href={`/${locale}/cakes`}
+                  className="inline-flex px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer relative z-10"
+                >
+                  {t('seeMoreLabel')} →
                 </Link>
               </div>
             </ScrollReveal>
@@ -689,11 +690,11 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">
           <div className="container mx-auto px-4">
             <ScrollReveal direction="up">
-            <Link href={`/${locale}/partyshop`}>
-              <div className="text-center mb-8 md:mb-12">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t("partyshop")}</h2>
-                <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
-              </div>
+              <Link href={`/${locale}/partyshop`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t("partyshop")}</h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
               </Link>
             </ScrollReveal>
 
