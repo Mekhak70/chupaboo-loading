@@ -695,6 +695,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         touch-manipulation
         tap-highlight-transparent
         focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
+        z-20 relative
       "
       style={{
         WebkitTapHighlightColor: 'transparent',
