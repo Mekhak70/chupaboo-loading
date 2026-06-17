@@ -9,14 +9,16 @@ import Logo from '@/public/logoWhit.svg'
 import chupaboooo from "@/public/chupaboooo.png"
 
 export function Footer() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage();
 
   const navItems = [
-    { href: "/", label: t("home") },
-    { href: "/about", label: t("about") },
-    { href: "/shop", label: t("shop") },
-    { href: "/contact", label: t("contact") },
-  ]
+    { href: `/${language}`, label: t("home") },
+    { href: `/${language}/cakes`, label: t("cakes") },
+    { href: `/${language}/partyshop`, label: t("partyshop") },
+    { href: `/${language}/about`, label: t("about") },
+    { href: `/${language}/contact`, label: t("contact") },
+
+  ];
 
   return (
     <footer className="border-t border-border  text-primary-foreground" style={{ background: "#69429a" }}>

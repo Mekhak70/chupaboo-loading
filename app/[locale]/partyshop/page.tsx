@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ShoppingCart, CheckCircle } from "lucide-react";
+import { ShoppingCart, CheckCircle, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { PARTYSHOPDATA } from "@/lib/products";
@@ -12,22 +12,41 @@ import { useCart } from "@/components/cart-context";
 
 export default function ShopPage() {
   const { t } = useLanguage();
-  const { addToCart, getItemCount, cart, orderInfo } = useCart(); // No need for orderInfo here
+  const { addToCart, getItemCount, cart, orderInfo } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
   };
 
+  const getProductQuantity = (productId: string) => {
+    const item = cart.find((item: { id: string }) => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const updateQuantity = (productId: string, delta: number) => {
+    setQuantities(prev => ({
+      ...prev,
+      [productId]: Math.max(1, (prev[productId] || 1) + delta)
+    }));
+  };
+
   const addToCartHandler = (product: (typeof PARTYSHOPDATA)[0]) => {
+    const quantity = quantities[String(product.id)] || 1;
     addToCart({
       id: String(product.id),
       name: product.name,
       image: product.image,
       price: product.price,
-      quantity: 1,
+      quantity: quantity,
       options: null,
     });
+    // Reset quantity for this product after adding
+    setQuantities(prev => ({
+      ...prev,
+      [String(product.id)]: 1
+    }));
   };
 
   const cartCount = getItemCount();
@@ -44,14 +63,15 @@ export default function ShopPage() {
             className="w-full object-cover"
           />
         </section>
-
-        {/* Products Grid */}
         <section className="bg-white py-10">
           <div className="container mx-auto px-4">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {PARTYSHOPDATA.map((product) => {
                 const productId = String(product.id);
                 const inCart = isProductInCart(productId);
+                const cartQuantity = getProductQuantity(productId);
+                const selectedQuantity = quantities[productId] || 1;
+
                 return (
                   <div
                     key={productId}
@@ -71,19 +91,52 @@ export default function ShopPage() {
                         {product.name}
                       </h3>
                       <p className="text-gray-500 mt-1 text-sm font-medium">
-                        {product.price} դրամ
+                        {product.price} {t('currency')}
                       </p>
+                      <p className="text-xs text-gray-500 mt-0.5 italic">
+                        {!product.set ? (t('pricePerPiece') || "մեկ հատի արժեքը"):''}
+                      </p>
+
+                      {!inCart && (
+                        <div className="flex items-center justify-between mt-3 border border-gray-200 rounded-full p-1 bg-gray-50">
+                          <button
+                            onClick={() => updateQuantity(productId, -1)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-600"
+                            disabled={selectedQuantity <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="font-medium text-gray-700 min-w-[30px] text-center">
+                            {selectedQuantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(productId, 1)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-600"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {inCart && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-sm text-emerald-600">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>
+                            {cartQuantity} {t('pieces') || "հատ"} {t('inCart') || "զամբյուղում"}
+                          </span>
+                        </div>
+                      )}
+
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (!inCart) addToCartHandler(product);
                         }}
                         disabled={inCart}
-                        className={`mt-3 w-full rounded-full py-2.5 text-sm font-medium tracking-wide transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none ${
-                          inCart
-                            ? "bg-emerald-500 hover:bg-emerald-600 cursor-not-allowed opacity-90 shadow-none"
-                            : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-                        }`}
+                        className={`mt-3 w-full rounded-full py-2.5 text-sm font-medium tracking-wide transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none ${inCart
+                          ? "bg-emerald-500 hover:bg-emerald-600 cursor-not-allowed opacity-90 shadow-none"
+                          : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                          }`}
                         style={{ color: "#fff", backgroundColor: inCart ? "#10b981" : "#69429a" }}
                       >
                         {inCart ? (
@@ -119,11 +172,10 @@ export default function ShopPage() {
           )}
         </button>
 
-        <CartDrawer 
-          isOpen={isCartOpen} 
+        <CartDrawer
+          isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           orderInfo={orderInfo}
-         
         />
       </div>
     </>

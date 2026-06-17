@@ -15,6 +15,7 @@ export interface PartyShop {
   description: string
   priceInCents: number
   image: any
+  set?:boolean
 }
 
 import img1 from '@/public/cake-1.png'
@@ -325,6 +326,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1500,
     image: partyShop1,
     price: 1500,
+    set:false
 
   },
   {
@@ -334,6 +336,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 2000,
     image: partyShop2,
     price: 1000,
+    set:false
 
   },
   {
@@ -343,6 +346,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1000,
     image: partyShop3,
     price: 1500,
+    set:true
 
   },
   {
@@ -352,6 +356,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 3000,
     image: partyShop4,
     price: 3000,
+    set:false
 
   },
   {
@@ -361,6 +366,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 2000,
     image: partyShop5,
     price: 500,
+    set:false
 
   },
 
@@ -371,6 +377,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 3000,
     image: partyShop6,
     price: 3000,
+    set:true
 
   },
 
@@ -381,6 +388,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 2000,
     image: partyShop7,
     price: 2000,
+    set:false
 
   },
   {
@@ -390,6 +398,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1500,
     image: partyShop8,
     price: 1500,
+    set:false
 
   },
   {
@@ -399,6 +408,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1000,
     image: partyShop9,
     price: 2000,
+    set:false
 
   },
   {
@@ -408,6 +418,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1500,
     image: partyShop10,
     price: 1500,
+    set:false
 
   },
   {
@@ -417,6 +428,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 2000,
     image: partyShop11,
     price: 2000,
+    set:false
 
   },
   {
@@ -426,6 +438,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 500,
     image: partyShop12,
     price: 500,
+    set:false
 
   },
   {
@@ -435,6 +448,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1200,
     image: partyShop13,
     price: 1200,
+    set:false
 
   },
   {
@@ -444,6 +458,7 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1000,
     image: partyShop14,
     price: 1000,
+    set:false
 
   },
   {
@@ -452,7 +467,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: "Decorative frame foil balloon, perfect for party setups, photo zones, and festive decorations",
     priceInCents: 2000,
     image: partyShop15,
-    price: 2000
+    price: 2000,
+    set:false
+
   },
   {
     id: "small-soft-hat",
@@ -460,7 +477,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: "Small soft party hat, perfect for festive celebrations, costumes, and themed events",
     priceInCents: 2000,
     image: partyShop16,
-    price: 2000
+    price: 2000,
+    set:false
+
   },
   {
     id: "small-hat-with-bow-tie-7",
@@ -468,7 +487,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     price: 1500,
     image: partyShop17,
-    priceInCents: 1500
+    priceInCents: 1500,
+    set:false
+
   },
   {
     id: "small-hat-with-bow-tie-8",
@@ -476,7 +497,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     priceInCents: 1500,
     image: partyShop18,
-    price: 1500
+    price: 1500,
+    set:false
+
   },
   {
     id: "small-hat-with-bow-tie-5",
@@ -484,7 +507,9 @@ export const PARTYSHOPDATA: PartyShop[] = [
     description: "Cute small party hat with matching bow tie, lightweight and comfortable accessory for celebrations and costumes",
     price: 1500,
     image: partyShop19,
-    priceInCents: 1500
+    priceInCents: 1500,
+    set:false
+
   },
   {
     id: 'dog-foil-balloon',
@@ -493,6 +518,8 @@ export const PARTYSHOPDATA: PartyShop[] = [
     priceInCents: 1500,
     image: partyShop20,
     price: 1500,
+    set:false
+
   }
 ]
 export function formatPrice(priceInCents: number): string {

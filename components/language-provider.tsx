@@ -159,11 +159,42 @@ export const translations: Translations = {
     ru: "Стоимость доставки",
     pl: "Koszt dostawy"
   },
+
+  inCart: {
+    "hy": "զամբյուղում",
+    "en": "in cart",
+    "ru": "в корзине",
+    "pl": "w koszyku"
+  },
+  pricePerPiece: {
+    "hy": "մեկ հատի արժեքը",
+    "en": "price per piece",
+    "ru": "цена за штуку",
+    "pl": "cena za sztukę"
+  },
   freeDeliveryApplied: {
-    hy: "Անվճար առաքում Երևանում",
-    en: "Free delivery in Yerevan",
-    ru: "Бесплатная доставка в Ереване",
-    pl: "Darmowa dostawa w Erywaniu",
+    "hy": "Անվճար առաքում Երևանում",
+    "en": "Free delivery in Yerevan",
+    "ru": "Бесплатная доставка в Ереване",
+    "pl": "Darmowa dostawa w Erywaniu"
+  },
+  discountOnPartyShop: {
+    "hy": "զեղչ PartyShop-ի համար",
+    "en": "discount on PartyShop",
+    "ru": "скидка на PartyShop",
+    "pl": "rabat na PartyShop"
+  },
+  "partyShopDiscount": {
+    "hy": "PartyShop",
+    "en": "PartyShop",
+    "ru": "PartyShop",
+    "pl": "PartyShop"
+  },
+  cakeDiscountCondition: {
+    "hy": "Տորթի գնից կախված զեղչ PartyShop-ի ապրանքների վրա",
+    "en": "Discount on PartyShop items based on cake price",
+    "ru": "Скидка на товары PartyShop в зависимости от цены торта",
+    "pl": "Rabat na produkty PartyShop w zależności od ceny ciasta"
   },
   freeDeliveryForOrdersAbove: {
     hy: "Անվճար առաքում Երևանում՝ 6000 դրամից սկսած",
@@ -988,6 +1019,12 @@ onlyDogsCatsLabel: {
     ru: "Количество",
     pl: "Ilość"
   },
+pieces: {
+    "hy": "հատ",
+    "en": "pieces",
+    "ru": "шт",
+    "pl": "szt"
+  },
   meatType: {
     hy: "Մսի տեսակը",
     en: "Meat type",
@@ -1082,13 +1119,6 @@ onlyDogsCatsLabel: {
     en: "Confirm Order",
     ru: "Подтвердить заказ",
     pl: "Potwierdź zamówienie"
-  },
- 
-  cakeDiscountCondition: {
-    hy: "Տորթ պատվիրելու դեպքում յուրաքանչյուր partshop ապրանքի գնից զեղչվում է",
-    en: "When ordering a cake, a discount is applied to the price of each Partshop product",
-    ru: "При заказе торта предоставляется скидка на цену каждого товара Partshop",
-    pl: "Przy zamówieniu ciasta rabat jest stosowany do ceny każdego produktu Partshop"
   },
   deliveryDetail: {
     hy: "Առաքման մանրամասներ",
