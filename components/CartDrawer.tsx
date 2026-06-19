@@ -131,6 +131,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   
   // Priority: use context orderInfo if available, otherwise use prop
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
+  console.log(existingOrderInfo, 'existingOrderInfo');
   
   // ========== CALCULATE TOTAL WITH PARTYSHOP DISCOUNT ==========
   const hasCakeInCart = cart.some((item) => item.options?.cakeType);
@@ -175,8 +176,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   };
   
   const discountInfo = getDiscountInfo();
-  const effectiveTotal = productsTotal + (tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0);
-
+  const effectiveTotal = productsTotal + (tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 ? tempOrderInfo.deliveryFee : 0);
   // ========== GEOCODING & DISTANCE ==========
   const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
     if (!address || address.trim().length < 5) return null;
@@ -269,19 +269,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const orderInfo = hasCake ? existingOrderInfo : (showDeliveryForm ? null : tempOrderInfo);
 
   // ========== EDIT CAKE FUNCTION ==========
-  const handleEditCake = (item: any) => {
-    const editData = {
-      id: item.id,
-      name: item.name,
-      image: item.image,
-      quantity: item.quantity,
-      options: item.options,
-    };
-    sessionStorage.setItem('editingCake', JSON.stringify(editData));
-    onClose();
-    const cleanId = item.id.includes('/') ? item.id.split('/').pop() : item.id;
-    router.push(`/${language}/product/${cleanId}?edit=true`);
-  };
+
 
   const toggleItemExpand = (itemId: string) => {
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
@@ -549,9 +537,9 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
     const deliveryInfoToUse = hasCake ? existingOrderInfo : tempOrderInfo;
     
-    let message = `${t('greeting') || "Բարև Ձեզ, ես ուզում եմ պատվիրել"}\n\n`;
+    let message = `${t('greeting')}\n\n`;
     
-    message += `📦 *${t('products') || "ԱՊՐԱՆՔՆԵՐ"}*\n`;
+   
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
       let finalPrice = item.price;
@@ -629,8 +617,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       }
     });
     
-    message += "\n🖼️ *ԱՊՐԱՆՔԻ ՆԿԱՐՆԵՐԸ*\n";
-    message += buildProductImagesLinks();
+        message += buildProductImagesLinks();
     
     if (deliveryInfoToUse && deliveryInfoToUse.phoneNumber) {
       message += `\n🚚 *${t('deliveryDetails') || "ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ"}*\n`;
@@ -664,7 +651,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
     
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
-    message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${effectiveTotal} ${t('currency')}\n`;
+    message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${deliveryInfo ? Number(deliveryInfo[6]?.value.slice(0,4)) + effectiveTotal: effectiveTotal} ${t('currency')}\n`;
     
    
     
@@ -729,7 +716,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   };
 
   const deliveryInfo = formatDeliveryInfo();
-  console.log(deliveryInfo, 'deliveryInfo')
+  console.log(deliveryInfo && deliveryInfo[6]?.value, 'deliveryInfo')
 
   return (
     <AnimatePresence>
@@ -1196,7 +1183,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-700">{t('total')}</span>
-                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal} {t('currency')}</span>
+                      <span className="text-2xl font-bold text-[#69429a]">{ deliveryInfo ? Number(deliveryInfo[6]?.value.slice(0,4)) + effectiveTotal: effectiveTotal} {t('currency')}</span>
                     </div>
                   </div>
                 </div>

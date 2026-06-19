@@ -233,6 +233,12 @@ export const translations: Translations = {
     ru: "Имя питомца",
     pl: "Imię zwierzęcia"
   },
+  productImages: {
+    hy: "Ապրանքի նկարները",
+    en: "Product Images",
+    ru: "Изображения товара",
+    pl: "Zdjęcia produktu"
+},
   chooseSendMethod: {
     hy: "Ընտրեք ուղարկման եղանակը",
     en: "Choose sending method",
