@@ -239,6 +239,12 @@ export const translations: Translations = {
     ru: "Изображения товара",
     pl: "Zdjęcia produktu"
 },
+discount: {
+  hy: "Զեղչ",
+  en: "Discount",
+  ru: "Скидка",
+  pl: "Rabat"
+},
   chooseSendMethod: {
     hy: "Ընտրեք ուղարկման եղանակը",
     en: "Choose sending method",
