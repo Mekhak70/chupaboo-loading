@@ -637,13 +637,13 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
             )}
 
             {/* Delivery Option */}
-            <div>
+            {/* <div>
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Truck className="w-5 h-5" />{t("deliveryOption")}</p>
               <div className="flex flex-wrap gap-3">
                 <button onClick={() => { setOrderInfo(prev => ({ ...prev, deliveryOption: "delivery", deliveryAddress: "" })); clearFieldError("deliveryAddress"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.deliveryOption === "delivery" ? "bg-[#69429a] text-white border-[#69429a] shadow-md scale-105" : "bg-white text-[#69429a] border-[#69429a] hover:bg-[#f3e8ff]"}`}>🚚 {t("delivery")}</button>
                 <button onClick={() => { setOrderInfo(prev => ({ ...prev, deliveryOption: "pickup", deliveryAddress: "" })); clearFieldError("deliveryAddress"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.deliveryOption === "pickup" ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105" : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"}`}>🏠 {t("pickup")}</button>
               </div>
-            </div>
+            </div> */}
 
             {/* Delivery Address */}
             {orderInfo.deliveryOption === "delivery" && (

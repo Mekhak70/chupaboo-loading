@@ -69,8 +69,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   
   // Order info state
   const [orderInfo, setOrderInfo] = useState<OrderInfo>(DEFAULT_ORDER_INFO);
-console.log("cart", cart);
-console.log("orderInfo", orderInfo);
+
 
 
   // ========== CART ACTIONS ==========

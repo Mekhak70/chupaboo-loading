@@ -715,7 +715,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   };
 
   const deliveryInfo = formatDeliveryInfo();
-  console.log(deliveryInfo, 'deliveryInfo')
 
   return (
     <AnimatePresence>
