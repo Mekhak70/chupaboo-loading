@@ -4,16 +4,16 @@ import { Nunito } from "next/font/google"
 import "@/app/globals.css"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
-import type { ReactNode, JSX } from "react";
+import type { ReactNode } from "react";
 import { CartProvider } from "@/components/cart-context";
 
-
-const nunito = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800"] })
-
-// TypeScript check
+const nunito = Nunito({ 
+  subsets: ["latin"], 
+  weight: ["400", "600", "700", "800"] 
+});
 
 export const generateMetadata = async ({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> => {
-  const { locale } = await params
+  const { locale } = await params;
   const seo = {
     en: {
       title: "Natural Ingredient Pet Cakes",
@@ -93,7 +93,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ locale: s
     },
     pl: {
       title: "Torty dla zwierząt z naturalnych składników",
-description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane z naturalnych składników.",
+      description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane z naturalnych składników.",
       keywords: [
         "tort",
         "torty dla psów",
@@ -116,9 +116,9 @@ description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane 
         "smaki tortów",
       ],
     },
-  }
+  };
 
-  const lang = seo[locale as keyof typeof seo] ?? seo.en
+  const lang = seo[locale as keyof typeof seo] ?? seo.en;
 
   return {
     title: lang.title,
@@ -143,14 +143,7 @@ description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane 
           alt: lang.title,
         },
       ],
-      locale:
-        locale === "en"
-          ? "en_US"
-          : locale === "hy"
-            ? "hy_AM"
-            : locale === "ru"
-              ? "ru_RU"
-              : "pl_PL",
+      locale: locale === "en" ? "en_US" : locale === "hy" ? "hy_AM" : locale === "ru" ? "ru_RU" : "pl_PL",
     },
     twitter: {
       card: "summary_large_image",
@@ -166,38 +159,30 @@ description: "Zamów bezpieczne i smaczne torty dla swoich pupili, przygotowane 
         pl: "https://www.chupaboo.com/pl",
       },
     },
-  }
-}
+  };
+};
 
 interface LayoutProps {
   children: ReactNode;
   params: Promise<{ locale: string }>;
 }
-export default async function RootLayout({ children, params }: LayoutProps) {
-  const { locale } = await params
-  return (
-    <html lang={locale} className={nunito.className}>
-      <head>
-        <Script
-          strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-9PTJYM3JSR"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9PTJYM3JSR',{page_path:window.location.pathname});`}
-        </Script>
-      </head>
-      <body className="font-sans antialiased">
-      <CartProvider>
 
-        <RootLayoutContent params={{ locale }}>{children}</RootLayoutContent>
-        <Analytics />
+export default async function RootLayout({ children, params }: LayoutProps) {
+  const { locale } = await params;
+  
+  return (
+    <html lang={locale} className={nunito.className} suppressHydrationWarning>
+      <head>
+        {/* ... */}
+      </head>
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <CartProvider>
+          <RootLayoutContent params={{ locale }}>
+            {children}
+          </RootLayoutContent>
+          <Analytics />
         </CartProvider>
       </body>
     </html>
   );
 }
-
-function fetchSomeData(locale: string) {
-  throw new Error("Function not implemented.")
-}
-

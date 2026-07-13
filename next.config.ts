@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      // Ավելացնել Google Drive-ի support
       {
         protocol: "https",
         hostname: "drive.google.com",
@@ -35,7 +34,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Ավելացնել սա
+  compiler: {
+    // Remove `console.*` in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  // Կամ սա
   turbopack: {},
 };
-
 export default withAnalyzer(nextConfig);
