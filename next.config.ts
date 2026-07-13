@@ -7,24 +7,34 @@ const withAnalyzer = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Production optimizations
-  compress: true, // Enable gzip compression
-  poweredByHeader: false, // Remove X-Powered-By header
+  compress: true,
+  poweredByHeader: false,
   experimental: {
     optimizeCss: true,
   },
-  // Turbopack-friendly remote images
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "chupaboo.com", // փոխիր քո remote image domain
+        hostname: "chupaboo.com",
+        port: "",
+        pathname: "/**",
+      },
+      // Ավելացնել Google Drive-ի support
+      {
+        protocol: "https",
+        hostname: "drive.google.com",
+        port: "",
+        pathname: "/uc/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
         port: "",
         pathname: "/**",
       },
     ],
   },
-  // Ուղղակի ավելացրու empty turbopack config
   turbopack: {},
 };
 

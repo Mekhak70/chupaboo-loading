@@ -154,7 +154,7 @@ export default function ShopPage() {
                     <div className="relative aspect-square">
                       <Image
                         src={product.image}
-                        alt={product.name}
+                        alt={"Շան ծննդյան տորթ"}
                         fill
                         className="w-full h-full object-cover"
                         priority

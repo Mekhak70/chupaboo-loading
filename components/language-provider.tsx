@@ -141,6 +141,24 @@ export const translations: Translations = {
     ru: "Информация для самовывоза",
     pl: "Informacje dotyczące odbioru"
   },
+  noProductsAvailable: {
+    hy: "Ապրանքներ չկան",
+    en: "No products available",
+    ru: "Нет доступных товаров",
+    pl: "Brak dostępnych produktów"
+  },
+  outOfStock: {
+    hy: "Առկա չէ",
+    en: "Out of Stock",
+    ru: "Нет в наличии",
+    pl: "Brak w magazynie"
+  },
+  stillHaveQuestions: {
+    hy: "Դեռ հարցեր կա՞ն։",
+    en: "Still Have Questions?",
+    ru: "Остались вопросы?",
+    pl: "Masz jeszcze pytania?"
+  },
   deliveryFeeInfo: {
     hy: "Առաքման վճարի մասին տեղեկություն",
     en: "Delivery Fee Information",

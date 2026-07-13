@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { PRODUCTS, PARTYSHOPDATA } from "@/lib/products";
+import { PRODUCTS, } from "@/lib/products";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { StaticImport } from "next/dist/shared/lib/get-img-props";
@@ -62,6 +62,9 @@ const getHeroSlides = () => [
     bgColor: "",
   },
 ];
+
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+
 
 // Get responsive floating images
 const getFloatingImages = () => ({
@@ -207,6 +210,13 @@ export default function HomePage() {
   const [type, setType] = useState<string>("");
   const [creamType, setCreamType] = useState<string>("");
   const [isMobile, setIsMobile] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
+
+
+
 
   // AD STATES
   const [currentAd, setCurrentAd] = useState<Ad | null>(null);
@@ -218,6 +228,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const adTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -247,60 +258,60 @@ export default function HomePage() {
   // ADS
   const ads: Ad[] = useMemo(
     () => [
-      // {
-      //   id: 1,
-      //   title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
-      //   description: "Հասեք 1000+ հաճախորդների ամեն օր",
-      //   ctaText: "Մանրամասն →",
-      //   ctaLink: "https://www.chupaboo.com/contact",
-      //   bgColor: "from-[#69429a] to-[#8b5fcf]",
-      //   icon: "📢",
-      // },
-      // {
-      //   id: 2,
-      //   title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
-      //   description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
-      //   ctaText: "Պատվիրել →",
-      //   ctaLink: "https://pettaxi.am",
-      //   bgColor: "from-[#4a90e2] to-[#2c5aa0]",
-      //   icon: "🚕",
-      // },
-      // {
-      //   id: 3,
-      //   title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
-      //   description: "Գովազդեք ձեր ապրանքը մեր կայքում",
-      //   ctaText: "Իմանալ ավելին →",
-      //   ctaLink: "https://www.chupaboo.com/promotion",
-      //   bgColor: "from-[#e74c3c] to-[#c0392b]",
-      //   icon: "🎁",
-      // },
-      // {
-      //   id: 4,
-      //   title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
-      //   description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
-      //   ctaText: "Պատվիրել →",
-      //   ctaLink: "https://www.chupaboo.com/order-ad",
-      //   bgColor: "from-[#2ecc71] to-[#27ae60]",
-      //   icon: "⭐",
-      // },
-      // {
-      //   id: 5,
-      //   title: "🔥 Սահմանափակ առաջարկ",
-      //   description: "Առաջին 3 ամիսը 20% զեղչ",
-      //   ctaText: "Օգտվել →",
-      //   ctaLink: "https://www.chupaboo.com/discount",
-      //   bgColor: "from-[#f39c12] to-[#e67e22]",
-      //   icon: "🔥",
-      // },
-      // {
-      //   id: 6,
-      //   title: "💎 Պրեմիում գովազդ",
-      //   description: "Լավագույն դիրքը կայքում",
-      //   ctaText: "Պատվիրել →",
-      //   ctaLink: "https://www.chupaboo.com/premium",
-      //   bgColor: "from-[#1abc9c] to-[#16a085]",
-      //   icon: "💎",
-      // },
+      {
+        id: 1,
+        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
+        description: "Հասեք 1000+ հաճախորդների ամեն օր",
+        ctaText: "Մանրամասն →",
+        ctaLink: "https://www.chupaboo.com/contact",
+        bgColor: "from-[#69429a] to-[#8b5fcf]",
+        icon: "📢",
+      },
+      {
+        id: 2,
+        title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
+        description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
+        ctaText: "Պատվիրել →",
+        ctaLink: "https://pettaxi.am",
+        bgColor: "from-[#4a90e2] to-[#2c5aa0]",
+        icon: "🚕",
+      },
+      {
+        id: 3,
+        title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
+        description: "Գովազդեք ձեր ապրանքը մեր կայքում",
+        ctaText: "Իմանալ ավելին →",
+        ctaLink: "https://www.chupaboo.com/promotion",
+        bgColor: "from-[#e74c3c] to-[#c0392b]",
+        icon: "🎁",
+      },
+      {
+        id: 4,
+        title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
+        description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
+        ctaText: "Պատվիրել →",
+        ctaLink: "https://www.chupaboo.com/order-ad",
+        bgColor: "from-[#2ecc71] to-[#27ae60]",
+        icon: "⭐",
+      },
+      {
+        id: 5,
+        title: "🔥 Սահմանափակ առաջարկ",
+        description: "Առաջին 3 ամիսը 20% զեղչ",
+        ctaText: "Օգտվել →",
+        ctaLink: "https://www.chupaboo.com/discount",
+        bgColor: "from-[#f39c12] to-[#e67e22]",
+        icon: "🔥",
+      },
+      {
+        id: 6,
+        title: "💎 Պրեմիում գովազդ",
+        description: "Լավագույն դիրքը կայքում",
+        ctaText: "Պատվիրել →",
+        ctaLink: "https://www.chupaboo.com/premium",
+        bgColor: "from-[#1abc9c] to-[#16a085]",
+        icon: "💎",
+      },
     ],
     []
   );
@@ -380,16 +391,16 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     if (isAdClosedPermanently) localStorage.setItem("chupaboo_ad_closed", "true");
   }, [isAdClosedPermanently]);
 
-  useEffect(() => {
-    if (isAdClosedPermanently) return;
-    const initialTimeout = setTimeout(() => showRandomAd(), 3000);
-    intervalRef.current = setInterval(() => showRandomAd(), 10000);
-    return () => {
-      clearTimeout(initialTimeout);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
-    };
-  }, [isAdClosedPermanently, showRandomAd]);
+  // useEffect(() => {
+  //   if (isAdClosedPermanently) return;
+  //   const initialTimeout = setTimeout(() => showRandomAd(), 3000);
+  //   intervalRef.current = setInterval(() => showRandomAd(), 10000);
+  //   return () => {
+  //     clearTimeout(initialTimeout);
+  //     if (intervalRef.current) clearInterval(intervalRef.current);
+  //     if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
+  //   };
+  // }, [isAdClosedPermanently, showRandomAd]);
 
   // HERO SLIDER LOGIC
   const nextSlide = useCallback(() => {
@@ -446,7 +457,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   useEffect(() => {
     if (isPartyShopAutoPlaying) {
       partyShopControls.start({
-        x: [-(PARTYSHOPDATA.slice(0, 6).length * (320 + 24)), 0],
+        x: [-(products.slice(0, 6).length * (320 + 24)), 0],
         transition: {
           duration: 20,
           repeat: Infinity,
@@ -464,6 +475,76 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   // Get current slide's image (desktop or mobile)
   const currentSlideData = heroSlides[currentSlide];
   const currentBgImage = isMobile ? currentSlideData?.imageMobile : currentSlideData?.imageDesktop;
+
+
+    const getWorkingImageUrl = (url: string) => {
+      if (!url) return PLACEHOLDER_IMAGE;
+  
+      // Եթե դա Google Drive-ի հղում է, օգտագործել API route-ը
+      if (url.includes('drive.google.com') ||
+        url.includes('drive.usercontent.google.com') ||
+        url.includes('googleusercontent.com')) {
+        return `/api/image?url=${encodeURIComponent(url)}`;
+      }
+  
+      return url;
+    };
+  
+    useEffect(() => {
+      async function loadProducts() {
+        try {
+          setLoading(true);
+  
+  
+          const res = await fetch(
+            "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
+          );
+  
+          if (!res.ok) {
+            throw new Error(`HTTP Error: ${res.status}`);
+          }
+  
+          const data = await res.json();
+  
+          console.log("Raw sheet data:", data);
+  
+          const formatted = data.map((item: any, index: number) => {
+            const imageUrl = item["նկար"] || item["Image"] || "";
+  
+            return {
+              id: index + 1,
+              name: item["Անուն"] || item["Name"] || "Unnamed Product",
+              price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
+              stock: Number(item["քանակ"] || item["Stock"] || 0),
+              notes: item["notes"] || item["Notes"] || "",
+              image: [getWorkingImageUrl(imageUrl)],
+              set: false,
+            };
+          });
+  
+          setProducts(formatted);
+        } catch (err) {
+          console.error("Load products error:", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+  
+      loadProducts();
+    }, []);
+
+
+    const isProductInCart = (productId: string) => {
+      return cart.some((item: { id: string }) => item.id === productId);
+    };
+  
+    const getProductQuantity = (productId: string) => {
+      const item = cart.find((item: { id: string }) => item.id === productId);
+      return item ? item.quantity : 0;
+    };
+  
+    
+  
 
   return (
     <>
@@ -510,6 +591,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     priority={idx === 0}
                     sizes="(max-width: 768px) 100vw, 100vw"
                     quality={90}
+                    
                   />
 
                   {/* Floating Images - with CSS animations */}
@@ -580,7 +662,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </div>
 
             {/* Navigation Buttons */}
-            {/* <button
+             <button
               onClick={prevSlide}
               className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
             >
@@ -591,7 +673,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
             >
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            </button> */}
+            </button> 
 
             {/* Dots Navigation */}
             {/* <div className="absolute bottom-3 md:bottom-6 left-0 right-0 z-40 flex flex-col items-center gap-1 md:gap-2">
@@ -659,6 +741,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                           fill
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                          priority
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
@@ -738,43 +821,82 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               onMouseEnter={() => setIsPartyShopAutoPlaying(false)}
               onMouseLeave={() => setIsPartyShopAutoPlaying(true)}
             >
-              <motion.div
-                className="flex gap-4 md:gap-6"
-                animate={partyShopControls}
-                style={{
-                  width: "max-content",
-                }}
-              >
-                {[...PARTYSHOPDATA.slice(0, 6), ...PARTYSHOPDATA.slice(0, 6)].map((item, idx) => (
+            <motion.div
+  className="flex gap-4 md:gap-6"
+  animate={partyShopControls}
+  style={{
+    width: "max-content",
+  }}
+>
+  {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => {
+    const productId = String(product.id);
+    const inCart = isProductInCart(productId);
+    const cartQuantity = getProductQuantity(productId);
+    const selectedQuantity = quantities[productId] || 1;
+    const productImages = Array.isArray(product.image)
+      ? product.image
+      : [product.image || PLACEHOLDER_IMAGE];
+
+    const currentImageIndex = currentImage[productId] || 0;
+    const hasError = imageErrors[productId];
+
+    return (
+      <div
+        key={`${product.id}-${idx}`}
+        className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
+      >
+        <Link
+          href={`/${locale}/partyshop`}
+          className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
+        >
+          <div className="relative aspect-square overflow-hidden">
+            <img
+              src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
+              alt={product.name || "Շան ծննդյան տորթ"}
+              
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+              }}
+            />
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
+            
+            {/* Ցուցադրել նկարների ինդեքսը, եթե կան մի քանի նկարներ */}
+            {productImages.length > 1 && !hasError && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {productImages.map((_: any, index: number) => (
                   <div
-                    key={`${item.id}-${idx}`}
-                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
-                  >
-                    <Link
-                      href={`/${locale}/partyshop`}
-                      className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
-                    >
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
-                      </div>
-                      {item.name && (
-                        <div className="p-3 md:p-4 text-center bg-white">
-                          <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
-                            {item.name}
-                          </h3>
-                        </div>
-                      )}
-                    </Link>
-                  </div>
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      currentImageIndex === index
+                        ? "bg-white"
+                        : "bg-white/50"
+                    }`}
+                  />
                 ))}
-              </motion.div>
+              </div>
+            )}
+          </div>
+          
+          {product.name && (
+            <div className="p-3 md:p-4 text-center bg-white">
+              <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
+                {product.name}
+              </h3>
+              {/* Կարող եք ավելացնել նաև գինը */}
+              {product.price && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {product.price} AMD
+                </p>
+              )}
+            </div>
+          )}
+        </Link>
+      </div>
+    );
+  })}
+</motion.div>
             </div>
 
             <ScrollReveal direction="up" delay={0.3}>
@@ -893,9 +1015,9 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             <ScrollReveal direction="up" delay={0.4}>
               <div className="text-center mt-8 md:mt-12">
                 <p className="text-sm md:text-base text-gray-500">
-                  Դեռ հարցեր կան՞
+                {t('stillHaveQuestions')}
                   <a href={`/${locale}/contact`} className="text-[#69429a] font-semibold hover:underline ml-1">
-                    Կապվեք մեզ հետ
+                    {t('contactUs')}
                   </a>
                 </p>
               </div>
