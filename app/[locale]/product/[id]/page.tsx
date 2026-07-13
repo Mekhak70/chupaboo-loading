@@ -67,7 +67,7 @@ interface ValidationErrors {
 }
 
 // ========== CONSTANTS (unchanged) ==========
-const PICKUP_ADDRESS =  "Yerevan, Kievan 15";
+const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const FREE_DELIVERY_THRESHOLD = 6000;
 const FREE_DELIVERY_MAX_DISTANCE = 10;
 const BASE_DELIVERY_FEE = 1000;
@@ -82,11 +82,10 @@ const TELEGRAM_CHAT_ID = "8072053329";
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { t, language } = useLanguage();
-
   // --- Global cart ---
-  const { addToCart, getItemCount, cart, 
+  const { addToCart, getItemCount, cart,
     updateOrderInfo
-     } = useCart();
+  } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Product customization (unchanged)
@@ -362,7 +361,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       price: price,
       quantity: quantity,
       options: productOptions,
-         //@ts-ignore
+      //@ts-ignore
       orderInfo: {
         deliveryOption: orderInfo.deliveryOption,
         deliveryAddress: orderInfo.deliveryAddress,
@@ -373,7 +372,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         deliveryFee: orderInfo.deliveryFee,
       },
     });
-    
+
 
     setIsCartOpen(true);
   };
@@ -596,7 +595,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
             </div>
 
             {/* Cream Type */}
-            <div id="error-creamType">
+            {id !== "midi" && <div id="error-creamType">
               <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosecream")}</p>
               <div className="flex flex-wrap gap-3">
                 <button onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
@@ -604,7 +603,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
                 <button onClick={() => { setCreamType("PLANTBASED"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}</button>
               </div>
               {errors.creamType && <p className="text-red-500 text-sm mt-2">{errors.creamType}</p>}
-            </div>
+            </div>}
 
             {/* Design Type */}
             {product.category !== "small" && (
