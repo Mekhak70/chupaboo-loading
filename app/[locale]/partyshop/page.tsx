@@ -53,21 +53,33 @@ export default function ShopPage() {
     }));
   };
 
-  const addToCartHandler = (product: any) => {
-    const quantity = quantities[String(product.id)] || 1;
-    addToCart({
-      id: String(product.id),
-      name: product.name,
-      image: product.image,
-      price: product.price,
-      quantity: quantity,
-      options: null,
-    });
-    setQuantities(prev => ({
-      ...prev,
-      [String(product.id)]: 1
-    }));
-  };
+// ShopPage-ում
+const addToCartHandler = (product: any) => {
+  const quantity = quantities[String(product.id)] || 1;
+  
+  // ✅ Ճիշտ վերցնել նկարի URL-ը
+  let imageUrl = '';
+  if (product.image) {
+    if (Array.isArray(product.image)) {
+      imageUrl = product.image[0] || '';
+    } else if (typeof product.image === 'string') {
+      imageUrl = product.image;
+    }
+  }
+
+  addToCart({
+    id: String(product.id),
+    name: product.name,
+    image: imageUrl, // ✅ Փոխանցել որպես string
+    price: product.price,
+    quantity: quantity,
+    options: null,
+  });
+  setQuantities(prev => ({
+    ...prev,
+    [String(product.id)]: 1
+  }));
+};
 
   const cartCount = getItemCount();
 

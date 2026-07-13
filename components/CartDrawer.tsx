@@ -1,12 +1,10 @@
 "use client";
 
-import { X, Minus, Plus, Trash2, ChevronDown, ChevronUp, Info, Truck, MapPin, Phone, Calendar, Clock, CreditCard, Home, Edit2 } from "lucide-react";
-import Image from "next/image";
+import { X, Minus, Plus, Trash2, ChevronDown, ChevronUp, Info, Truck, MapPin, Phone, Calendar, Clock, CreditCard, Home } from "lucide-react";
 import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -33,11 +31,13 @@ const EXTRA_DISTANCE_FEE = 500;
 const EXTRA_DISTANCE_THRESHOLD = 7;
 
 // ========== DISCOUNT CONSTANTS ==========
-// PartyShop items get discount based on cake price
-const DISCOUNT_THRESHOLD_1 = 5000;  // 5000 դրամից սկսած
-const DISCOUNT_THRESHOLD_2 = 10000; // 10000 դրամից բարձր
-const DISCOUNT_PERCENT_1 = 10;      // 10%
-const DISCOUNT_PERCENT_2 = 20;      // 20%
+const DISCOUNT_THRESHOLD_1 = 5000;
+const DISCOUNT_THRESHOLD_2 = 10000;
+const DISCOUNT_PERCENT_1 = 10;
+const DISCOUNT_PERCENT_2 = 20;
+
+// ========== PLACEHOLDER IMAGE ==========
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
 
 interface TempOrderInfo {
   phoneNumber: string;
@@ -69,7 +69,6 @@ function getMaxDate() {
   return maxDate.toISOString().split("T")[0];
 }
 
-// ========== DELIVERY FEE HELPERS ==========
 const calculateDeliveryFeeByDistance = (distanceInKm: number): number => {
   if (distanceInKm <= 0) return BASE_DELIVERY_FEE;
   let fee = BASE_DELIVERY_FEE;
@@ -92,27 +91,23 @@ const calculateStraightDistance = (lat1: number, lon1: number, lat2: number, lon
   return R * c;
 };
 
-// ========== DISCOUNT CALCULATION ==========
-// Calculate discount percentage based on cake price
 const getDiscountPercentForPartyShop = (cakePrice: number): number => {
   if (cakePrice >= DISCOUNT_THRESHOLD_2) {
-    return DISCOUNT_PERCENT_2; // 20%
+    return DISCOUNT_PERCENT_2;
   } else if (cakePrice >= DISCOUNT_THRESHOLD_1) {
-    return DISCOUNT_PERCENT_1; // 10%
+    return DISCOUNT_PERCENT_1;
   }
-  return 0; // No discount
+  return 0;
 };
 
 export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDrawerProps) {
-  const router = useRouter();
   const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, clearCart } = useCart();
   const { t, language } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(false);
-
-  // States for flow
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showMessengerSelector, setShowMessengerSelector] = useState(false);
+  
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
     deliveryOption: "delivery",
@@ -126,40 +121,30 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   });
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const hasCake = cart.some((item) => item.options?.cakeType);
-
-  // Priority: use context orderInfo if available, otherwise use prop
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
 
   // ========== CALCULATE TOTAL WITH PARTYSHOP DISCOUNT ==========
   const hasCakeInCart = cart.some((item) => item.options?.cakeType);
-
-  // Find cake in cart to get its price
   const cakeItem = cart.find((item) => item.options?.cakeType);
   const cakePrice = cakeItem?.price || 0;
   const discountPercent = getDiscountPercentForPartyShop(cakePrice);
 
-  // Calculate products total - ONLY PartyShop items get discount
   const productsTotal = cart.reduce((total, item) => {
     const isCake = !!item.options?.cakeType;
     let unitPrice = item.price;
 
     if (hasCakeInCart && !isCake && discountPercent > 0) {
-      // PartyShop items get discount based on cake price
       const discountAmount = unitPrice * (discountPercent / 100);
       unitPrice = Math.max(0, unitPrice - discountAmount);
     }
-    // Cake price stays unchanged
 
     return total + unitPrice * (typeof item.quantity === "number" ? item.quantity : 0);
   }, 0);
 
-  // Get discount info for display
   const getDiscountInfo = () => {
     if (!hasCakeInCart || discountPercent === 0) return null;
 
-    // Calculate total discount amount for all PartyShop items
     const totalDiscount = cart.reduce((total, item) => {
       const isCake = !!item.options?.cakeType;
       if (isCake) return total;
@@ -176,6 +161,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const discountInfo = getDiscountInfo();
   const effectiveTotal = productsTotal + (tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 ? tempOrderInfo.deliveryFee : 0);
+
   // ========== GEOCODING & DISTANCE ==========
   const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
     if (!address || address.trim().length < 5) return null;
@@ -214,7 +200,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
   };
 
-  // Update delivery fee based on address and products total
   const updateDeliveryFee = useCallback(async (address: string, productsTotalValue: number) => {
     if (!address || address.trim().length < 5) {
       setTempOrderInfo(prev => ({ ...prev, deliveryFee: 0, distance: null, isCalculating: false }));
@@ -251,7 +236,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
   }, []);
 
-  // Debounced delivery fee calculation
   useEffect(() => {
     if (tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryAddress && tempOrderInfo.deliveryAddress.trim().length > 5) {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
@@ -264,11 +248,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return () => { if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current); };
   }, [tempOrderInfo.deliveryAddress, tempOrderInfo.deliveryOption, productsTotal, updateDeliveryFee]);
 
-  // For cake orders, use existingOrderInfo; for accessories, use tempOrderInfo
   const orderInfo = hasCake ? existingOrderInfo : (showDeliveryForm ? null : tempOrderInfo);
-
-  // ========== EDIT CAKE FUNCTION ==========
-
 
   const toggleItemExpand = (itemId: string) => {
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
@@ -279,7 +259,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
     const details: { emoji: string; label: string; value: string }[] = [];
 
-    // Cake type
     if (options.cakeType) {
       const cakeTypeKey = options.cakeType.toLowerCase();
       const typeMap: Record<string, string> = {
@@ -294,7 +273,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Cream type
     if (options.creamType) {
       const creamMap: Record<string, string> = {
         dairy: t('DAIRY'),
@@ -308,7 +286,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Vegetables
     if (options.selectedVegetables && options.selectedVegetables.length > 0) {
       const vegNames = options.selectedVegetables.map((v: string) => {
         const vegKey = v.toLowerCase();
@@ -341,7 +318,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Animal type (meat)
     if (options.selectedAnimal) {
       const animalMap: Record<string, string> = {
         chicken: t('chicken'),
@@ -357,7 +333,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Design type
     if (options.designType) {
       const designMap: Record<string, string> = {
         standard: t('standardDesign'),
@@ -372,7 +347,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Pet name
     if (options.petName && options.petName.trim()) {
       details.push({
         emoji: "🐾",
@@ -381,7 +355,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Custom text
     if (options.customText && options.customText.trim()) {
       details.push({
         emoji: "📝",
@@ -390,7 +363,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       });
     }
 
-    // Custom image
     if (options.customImage && options.designType === "CUSTOM_PHOTO") {
       details.push({
         emoji: "🖼️",
@@ -408,14 +380,12 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
     const details: { emoji: string; label: string; value: string }[] = [];
 
-    // Phone
     if (info.phoneNumber && info.phoneNumber.trim()) {
       details.push({ emoji: "📞", label: t('phone') || "Հեռախոս", value: info.phoneNumber });
     } else {
       details.push({ emoji: "📞", label: t('phone') || "Հեռախոս", value: t('notSpecified') || "նշված չէ" });
     }
 
-    // Delivery option
     const deliveryOptionMap: Record<string, string> = {
       delivery: t('delivery') || "Առաքում",
       pickup: t('pickup') || "Տեղում վերցնել",
@@ -426,7 +396,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       value: deliveryOptionMap[info.deliveryOption] || info.deliveryOption
     });
 
-    // Address
     if (info.deliveryOption === "delivery") {
       if (info.deliveryAddress && info.deliveryAddress.trim()) {
         details.push({ emoji: "📍", label: t('deliveryAddress') || "Առաքման հասցե", value: info.deliveryAddress });
@@ -437,7 +406,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       details.push({ emoji: "🏠", label: t('pickupAddress') || "Վերցման կետ", value: PICKUP_ADDRESS });
     }
 
-    // Date
     if (info.deliveryDate) {
       const formattedDate = info.deliveryDate.split("-").reverse().join(".");
       details.push({ emoji: "📅", label: t('deliveryDate') || "Առաքման ամսաթիվ", value: formattedDate });
@@ -445,14 +413,12 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       details.push({ emoji: "📅", label: t('deliveryDate') || "Առաքման ամսաթիվ", value: t('notSpecified') || "նշված չէ" });
     }
 
-    // Time
     if (info.deliveryTime && info.deliveryTime.trim()) {
       details.push({ emoji: "⏰", label: t('preferredDeliveryTime') || "Նախընտրելի ժամ", value: info.deliveryTime });
     } else {
       details.push({ emoji: "⏰", label: t('preferredDeliveryTime') || "Նախընտրելի ժամ", value: t('notSpecified') || "նշված չէ" });
     }
 
-    // Payment method
     const paymentMap: Record<string, string> = {
       cash: t('cash') || "Կանխիկ",
       bankTransfer: t('bankTransfer') || "Բանկային փոխանցում",
@@ -468,7 +434,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       details.push({ emoji: "💳", label: t('paymentMethod') || "Վճարման եղանակ", value: t('notSpecified') || "նշված չէ" });
     }
 
-    // Delivery fee
     if (info.deliveryOption === "delivery" && 'deliveryFee' in info && info.deliveryFee > 0) {
       details.push({
         emoji: "💰",
@@ -486,7 +451,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return details;
   };
 
-  // Build product images links string
   const buildProductImagesLinks = (): string => {
     if (!cart || !Array.isArray(cart)) return '';
 
@@ -499,7 +463,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
             if (typeof item.image === 'string') {
               imageUrl = item.image;
             } else if (typeof item.image === 'object') {
-
               //@ts-ignore
               imageUrl = item.image?.url || item.image?.src || '';
             }
@@ -531,23 +494,20 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
   };
 
-
-  // Build order message
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
     const deliveryInfoToUse = hasCake ? existingOrderInfo : tempOrderInfo;
-
+  
     let message = `${t('greeting')}\n\n`;
-
-
+  
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
       let finalPrice = item.price;
-
+  
       if (hasCakeInCart && !isCake && discountPercent > 0) {
         const discountAmount = finalPrice * (discountPercent / 100);
         finalPrice = Math.max(0, finalPrice - discountAmount);
       }
-
+  
       message += `▸ ${item.name} — ${item.quantity} ${t('quantity') || "հատ"} — ${finalPrice * item.quantity} ${t('currency')}\n`;
       if (isCake && item.options) {
         if (item.options.cakeType) {
@@ -615,9 +575,11 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
     });
-
+  
+    // ✅ Ավելացնել նկարների հղումներ
     message += buildProductImagesLinks();
-
+  
+    // ✅ Delivery տվյալներ
     if (deliveryInfoToUse && deliveryInfoToUse.phoneNumber) {
       message += `\n🚚 *${t('deliveryDetails') || "ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ"}*\n`;
       message += `▸ 📞 ${t('phone') || "Հեռախոս"}: ${deliveryInfoToUse.phoneNumber || t('notSpecified') || "նշված չէ"}\n`;
@@ -626,9 +588,10 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         pickup: t('pickup') || "Տեղում վերցնել",
       };
       message += `▸ 🚚 ${t('deliveryOption') || "Առաքման տարբերակ"}: ${deliveryOptMap[deliveryInfoToUse.deliveryOption] || deliveryInfoToUse.deliveryOption}\n`;
-
+  
       if (deliveryInfoToUse.deliveryOption === "delivery") {
         message += `▸ 📍 ${t('deliveryAddress') || "Հասցե"}: ${deliveryInfoToUse.deliveryAddress || t('notSpecified') || "նշված չէ"}\n`;
+        // ✅ Delivery fee-ն ավելացնում ենք միայն մեկ անգամ
         if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee > 0) {
           message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${deliveryInfoToUse.deliveryFee} ${t('currency')}\n`;
         } else if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
@@ -637,10 +600,10 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       } else {
         message += `▸ 🏠 ${t('pickupAddress') || "Վերցման կետ"}: ${PICKUP_ADDRESS}\n`;
       }
-
+  
       message += `▸ 📅 ${t('deliveryDate') || "Ամսաթիվ"}: ${deliveryInfoToUse.deliveryDate || t('notSpecified') || "նշված չէ"}\n`;
       message += `▸ ⏰ ${t('preferredDeliveryTime') || "Ժամ"}: ${deliveryInfoToUse.deliveryTime || t('notSpecified') || "նշված չէ"}\n`;
-
+  
       const paymentMap: Record<string, string> = {
         cash: t('cash') || "Կանխիկ",
         bankTransfer: t('bankTransfer') || "Բանկային փոխանցում",
@@ -648,16 +611,17 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       };
       message += `▸ 💳 ${t('paymentMethod') || "Վճարման եղանակ"}: ${paymentMap[deliveryInfoToUse.paymentMethod] || deliveryInfoToUse.paymentMethod}\n`;
     }
-
+  
+    // ✅ Ընդհանուր գումար - ճիշտ հաշվարկ
+    const deliveryFee = tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 ? tempOrderInfo.deliveryFee : 0;
+    const totalWithDelivery = productsTotal + deliveryFee;
+  
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
-    message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${deliveryInfo ? +Number(deliveryInfo[6]?.value.slice(0, 4)) ? Number(deliveryInfo[6]?.value.slice(0, 4)) + effectiveTotal : effectiveTotal : effectiveTotal} ${t('currency')}\n`;
-
-
-
+    message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${totalWithDelivery} ${t('currency')}\n`;
+  
     return message;
   };
 
-  // Handle "Confirm Order" button click
   const handleOrderClick = () => {
     if (hasCake || (tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate)) {
       if (existingOrderInfo && existingOrderInfo.phoneNumber && existingOrderInfo.deliveryDate) {
@@ -672,7 +636,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
   };
 
-  // Handle delivery form submission
   const handleDeliveryFormSubmit = () => {
     const isValid = tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate !== "";
     if (isValid) {
@@ -720,7 +683,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -730,7 +692,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
             onClick={onClose}
           />
 
-          {/* Drawer */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -738,7 +699,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 z-50 h-full w-full max-w-md bg-white shadow-xl flex flex-col"
           >
-            {/* Header */}
             <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-[#69429a] to-[#8b5cf6]">
               <h2 className="text-xl font-bold text-white">
                 🛒 {t('cart')} ({cart.length} {t('product')})
@@ -748,7 +708,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
               </button>
             </div>
 
-            {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
@@ -763,7 +722,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                 </div>
               ) : (
                 <>
-                  {/* Products List */}
                   {cart.map((item, idx) => {
                     const isCake = !!item.options?.cakeType;
                     const originalPrice = item.price;
@@ -771,15 +729,23 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     let discountPercentForItem = 0;
 
                     if (hasCakeInCart && !isCake && discountPercent > 0) {
-                      // PartyShop items get discount
                       discountPercentForItem = discountPercent;
                       const discountAmount = originalPrice * (discountPercent / 100);
                       effectivePrice = Math.max(0, originalPrice - discountAmount);
                     }
-                    // Cake price stays unchanged
 
                     const itemCakeDetails = isCake ? formatCakeOptions(item.options) : null;
                     const isExpanded = expandedItems[`${item.id}-${idx}`] || false;
+
+                    let imageUrl = PLACEHOLDER_IMAGE;
+                    if (item.image) {
+                      if (typeof item.image === 'string') {
+                        imageUrl = item.image;
+                      } else if (typeof item.image === 'object') {
+                        // @ts-ignore
+                        imageUrl = item.image?.url || item.image?.src || PLACEHOLDER_IMAGE;
+                      }
+                    }
 
                     return (
                       <motion.div
@@ -791,7 +757,14 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                       >
                         <div className="flex gap-3">
                           <div className="relative h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                            <Image src={item.image} alt={String(item.name)} fill className="object-cover" />
+                            <img
+                              src={imageUrl}
+                              alt={String(item.name)}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                              }}
+                            />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -834,7 +807,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           </div>
                         </div>
 
-                        {/* Expandable Cake Details */}
                         {isCake && itemCakeDetails && itemCakeDetails.length > 0 && (
                           <>
                             <button
@@ -876,72 +848,68 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     );
                   })}
 
-                  {/* Show delivery info if available */}
-
-                  {
-                    deliveryInfo && deliveryInfo[0].value !== 'notSpecified' && deliveryInfo.length > 0 && !showDeliveryForm && (
-                      <div className="border rounded-lg p-3 bg-white shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-[#69429a]" />
-                            <h3 className="font-semibold text-gray-800 text-sm">{t('deliveryDetails')}</h3>
-                          </div>
-                          <button
-                            onClick={() => setIsDeliveryExpanded(!isDeliveryExpanded)}
-                            className="text-xs text-[#69429a] hover:text-[#8b5cf6] flex items-center gap-1 transition"
-                          >
-                            {isDeliveryExpanded ? (
-                              <>{t('close')} <ChevronUp className="h-3 w-3" /></>
-                            ) : (
-                              <>{t('seeMore')} <ChevronDown className="h-3 w-3" /></>
-                            )}
-                          </button>
+                  {deliveryInfo && deliveryInfo[0].value !== 'notSpecified' && deliveryInfo.length > 0 && !showDeliveryForm && (
+                    <div className="border rounded-lg p-3 bg-white shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4 text-[#69429a]" />
+                          <h3 className="font-semibold text-gray-800 text-sm">{t('deliveryDetails')}</h3>
                         </div>
-
-                        <AnimatePresence>
-                          {isDeliveryExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
-                                <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">🚚 {t('deliveryDetail')}</div>
-                                <div className="space-y-1.5">
-                                  {deliveryInfo.map((detail, i) => (
-                                    <div key={i} className="flex items-start gap-2 text-xs">
-                                      <span className="text-sm">{detail.emoji}</span>
-                                      <div>
-                                        <span className="font-medium text-gray-700">{detail.label}:</span>
-                                        <span className="text-gray-600 ml-1">{detail.value}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </motion.div>
+                        <button
+                          onClick={() => setIsDeliveryExpanded(!isDeliveryExpanded)}
+                          className="text-xs text-[#69429a] hover:text-[#8b5cf6] flex items-center gap-1 transition"
+                        >
+                          {isDeliveryExpanded ? (
+                            <>{t('close')} <ChevronUp className="h-3 w-3" /></>
+                          ) : (
+                            <>{t('seeMore')} <ChevronDown className="h-3 w-3" /></>
                           )}
-                        </AnimatePresence>
-
-                        {!isDeliveryExpanded && deliveryInfo[0] && (
-                          <div className="mt-2 text-xs text-gray-500 flex items-center gap-2 flex-wrap">
-                            <span>{deliveryInfo[0].emoji}</span>
-                            <span>{deliveryInfo[0].value}</span>
-                            {deliveryInfo[1] && (
-                              <>
-                                <span className="text-gray-300">|</span>
-                                <span>{deliveryInfo[1].emoji}</span>
-                                <span>{deliveryInfo[1].value}</span>
-                              </>
-                            )}
-                          </div>
-                        )}
+                        </button>
                       </div>
-                    )}
 
-                  {/* Delivery Form */}
+                      <AnimatePresence>
+                        {isDeliveryExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
+                              <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">🚚 {t('deliveryDetail')}</div>
+                              <div className="space-y-1.5">
+                                {deliveryInfo.map((detail, i) => (
+                                  <div key={i} className="flex items-start gap-2 text-xs">
+                                    <span className="text-sm">{detail.emoji}</span>
+                                    <div>
+                                      <span className="font-medium text-gray-700">{detail.label}:</span>
+                                      <span className="text-gray-600 ml-1">{detail.value}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {!isDeliveryExpanded && deliveryInfo[0] && (
+                        <div className="mt-2 text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+                          <span>{deliveryInfo[0].emoji}</span>
+                          <span>{deliveryInfo[0].value}</span>
+                          {deliveryInfo[1] && (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <span>{deliveryInfo[1].emoji}</span>
+                              <span>{deliveryInfo[1].value}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <AnimatePresence>
                     {showDeliveryForm && (
                       <motion.div
@@ -950,8 +918,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         exit={{ opacity: 0, y: 20 }}
                         className="space-y-5"
                       >
-                        {/* Delivery Option */}
-                        <div>
+                        {/* <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Truck className="w-5 h-5" />
                             {t('deliveryOption')}
@@ -976,9 +943,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                               🏠 {t('pickup')}
                             </button>
                           </div>
-                        </div>
+                        </div> */}
 
-                        {/* Delivery Address */}
                         {tempOrderInfo.deliveryOption === "delivery" && (
                           <div>
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
@@ -1020,7 +986,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           </div>
                         )}
 
-                        {/* Pickup Address */}
                         {tempOrderInfo.deliveryOption === "pickup" && (
                           <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                             <p className="text-sm text-green-800 flex items-center gap-2">
@@ -1033,7 +998,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           </div>
                         )}
 
-                        {/* Phone Number */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Phone className="w-5 h-5" />
@@ -1049,7 +1013,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           />
                         </div>
 
-                        {/* Delivery Date */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
@@ -1066,7 +1029,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           />
                         </div>
 
-                        {/* Delivery Time */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Clock className="w-5 h-5" />
@@ -1085,7 +1047,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           </select>
                         </div>
 
-                        {/* Payment Method */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <CreditCard className="w-5 h-5" />
@@ -1130,7 +1091,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
               )}
             </div>
 
-            {/* Footer */}
             {cart.length > 0 && (
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
@@ -1149,7 +1109,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   </div>
                 )}
 
-                {/* Price Breakdown */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">{t('subtotal')}</span>
@@ -1176,7 +1135,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-700">{t('total')}</span>
-                      <span className="text-2xl font-bold text-[#69429a]">{deliveryInfo ?  +Number(deliveryInfo[6]?.value.slice(0, 4))? Number(deliveryInfo[6]?.value.slice(0, 4)) + effectiveTotal : effectiveTotal : effectiveTotal} {t('currency')}</span>
+                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal} {t('currency')}</span>
                     </div>
                   </div>
                 </div>
@@ -1192,7 +1151,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
               </motion.div>
             )}
 
-            {/* Messenger Selector Modal */}
             <AnimatePresence>
               {showMessengerSelector && (
                 <motion.div
@@ -1211,7 +1169,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="text-center">
-                      {/* Icon with gradient background */}
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#69429a] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-purple-200">
                         <span className="text-4xl">📱</span>
                       </div>
@@ -1221,10 +1178,10 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                       </h3>
 
                       <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                        {t('chooseSendMethodDesc') || "Պատվերը հաստատելու համար ընտրեք մեսսենջեր"}</p>
+                        {t('chooseSendMethodDesc') || "Պատվերը հաստատելու համար ընտրեք մեսսենջեր"}
+                      </p>
 
                       <div className="flex flex-col gap-3">
-                        {/* WhatsApp Button */}
                         <motion.button
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.97 }}
@@ -1241,7 +1198,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           <span>{t('sendViaWhatsApp') || "Ուղարկել WhatsApp-ով"}</span>
                         </motion.button>
 
-                        {/* Telegram Button */}
                         <motion.button
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.97 }}
@@ -1259,7 +1215,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         </motion.button>
                       </div>
 
-                      {/* Close button */}
                       <button
                         onClick={() => setShowMessengerSelector(false)}
                         className="mt-5 text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium"
