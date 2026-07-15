@@ -338,10 +338,11 @@ const addToCartHandler = (product: any) => {
                             }
                           }}
                           disabled={inCart || product.stock <= 0}
-                          className={`mt-3 w-full rounded-full py-2.5 text-sm font-medium tracking-wide transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none ${inCart || product.stock <= 0
+                          className={`mt-3 w-full rounded-full py-1 px-2 text-[9px] sm:py-2 sm:px-3 sm:text-sm font-medium tracking-tight transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none whitespace-nowrap ${
+                            inCart || product.stock <= 0
                               ? "bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-90 shadow-none"
                               : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-                            }`}
+                          }`}
                           style={{
                             color: "#fff",
                             backgroundColor: inCart
