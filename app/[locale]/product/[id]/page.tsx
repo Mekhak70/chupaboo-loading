@@ -130,7 +130,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const prevOrderInfoRef = useRef(orderInfo);
 
   useEffect(() => {
-    // Ստուգել, արդյոք իսկապես փոխվել է
     if (JSON.stringify(prevOrderInfoRef.current) !== JSON.stringify(orderInfo)) {
       prevOrderInfoRef.current = orderInfo;
       updateOrderInfo({
@@ -290,7 +289,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       if (product.id === "midi") finalPrice = Math.round(finalPrice / 2);
       else finalPrice = Math.round(finalPrice / 3);
     }
-    if (product.category !== "small" && designType === "CUSTOM_PHOTO") finalPrice += 3000;
+    if (product.category !== "small" && designType === "CUSTOM_PHOTO") finalPrice += 5000;
     const roundingStep = 500;
     finalPrice = Math.round(finalPrice / roundingStep) * roundingStep;
     setPrice(finalPrice);
