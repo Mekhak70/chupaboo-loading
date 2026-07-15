@@ -53,33 +53,33 @@ export default function ShopPage() {
     }));
   };
 
-// ShopPage-ում
-const addToCartHandler = (product: any) => {
-  const quantity = quantities[String(product.id)] || 1;
-  
-  // ✅ Ճիշտ վերցնել նկարի URL-ը
-  let imageUrl = '';
-  if (product.image) {
-    if (Array.isArray(product.image)) {
-      imageUrl = product.image[0] || '';
-    } else if (typeof product.image === 'string') {
-      imageUrl = product.image;
-    }
-  }
+  // ShopPage-ում
+  const addToCartHandler = (product: any) => {
+    const quantity = quantities[String(product.id)] || 1;
 
-  addToCart({
-    id: String(product.id),
-    name: product.name,
-    image: imageUrl, // ✅ Փոխանցել որպես string
-    price: product.price,
-    quantity: quantity,
-    options: null,
-  });
-  setQuantities(prev => ({
-    ...prev,
-    [String(product.id)]: 1
-  }));
-};
+    // ✅ Ճիշտ վերցնել նկարի URL-ը
+    let imageUrl = '';
+    if (product.image) {
+      if (Array.isArray(product.image)) {
+        imageUrl = product.image[0] || '';
+      } else if (typeof product.image === 'string') {
+        imageUrl = product.image;
+      }
+    }
+
+    addToCart({
+      id: String(product.id),
+      name: product.name,
+      image: imageUrl, // ✅ Փոխանցել որպես string
+      price: product.price,
+      quantity: quantity,
+      options: null,
+    });
+    setQuantities(prev => ({
+      ...prev,
+      [String(product.id)]: 1
+    }));
+  };
 
   const cartCount = getItemCount();
 
@@ -166,7 +166,7 @@ const addToCartHandler = (product: any) => {
           <img
             src={partyShop.src}
             alt="Party Shop"
-            className="w-full h-[320px] object-cover"
+            className="w-full h-[auto] object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
             }}
@@ -264,8 +264,8 @@ const addToCartHandler = (product: any) => {
                                 <div
                                   key={index}
                                   className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
-                                      ? "bg-white"
-                                      : "bg-white/50"
+                                    ? "bg-white"
+                                    : "bg-white/50"
                                     }`}
                                 />
                               ))}
@@ -338,7 +338,7 @@ const addToCartHandler = (product: any) => {
                             }
                           }}
                           disabled={inCart || product.stock <= 0}
-                          className={`mt-3 w-full rounded-full py-1 px-2 text-[9px] sm:py-2 sm:px-3 sm:text-sm font-medium tracking-tight transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none whitespace-nowrap ${
+                          className={`mt-3 w-full min-h-[44px] rounded-full px-3 py-2 text-xs sm:text-sm font-medium tracking-tight transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none flex items-center justify-center gap-2 text-center whitespace-normal break-words leading-tight ${
                             inCart || product.stock <= 0
                               ? "bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-90 shadow-none"
                               : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
