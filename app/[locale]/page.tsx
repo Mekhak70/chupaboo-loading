@@ -455,21 +455,34 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
   // PartyShop slider animation
   useEffect(() => {
-    if (isPartyShopAutoPlaying) {
-      partyShopControls.start({
-        x: [-(products.slice(0, 6).length * (320 + 24)), 0],
-        transition: {
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop"
-        }
-      });
-    } else {
-      partyShopControls.stop();
-    }
-  }, [isPartyShopAutoPlaying, partyShopControls]);
+    if (!products.length) return;
 
+    if (!isPartyShopAutoPlaying) {
+      partyShopControls.stop();
+      return;
+    }
+
+    const itemWidth =
+      window.innerWidth < 768
+        ? 240 + 16 // mobile
+        : window.innerWidth < 1024
+          ? 280 + 24 // tablet
+          : 320 + 24; // desktop
+
+    const totalWidth = products.slice(0, 6).length * itemWidth;
+
+    partyShopControls.set({ x: 0 });
+
+    partyShopControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 20,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    });
+  }, [products, isPartyShopAutoPlaying, partyShopControls]);
 
 
   // Get current slide's image (desktop or mobile)
@@ -477,74 +490,74 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   const currentBgImage = isMobile ? currentSlideData?.imageMobile : currentSlideData?.imageDesktop;
 
 
-    const getWorkingImageUrl = (url: string) => {
-      if (!url) return PLACEHOLDER_IMAGE;
-  
-      // Եթե դա Google Drive-ի հղում է, օգտագործել API route-ը
-      if (url.includes('drive.google.com') ||
-        url.includes('drive.usercontent.google.com') ||
-        url.includes('googleusercontent.com')) {
-        return `/api/image?url=${encodeURIComponent(url)}`;
-      }
-  
-      return url;
-    };
-  
-    useEffect(() => {
-      async function loadProducts() {
-        try {
-          setLoading(true);
-  
-  
-          const res = await fetch(
-            "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
-          );
-  
-          if (!res.ok) {
-            throw new Error(`HTTP Error: ${res.status}`);
-          }
-  
-          const data = await res.json();
-  
-          console.log("Raw sheet data:", data);
-  
-          const formatted = data.map((item: any, index: number) => {
-            const imageUrl = item["նկար"] || item["Image"] || "";
-  
-            return {
-              id: index + 1,
-              name: item["Անուն"] || item["Name"] || "Unnamed Product",
-              price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
-              stock: Number(item["քանակ"] || item["Stock"] || 0),
-              notes: item["notes"] || item["Notes"] || "",
-              image: [getWorkingImageUrl(imageUrl)],
-              set: false,
-            };
-          });
-  
-          setProducts(formatted);
-        } catch (err) {
-          console.error("Load products error:", err);
-        } finally {
-          setLoading(false);
+  const getWorkingImageUrl = (url: string) => {
+    if (!url) return PLACEHOLDER_IMAGE;
+
+    // Եթե դա Google Drive-ի հղում է, օգտագործել API route-ը
+    if (url.includes('drive.google.com') ||
+      url.includes('drive.usercontent.google.com') ||
+      url.includes('googleusercontent.com')) {
+      return `/api/image?url=${encodeURIComponent(url)}`;
+    }
+
+    return url;
+  };
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+
+
+        const res = await fetch(
+          "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status}`);
         }
+
+        const data = await res.json();
+
+        console.log("Raw sheet data:", data);
+
+        const formatted = data.map((item: any, index: number) => {
+          const imageUrl = item["նկար"] || item["Image"] || "";
+
+          return {
+            id: index + 1,
+            name: item["Անուն"] || item["Name"] || "Unnamed Product",
+            price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
+            stock: Number(item["քանակ"] || item["Stock"] || 0),
+            notes: item["notes"] || item["Notes"] || "",
+            image: [getWorkingImageUrl(imageUrl)],
+            set: false,
+          };
+        });
+
+        setProducts(formatted);
+      } catch (err) {
+        console.error("Load products error:", err);
+      } finally {
+        setLoading(false);
       }
-  
-      loadProducts();
-    }, []);
+    }
+
+    loadProducts();
+  }, []);
 
 
-    const isProductInCart = (productId: string) => {
-      return cart.some((item: { id: string }) => item.id === productId);
-    };
-  
-    const getProductQuantity = (productId: string) => {
-      const item = cart.find((item: { id: string }) => item.id === productId);
-      return item ? item.quantity : 0;
-    };
-  
-    
-  
+  const isProductInCart = (productId: string) => {
+    return cart.some((item: { id: string }) => item.id === productId);
+  };
+
+  const getProductQuantity = (productId: string) => {
+    const item = cart.find((item: { id: string }) => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+
+
 
   return (
     <>
@@ -591,7 +604,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     priority={idx === 0}
                     sizes="(max-width: 768px) 100vw, 100vw"
                     quality={90}
-                    
+
                   />
 
                   {/* Floating Images - with CSS animations */}
@@ -662,7 +675,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </div>
 
             {/* Navigation Buttons */}
-             <button
+            <button
               onClick={prevSlide}
               className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
             >
@@ -673,7 +686,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
             >
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            </button> 
+            </button>
 
             {/* Dots Navigation */}
             {/* <div className="absolute bottom-3 md:bottom-6 left-0 right-0 z-40 flex flex-col items-center gap-1 md:gap-2">
@@ -818,85 +831,88 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
             <div
               className="relative overflow-hidden w-full"
-              onMouseEnter={() => setIsPartyShopAutoPlaying(false)}
-              onMouseLeave={() => setIsPartyShopAutoPlaying(true)}
+              onPointerEnter={() => setIsPartyShopAutoPlaying(false)}
+              onPointerLeave={() => setIsPartyShopAutoPlaying(true)}
             >
-            <motion.div
-  className="flex gap-4 md:gap-6"
-  animate={partyShopControls}
-  style={{
-    width: "max-content",
-  }}
->
-  {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => {
-    const productId = String(product.id);
-    const inCart = isProductInCart(productId);
-    const cartQuantity = getProductQuantity(productId);
-    const selectedQuantity = quantities[productId] || 1;
-    const productImages = Array.isArray(product.image)
-      ? product.image
-      : [product.image || PLACEHOLDER_IMAGE];
+              <motion.div
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={partyShopControls}
+                style={{
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => {
+                  const productId = String(product.id);
+                  const inCart = isProductInCart(productId);
+                  const cartQuantity = getProductQuantity(productId);
+                  const selectedQuantity = quantities[productId] || 1;
+                  const productImages = Array.isArray(product.image)
+                    ? product.image
+                    : [product.image || PLACEHOLDER_IMAGE];
 
-    const currentImageIndex = currentImage[productId] || 0;
-    const hasError = imageErrors[productId];
+                  const currentImageIndex = currentImage[productId] || 0;
+                  const hasError = imageErrors[productId];
 
-    return (
-      <div
-        key={`${product.id}-${idx}`}
-        className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
-      >
-        <Link
-          href={`/${locale}/partyshop`}
-          className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
-        >
-          <div className="relative aspect-square overflow-hidden">
-            <img
-              src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
-              alt={product.name || "Շան ծննդյան տորթ"}
-              
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
-              }}
-            />
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
-            
-            {/* Ցուցադրել նկարների ինդեքսը, եթե կան մի քանի նկարներ */}
-            {productImages.length > 1 && !hasError && (
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                {productImages.map((_: any, index: number) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      currentImageIndex === index
-                        ? "bg-white"
-                        : "bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {product.name && (
-            <div className="p-3 md:p-4 text-center bg-white">
-              <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
-                {product.name}
-              </h3>
-              {/* Կարող եք ավելացնել նաև գինը */}
-              {product.price && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {product.price} AMD
-                </p>
-              )}
-            </div>
-          )}
-        </Link>
-      </div>
-    );
-  })}
-</motion.div>
+                  return (
+                    <div
+                      key={`${product.id}-${idx}`}
+                      className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
+                    >
+                      <Link
+                        href={`/${locale}/partyshop`}
+                        className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
+                      >
+                        <div className="relative aspect-square overflow-hidden">
+                          <img
+                            src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
+                            alt={product.name || "Շան ծննդյան տորթ"}
+
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
+
+                          {/* Ցուցադրել նկարների ինդեքսը, եթե կան մի քանի նկարներ */}
+                          {productImages.length > 1 && !hasError && (
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                              {productImages.map((_: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
+                                    ? "bg-white"
+                                    : "bg-white/50"
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {product.name && (
+                          <div className="p-3 md:p-4 text-center bg-white">
+                            <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
+                              {product.name}
+                            </h3>
+                            {/* Կարող եք ավելացնել նաև գինը */}
+                            {product.price && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                {product.price} AMD
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </motion.div>
             </div>
 
             <ScrollReveal direction="up" delay={0.3}>
@@ -1015,7 +1031,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             <ScrollReveal direction="up" delay={0.4}>
               <div className="text-center mt-8 md:mt-12">
                 <p className="text-sm md:text-base text-gray-500">
-                {t('stillHaveQuestions')}
+                  {t('stillHaveQuestions')}
                   <a href={`/${locale}/contact`} className="text-[#69429a] font-semibold hover:underline ml-1">
                     {t('contactUs')}
                   </a>
