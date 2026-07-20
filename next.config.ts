@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      
     ],
   },
   // Ավելացնել սա

@@ -24,6 +24,19 @@ import main1Mobile from "@/public/main-mobile1.png";
 import main2Mobile from "@/public/main-mobile2.png";
 import main3Mobile from "@/public/main-mobile3.png";
 
+const ProductSkeleton = () => (
+  <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
+    <div className="aspect-square bg-gray-200"></div>
+    <div className="p-4 space-y-3">
+      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+      <div className="mt-3">
+        <div className="h-10 bg-gray-200 rounded-full w-full"></div>
+      </div>
+    </div>
+  </div>
+);
 type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
 
 interface Product {
@@ -210,12 +223,13 @@ export default function HomePage() {
   const [type, setType] = useState<string>("");
   const [creamType, setCreamType] = useState<string>("");
   const [isMobile, setIsMobile] = useState(false);
-  const [products, setProducts] = useState<any[]>([]);
+  const [productsParty, setProductParty] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
+  const [products, setProducts] = useState<any[]>([]);
 
-
+console.log(products, 'products ' ) 
 
 
   // AD STATES
@@ -323,8 +337,8 @@ export default function HomePage() {
   ];
 
   const filteredProducts = useMemo(() => {
-    if (filter === "all") return PRODUCTS;
-    return PRODUCTS.filter((product) => product.category === filter);
+    if (filter === "all") return products;
+    return products.filter((product) => product.category === filter);
   }, [filter]);
 
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -338,6 +352,7 @@ export default function HomePage() {
     }
     setPendingImage(src);
   };
+  console.log(products, 'products111')
 
   const whatsappMessage = pendingImage
     ? `${t("whatsappMessageTextOne")}
@@ -504,26 +519,36 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   };
 
   useEffect(() => {
-    async function loadProducts() {
+    async function loadData() {
       try {
         setLoading(true);
-
-
-        const res = await fetch(
-          "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP Error: ${res.status}`);
+  
+        const [partyRes, productsRes] = await Promise.all([
+          fetch(
+            "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
+          ),
+          fetch(
+            "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
+          ),
+        ]);
+  
+        if (!partyRes.ok) {
+          throw new Error(`Party HTTP Error: ${partyRes.status}`);
         }
-
-        const data = await res.json();
-
-        console.log("Raw sheet data:", data);
-
-        const formatted = data.map((item: any, index: number) => {
+  
+        if (!productsRes.ok) {
+          throw new Error(`Products HTTP Error: ${productsRes.status}`);
+        }
+  
+        const [partyData, productsData] = await Promise.all([
+          partyRes.json(),
+          productsRes.json(),
+        ]);
+  
+        // Party products
+        const partyFormatted = partyData.map((item: any, index: number) => {
           const imageUrl = item["նկար"] || item["Image"] || "";
-
+  
           return {
             id: index + 1,
             name: item["Անուն"] || item["Name"] || "Unnamed Product",
@@ -534,18 +559,38 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             set: false,
           };
         });
-
-        setProducts(formatted);
+  
+        // Chupaboo products
+        const productsFormatted = productsData.map((item: any, index: number) => {
+          let image = item["նկար"] || item.image || "";
+  
+          const match = image.match(/\/d\/([^/]+)/);
+          if (match) {
+            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          }
+  
+          return {
+            id: item.id || index + 1,
+            name: item.name,
+            price: Number(item.price),
+            category: item.category || item.size,
+            image,
+            cream: String(item.cream).toLowerCase() === "true",
+            stock: Number(item.stock || 999),
+          };
+        });
+  
+        setProductParty(partyFormatted);
+        setProducts(productsFormatted);
       } catch (err) {
         console.error("Load products error:", err);
       } finally {
         setLoading(false);
       }
     }
-
-    loadProducts();
+  
+    loadData();
   }, []);
-
 
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
@@ -556,8 +601,26 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     return item ? item.quantity : 0;
   };
 
+  
 
-
+  if (loading) {
+    return (
+      <div className="flex flex-col">
+        <section>
+          <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
+        </section>
+        <section className="bg-white py-10">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -740,7 +803,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   width: "max-content",
                 }}
               >
-                {[...filteredProducts.slice(0, 6), ...filteredProducts.slice(0, 6)].map((product, idx) => (
+                {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => (
                   <Link
                     key={`${product.id}-${idx}`}
                     href={`/${locale}/product/${product.id}`}
@@ -845,7 +908,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   backfaceVisibility: "hidden",
                 }}
               >
-                {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => {
+                {[...productsParty.slice(0, 6), ...productsParty.slice(0, 6)].map((product, idx) => {
                   const productId = String(product.id);
                   const inCart = isProductInCart(productId);
                   const cartQuantity = getProductQuantity(productId);

@@ -1,19 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Dog, Cat, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ProductCard } from "@/components/product-card"
 import { useLanguage } from "@/components/language-provider"
-import { PRODUCTS } from "@/lib/products"
 import Image from "next/image"
-import Arrow from "@/public/arrow.png"
 import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
+import { set } from "date-fns"
+import { fi } from "date-fns/locale"
 
 
-type Filter = "all" | "small" | "standart" 
+type Filter = "all" | "small" | 'midi' | "standart" 
 
 export default function ShopPage() {
     const { locale } = useParams()
@@ -25,16 +23,29 @@ export default function ShopPage() {
   const [creamType, setCreamType] = useState<string>("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingImage, setPendingImage] = useState<string | null>(null)
-  const filteredProducts =
-    filter === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === filter)
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const filteredProducts = products.filter((p) => {
+    console.log(p.category, filter);
+    return filter === "all" || p.category === filter;
+  });
+  
+  const ProductSkeleton = () => (
+    <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
+      <div className="aspect-square bg-gray-200"></div>
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+        <div className="mt-3">
+          <div className="h-10 bg-gray-200 rounded-full w-full"></div>
+        </div>
+      </div>
+    </div>
+  );
 
 
 
-  const handleSelectImage = (image: any) => {
-    setSelectedImage(image.src)  
-    setPendingImage(image.src)   
-    setIsModalOpen(true)
-  }
   const SITE_URL = "https://www.chupaboo.com"
 
 
@@ -45,7 +56,71 @@ export default function ShopPage() {
   const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(
     whatsappMessage
   )}`
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
+        );
+  
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status}`);
+        }
+  
+        const data = await res.json();
+  
+        console.log("Products:", data);
+  
+        const formatted = data.map((item: any) => {
+          let image = item["նկար"] || "";
+  
+          // Google Drive link → direct image
+          const match = image.match(/\/d\/([^/]+)/);
+          if (match) {
+            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          }
+  
+          return {
+            id: item.id,
+            name: item.name,
+            price: Number(item.price),
+            category: item.size, // small | standart
+            image,
+            cream: item.cream === "true",
+            stock: 999,
+          };
+        });
+  
+        setProducts(formatted);
+      } catch (err) {
+        console.error("Load products error:", err);
+      }finally {
+        setLoading(false);
+      }
+    }
+  
+    loadProducts();
+  }, []);
 
+  if (loading) {
+    return (
+      <div className="flex flex-col">
+        <section>
+          <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
+        </section>
+        <section className="bg-white py-10">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
   return (
     <>
       <div className="flex flex-col">
@@ -121,6 +196,23 @@ export default function ShopPage() {
                 {t("mini")}
               </button>
               <button 
+                onClick={() => setFilter('midi')} 
+                style={{ 
+                  padding: '10px 15px', 
+                  background: filter === 'midi' ? '#aed137' : '#69429a', 
+                  color: '#fff', 
+                  borderRadius: '20px', 
+                  fontSize: '20px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  border: 'none'
+                }}
+              >
+                {t("midi")}
+              </button>
+              <button 
                 onClick={() => setFilter('standart')} 
                 style={{ 
                   padding: '10px 15px', 
@@ -146,6 +238,8 @@ export default function ShopPage() {
             >
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
+
+                  console.log(product.image, 'product'),
                   <Link
                     key={product.id}
                     href={`/${locale}/product/${product.id}`}
@@ -155,9 +249,9 @@ export default function ShopPage() {
                       <Image
                         src={product.image}
                         alt={"Շան ծննդյան տորթ"}
-                        fill
                         className="w-full h-full object-cover"
-                        priority
+                        height={300}
+                        width={300}
                       />
                     </div>
                   </Link>
