@@ -265,6 +265,8 @@ console.log(products, 'products ' )
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  
+
   // Get responsive hero slides
   const heroSlides = useMemo(() => getHeroSlides(), []);
   const floatingImages = useMemo(() => getFloatingImages(), []);
@@ -352,7 +354,6 @@ console.log(products, 'products ' )
     }
     setPendingImage(src);
   };
-  console.log(products, 'products111')
 
   const whatsappMessage = pendingImage
     ? `${t("whatsappMessageTextOne")}
@@ -797,10 +798,14 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
               onMouseLeave={() => setIsProductsAutoPlaying(true)}
             >
               <motion.div
-                className="flex gap-4 md:gap-6"
-                animate={productsControls}
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={partyShopControls}
                 style={{
-                  width: "max-content",
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
                 }}
               >
                 {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => (
