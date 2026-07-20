@@ -959,7 +959,12 @@ onlyDogsCatsLabel: {
     en: "Choose the type of cream",
     pl: "Wybierz rodzaj kremu"
   },
-
+  midi: {
+    hy: "ՄԻԴԻ",
+    ru: "МИДИ",
+    en: "MIDI",
+    pl: "MIDI",
+  },
   chooseshape: {
     hy: "Ընտրիր տորթի ձևը",
     ru: "Выбери форму торта",
