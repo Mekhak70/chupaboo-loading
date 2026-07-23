@@ -3,7 +3,6 @@
 import { use, useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
@@ -16,11 +15,12 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { PRODUCTS, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
 import { notFound } from "next/navigation";
 import { useCart } from "@/components/cart-context";
 import { CartDrawer } from "@/components/CartDrawer";
-// ========== TYPES (unchanged) ==========
+
+// ========== TYPES ==========
 type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | "";
 type CreamType = "DAIRY" | "PLANTBASEDMILK" | "PLANTBASED" | "";
 type DesignType = "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | "NAME_TEXT" | "";
@@ -66,7 +66,7 @@ interface ValidationErrors {
   customText?: string;
 }
 
-// ========== CONSTANTS (unchanged) ==========
+// ========== CONSTANTS ==========
 const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const FREE_DELIVERY_THRESHOLD = 6000;
 const FREE_DELIVERY_MAX_DISTANCE = 10;
@@ -82,13 +82,18 @@ const TELEGRAM_CHAT_ID = "8072053329";
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { t, language } = useLanguage();
+  
   // --- Global cart ---
-  const { addToCart, getItemCount, cart,
-    updateOrderInfo
-  } = useCart();
+  const { addToCart, getItemCount, cart, updateOrderInfo } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Product customization (unchanged)
+  // --- States ---
+  const [product, setProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Product customization
   const [cakeType, setCakeType] = useState<CakeType>("MEAT");
   const [creamType, setCreamType] = useState<CreamType>("DAIRY");
   const [quantity, setQuantity] = useState(1);
@@ -101,7 +106,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [petName, setPetName] = useState("");
   const [price, setPrice] = useState<number>(0);
 
-  // Order info (unchanged)
+  // Order info
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({
     deliveryOption: "delivery",
     deliveryAddress: "",
@@ -113,22 +118,83 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     distance: null,
     isYerevanAddress: null,
   });
+  
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const product = getProductById(id);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasSent = useRef(false);
+  const prevOrderInfoRef = useRef(orderInfo);
 
+  // Helper function
   function getTodayDate() {
     const today = new Date();
     today.setDate(today.getDate() + 1);
     return today.toISOString().split("T")[0];
   }
 
-  if (!product) notFound();
+  // ✅ Load products
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const res = await fetch(
+          "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
+        );
 
-  const prevOrderInfoRef = useRef(orderInfo);
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status}`);
+        }
 
+        const data = await res.json();
+
+        if (!data || !Array.isArray(data)) {
+          throw new Error("Invalid data format");
+        }
+
+        const formatted = data.map((item: any) => {
+          let image = item["նկար"] || "";
+          const match = image.match(/\/d\/([^/]+)/);
+          if (match) {
+            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          }
+
+          return {
+            id: String(item.id || ""),
+            name: item.name || "Unknown",
+            price: Number(item.price) || 0,
+            category: item.size || "standard",
+            image: image || "/placeholder-image.jpg", // ✅ Default image
+            cream: item.cream === "true",
+            stock: 999,
+            description: item.description || "No description available", // Add description
+            priceInCents: Math.round(Number(item.price) * 100) || 0, // Add priceInCents
+          };
+        });
+
+        setProducts(formatted);
+        
+        // Find current product
+        const foundProduct = formatted.find((p: any) => String(p.id) === String(id));
+        setProduct(foundProduct || null);
+        
+      } catch (err) {
+        console.error("Load products error:", err);
+        setError(err instanceof Error ? err.message : "Failed to load products");
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadProducts();
+    }
+  }, [id]);
+
+  // ✅ Order info update
   useEffect(() => {
     if (JSON.stringify(prevOrderInfoRef.current) !== JSON.stringify(orderInfo)) {
       prevOrderInfoRef.current = orderInfo;
@@ -138,7 +204,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
   }, [orderInfo, updateOrderInfo]);
 
-  // ------------------- Delivery fee logic (unchanged) -------------------
+  // ✅ Delivery fee logic
   const calculateDeliveryFee = (distanceInKm: number): number => {
     if (distanceInKm <= 0) return BASE_DELIVERY_FEE;
     let fee = BASE_DELIVERY_FEE;
@@ -260,8 +326,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
   }, [price, quantity, orderInfo.deliveryOption, orderInfo.deliveryAddress, updateDeliveryFee]);
 
-  // ------------------- Price calculation (unchanged) -------------------
+  // Price calculation
   useEffect(() => {
+    if (!product) return;
+    
     let basePrice = 0;
     if (cakeType === "MEAT") {
       if (selectedAnimal === "CHICKEN") basePrice = id === "cookieboo" ? 15000 : 12000;
@@ -293,8 +361,73 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const roundingStep = 500;
     finalPrice = Math.round(finalPrice / roundingStep) * roundingStep;
     setPrice(finalPrice);
-  }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product.category, designType]);
+  }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product, designType]);
 
+  // Product view tracking
+  const SITE_URL = "https://www.chupaboo.com";
+  const productName = product?.name || "";
+  const productImageSrc = product?.image?.src || "/placeholder-image.jpg";
+  
+  const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
+    try {
+      const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, photo: imageSrc, caption }),
+      });
+    } catch (err) {
+      console.error("Telegram error:", err);
+    }
+  };
+  
+  useEffect(() => {
+    if (product && !hasSent.current) {
+      hasSent.current = true;
+      const fullImageUrl = productImageSrc.startsWith("http") ? productImageSrc : `${SITE_URL}${productImageSrc}`;
+      sendToTelegramProductView(productName, fullImageUrl);
+    }
+  }, [product, productName, productImageSrc]);
+
+  // ✅ NOW we can do conditional returns - AFTER all hooks
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#69429a] mx-auto"></div>
+          <p className="mt-4 text-gray-600">{t("loading") || "Loading..."}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-[#69429a] text-white rounded-lg hover:bg-[#5a3a85] transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 404 check - AFTER all hooks
+  if (!product) {
+    return notFound();
+  }
+
+  // ========== REST OF THE LOGIC ==========
+  
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
     let isValid = true;
@@ -331,7 +464,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  // ------------------- Add to cart (using global context) -------------------
+  // Add to cart
   const addToCartHandler = () => {
     if (!validateForm()) {
       const firstErrorField = Object.keys(errors)[0];
@@ -356,11 +489,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     addToCart({
       id: product.id,
       name: product.name,
-      image: product.image.src,
+      image: product.image.src || "/placeholder-image.jpg",
       price: price,
       quantity: quantity,
       options: productOptions,
-      //@ts-ignore
+            //@ts-ignore
       orderInfo: {
         deliveryOption: orderInfo.deliveryOption,
         deliveryAddress: orderInfo.deliveryAddress,
@@ -371,7 +504,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         deliveryFee: orderInfo.deliveryFee,
       },
     });
-
 
     setIsCartOpen(true);
   };
@@ -419,38 +551,13 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     return `${productLines}\n${orderLines}\n${summary}\n🙏 ${t("thanksForOrder")}`;
   };
 
-  const cartWhatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(getWhatsAppMessage())}`;
-
-  // ------------------- Product view tracking (unchanged) -------------------
-  const SITE_URL = "https://www.chupaboo.com";
-  const productName = product.name;
-  const hasSent = useRef(false);
-  const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
-    try {
-      const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, photo: imageSrc, caption }),
-      });
-    } catch (err) {
-      console.error("Telegram error:", err);
-    }
-  };
-  useEffect(() => {
-    if (product && !hasSent.current) {
-      hasSent.current = true;
-      const fullImageUrl = product.image.src.startsWith("http") ? product.image.src : `${SITE_URL}${product.image.src}`;
-      sendToTelegramProductView(productName, fullImageUrl);
-    }
-  }, [product, productName]);
-
-  // ------------------- UI helpers (unchanged) -------------------
+  // UI helpers
   const getMinDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split("T")[0];
   };
+  
   const getMaxDate = () => {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 30);
@@ -503,7 +610,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // ------------------- JSX (unchanged except cart drawer and floating button) -------------------
+  // ========== JSX ==========
   return (
     <div className="min-h-screen bg-gray-50">
       <Link href="/" className="block w-full bg-[#69429a]">
@@ -519,10 +626,15 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Left column: Product image */}
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg">
-            <Image src={product.image.src} alt={productName} fill className="object-cover" />
+            <Image 
+              src={product.image} 
+              alt={productName} 
+              fill 
+              className="object-cover" 
+            />
           </div>
 
-          {/* Right column: Full customization form (identical to original) */}
+          {/* Right column: Full customization form */}
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-[#69429a] mb-2">{productName}</h1>
@@ -634,15 +746,6 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
               </>
             )}
 
-            {/* Delivery Option */}
-            {/* <div>
-              <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Truck className="w-5 h-5" />{t("deliveryOption")}</p>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={() => { setOrderInfo(prev => ({ ...prev, deliveryOption: "delivery", deliveryAddress: "" })); clearFieldError("deliveryAddress"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.deliveryOption === "delivery" ? "bg-[#69429a] text-white border-[#69429a] shadow-md scale-105" : "bg-white text-[#69429a] border-[#69429a] hover:bg-[#f3e8ff]"}`}>🚚 {t("delivery")}</button>
-                <button onClick={() => { setOrderInfo(prev => ({ ...prev, deliveryOption: "pickup", deliveryAddress: "" })); clearFieldError("deliveryAddress"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.deliveryOption === "pickup" ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105" : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"}`}>🏠 {t("pickup")}</button>
-              </div>
-            </div> */}
-
             {/* Delivery Address */}
             {orderInfo.deliveryOption === "delivery" && (
               <div id="error-deliveryAddress">
@@ -708,7 +811,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
               </div>
             </div>
 
-            {/* Price Summary (sticky) */}
+            {/* Price Summary */}
             <div style={{ position: "sticky", bottom: "20px", zIndex: 50, marginTop: "auto", backgroundColor: "white", borderRadius: "1rem", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", padding: "1rem", border: "1px solid rgba(105,66,154,0.1)" }}>
               <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {price * quantity} {t("currency")}</div>
               {orderInfo.deliveryFee > 0 && <div className="text-sm text-gray-600 mt-1">{t("deliveryFee")}: {orderInfo.deliveryFee} {t("currency")}</div>}
@@ -745,15 +848,12 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
         {getItemCount() > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{getItemCount()}</span>}
       </button>
 
-      {/* Reusable Cart Drawer */}
+      {/* Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         orderInfo={orderInfo}
-      />    </div>
+      />
+    </div>
   );
-}
-
-function getProductById(id: string): Product | undefined {
-  return PRODUCTS.find((product) => product.id === id);
 }
