@@ -7,8 +7,6 @@ import { useLanguage } from "@/components/language-provider"
 import Image from "next/image"
 import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
-import { set } from "date-fns"
-import { fi } from "date-fns/locale"
 
 
 type Filter = "all" | "small" | 'midi' | "standart" 
