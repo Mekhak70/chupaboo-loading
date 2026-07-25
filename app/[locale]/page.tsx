@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { PRODUCTS, } from "@/lib/products";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { StaticImport } from "next/dist/shared/lib/get-img-props";
@@ -78,7 +77,6 @@ const getHeroSlides = () => [
 
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
 
-
 // Get responsive floating images
 const getFloatingImages = () => ({
   centerDesktop: main2Desktop,
@@ -107,9 +105,6 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }:
       controls.start("visible");
     }
   }, [isInView, controls]);
-
-
-
 
   return (
     <motion.div
@@ -171,7 +166,7 @@ export default function HomePage() {
   const scrollRef = useRef(null);
   const animationRef = useRef(null);
   const positionRef = useRef(0);
-  const speed = 0.8; // արագությունը (քիչ = դանդաղ)
+  const speed = 0.8;
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -188,28 +183,21 @@ export default function HomePage() {
       }
 
       if (!isHovering) {
-        // Շարժումը միայն եթե hover չկա
         positionRef.current -= speed;
-
-        // Վերականգնում առանց դխկոցի
         //@ts-ignore
-
         const halfWidth = scrollContainer.scrollWidth / 2;
         if (Math.abs(positionRef.current) >= halfWidth) {
           positionRef.current = 0;
         }
         //@ts-ignore
-
         scrollContainer.style.transform = `translateX(${positionRef.current}px)`;
       }
 
       lastTimestamp = timestamp;
       //@ts-ignore
-
       animationRef.current = requestAnimationFrame(animate);
     };
     //@ts-ignore
-
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -218,6 +206,7 @@ export default function HomePage() {
       }
     };
   }, [isHovering, speed]);
+
   const { t, language } = useLanguage();
   const [filter, setFilter] = useState<Filter>("all");
   const [type, setType] = useState<string>("");
@@ -229,14 +218,12 @@ export default function HomePage() {
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<any[]>([]);
 
-console.log(products, 'products ' ) 
-
-
-  // AD STATES
+  // AD STATES - FIXED
   const [currentAd, setCurrentAd] = useState<Ad | null>(null);
   const [isAdVisible, setIsAdVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isAdClosedPermanently, setIsAdClosedPermanently] = useState(false);
+  const [adTimer, setAdTimer] = useState<NodeJS.Timeout | null>(null);
 
   // HERO SLIDER STATE
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -265,8 +252,6 @@ console.log(products, 'products ' )
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  
-
   // Get responsive hero slides
   const heroSlides = useMemo(() => getHeroSlides(), []);
   const floatingImages = useMemo(() => getFloatingImages(), []);
@@ -276,7 +261,7 @@ console.log(products, 'products ' )
     () => [
       {
         id: 1,
-        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
+        title: "📢 Այստեղ կարող է լինել ձեր գովազդը ",
         description: "Հասեք 1000+ հաճախորդների ամեն օր",
         ctaText: "Մանրամասն →",
         ctaLink: "https://www.chupaboo.com/contact",
@@ -292,42 +277,42 @@ console.log(products, 'products ' )
         bgColor: "from-[#4a90e2] to-[#2c5aa0]",
         icon: "🚕",
       },
-      {
-        id: 3,
-        title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
-        description: "Գովազդեք ձեր ապրանքը մեր կայքում",
-        ctaText: "Իմանալ ավելին →",
-        ctaLink: "https://www.chupaboo.com/promotion",
-        bgColor: "from-[#e74c3c] to-[#c0392b]",
-        icon: "🎁",
-      },
-      {
-        id: 4,
-        title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
-        description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://www.chupaboo.com/order-ad",
-        bgColor: "from-[#2ecc71] to-[#27ae60]",
-        icon: "⭐",
-      },
-      {
-        id: 5,
-        title: "🔥 Սահմանափակ առաջարկ",
-        description: "Առաջին 3 ամիսը 20% զեղչ",
-        ctaText: "Օգտվել →",
-        ctaLink: "https://www.chupaboo.com/discount",
-        bgColor: "from-[#f39c12] to-[#e67e22]",
-        icon: "🔥",
-      },
-      {
-        id: 6,
-        title: "💎 Պրեմիում գովազդ",
-        description: "Լավագույն դիրքը կայքում",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://www.chupaboo.com/premium",
-        bgColor: "from-[#1abc9c] to-[#16a085]",
-        icon: "💎",
-      },
+      // {
+      //   id: 3,
+      //   title: "🎁 Հատուկ առաջարկ բիզնեսի համար",
+      //   description: "Գովազդեք ձեր ապրանքը մեր կայքում",
+      //   ctaText: "Իմանալ ավելին →",
+      //   ctaLink: "https://www.chupaboo.com/promotion",
+      //   bgColor: "from-[#e74c3c] to-[#c0392b]",
+      //   icon: "🎁",
+      // },
+      // {
+      //   id: 4,
+      //   title: "⭐ Նոր հաճախորդներ ձեր բիզնեսի համար",
+      //   description: "Օրական 5000+ այցելու տեսնի ձեր գովազդը",
+      //   ctaText: "Պատվիրել →",
+      //   ctaLink: "https://www.chupaboo.com/order-ad",
+      //   bgColor: "from-[#2ecc71] to-[#27ae60]",
+      //   icon: "⭐",
+      // },
+      // {
+      //   id: 5,
+      //   title: "🔥 Սահմանափակ առաջարկ",
+      //   description: "Առաջին 3 ամիսը 20% զեղչ",
+      //   ctaText: "Օգտվել →",
+      //   ctaLink: "https://www.chupaboo.com/discount",
+      //   bgColor: "from-[#f39c12] to-[#e67e22]",
+      //   icon: "🔥",
+      // },
+      // {
+      //   id: 6,
+      //   title: "💎 Պրեմիում գովազդ",
+      //   description: "Լավագույն դիրքը կայքում",
+      //   ctaText: "Պատվիրել →",
+      //   ctaLink: "https://www.chupaboo.com/premium",
+      //   bgColor: "from-[#1abc9c] to-[#16a085]",
+      //   icon: "💎",
+      // },
     ],
     []
   );
@@ -363,60 +348,87 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
   const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(whatsappMessage)}`;
 
-  // AD LOGIC
+  // AD LOGIC - FIXED
   const showRandomAd = useCallback(() => {
-    if (isAdClosedPermanently) return;
-    if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
+    // Don't show if permanently closed
+    if (isAdClosedPermanently) {
+      return;
+    }
 
+    // Clear any existing timeout
+    if (adTimeoutRef.current) {
+      clearTimeout(adTimeoutRef.current);
+      adTimeoutRef.current = null;
+    }
+
+    // Select random ad (different from current if possible)
     let randomIndex = Math.floor(Math.random() * ads.length);
-    if (currentAd && ads[randomIndex].id === currentAd.id) {
+    if (currentAd && ads[randomIndex].id === currentAd.id && ads.length > 1) {
       randomIndex = (randomIndex + 1) % ads.length;
     }
+    
     const nextAd = ads[randomIndex];
     setCurrentAd(nextAd);
-    if (!isAdVisible) {
-      setIsClosing(false);
-      setIsAdVisible(true);
-    }
+    setIsClosing(false);
+    setIsAdVisible(true);
+
+    // Auto-close after 8 seconds
     adTimeoutRef.current = setTimeout(() => {
       handleCloseAd();
     }, 8000);
-  }, [ads, currentAd, isAdVisible, isAdClosedPermanently]);
+  }, [ads, currentAd, isAdClosedPermanently]);
 
   const handleCloseAd = useCallback(() => {
-    if (isClosing) return;
+    if (isClosing || !isAdVisible) return;
+    
     setIsClosing(true);
-    const timeoutId = setTimeout(() => {
+    
+    // Hide after animation
+    setTimeout(() => {
       setIsAdVisible(false);
-      setIsAdClosedPermanently(true);
       setIsClosing(false);
       if (adTimeoutRef.current) {
         clearTimeout(adTimeoutRef.current);
         adTimeoutRef.current = null;
       }
-    }, 3000);
-    return () => clearTimeout(timeoutId);
-  }, [isClosing]);
+    }, 500); // Animation duration
+  }, [isClosing, isAdVisible]);
 
+  // Initialize ad system
   useEffect(() => {
+    // Check if user closed ads permanently
     const adClosed = localStorage.getItem("chupaboo_ad_closed");
-    if (adClosed === "true") setIsAdClosedPermanently(true);
-  }, []);
+    if (adClosed === "true") {
+      setIsAdClosedPermanently(true);
+      return;
+    }
 
+    // Show first ad after 3 seconds
+    const initialTimeout = setTimeout(() => {
+      showRandomAd();
+    }, 3000);
+
+    // Set interval for next ads
+    intervalRef.current = setInterval(() => {
+      // Only show if not currently visible and not closed permanently
+      if (!isAdVisible && !isAdClosedPermanently) {
+        showRandomAd();
+      }
+    }, 12000); // 12 seconds between ads
+
+    return () => {
+      clearTimeout(initialTimeout);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
+    };
+  }, [showRandomAd, isAdVisible, isAdClosedPermanently]);
+
+  // Save ad closed state to localStorage
   useEffect(() => {
-    if (isAdClosedPermanently) localStorage.setItem("chupaboo_ad_closed", "true");
+    if (isAdClosedPermanently) {
+      localStorage.setItem("chupaboo_ad_closed", "true");
+    }
   }, [isAdClosedPermanently]);
-
-  // useEffect(() => {
-  //   if (isAdClosedPermanently) return;
-  //   const initialTimeout = setTimeout(() => showRandomAd(), 3000);
-  //   intervalRef.current = setInterval(() => showRandomAd(), 10000);
-  //   return () => {
-  //     clearTimeout(initialTimeout);
-  //     if (intervalRef.current) clearInterval(intervalRef.current);
-  //     if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
-  //   };
-  // }, [isAdClosedPermanently, showRandomAd]);
 
   // HERO SLIDER LOGIC
   const nextSlide = useCallback(() => {
@@ -467,7 +479,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         repeatType: "loop"
       }
     });
-  }, [isProductsAutoPlaying, visibleProductsCount]); // Only when necessary
+  }, [isProductsAutoPlaying, visibleProductsCount, productsControls]);
 
   // PartyShop slider animation
   useEffect(() => {
@@ -500,16 +512,13 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     });
   }, [products, isPartyShopAutoPlaying, partyShopControls]);
 
-
   // Get current slide's image (desktop or mobile)
   const currentSlideData = heroSlides[currentSlide];
   const currentBgImage = isMobile ? currentSlideData?.imageMobile : currentSlideData?.imageDesktop;
 
-
   const getWorkingImageUrl = (url: string) => {
     if (!url) return PLACEHOLDER_IMAGE;
 
-    // Եթե դա Google Drive-ի հղում է, օգտագործել API route-ը
     if (url.includes('drive.google.com') ||
       url.includes('drive.usercontent.google.com') ||
       url.includes('googleusercontent.com')) {
@@ -602,8 +611,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     return item ? item.quantity : 0;
   };
 
-  
-
   if (loading) {
     return (
       <div className="flex flex-col">
@@ -668,7 +675,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                     priority={idx === 0}
                     sizes="(max-width: 768px) 100vw, 100vw"
                     quality={90}
-
                   />
 
                   {/* Floating Images - with CSS animations */}
@@ -751,32 +757,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             >
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </button>
-
-            {/* Dots Navigation */}
-            {/* <div className="absolute bottom-3 md:bottom-6 left-0 right-0 z-40 flex flex-col items-center gap-1 md:gap-2">
-              <div className="flex gap-1.5 md:gap-2">
-                {heroSlides.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setCurrentSlide(idx);
-                      setIsAutoPlaying(false);
-                      setTimeout(() => setIsAutoPlaying(true), 5000);
-                    }}
-                    className={`h-1.5 md:h-2 rounded-full transition-all ${idx === currentSlide ? "w-6 md:w-8 bg-[#aed137]" : "w-1.5 md:w-2 bg-white/50 hover:bg-white/80"
-                      }`}
-                  />
-                ))}
-              </div>
-              {isAutoPlaying && (
-                <div className="w-12 md:w-16 h-0.5 bg-white/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#aed137] rounded-full"
-                    style={{ animation: `progress 5s linear infinite` }}
-                  />
-                </div>
-              )}
-            </div> */}
           </section>
         </ScrollReveal>
 
@@ -836,44 +816,38 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 ))}
               </motion.div>
             </div>
-
-
           </div>
-
         </section>
-        <ScrollReveal direction="up" delay={0.2}>
 
+        <ScrollReveal direction="up" delay={0.2}>
           <div className="flex justify-center mt-8 md:mt-12">
             <Link href={`/${locale}/cakes`}>
               <button
                 className="
-        group relative px-6 md:px-8 py-2.5 md:py-3 
-        rounded-full 
-        bg-[#69429a] text-white 
-        font-semibold text-base md:text-lg 
-        transition-all duration-300 ease-out 
-        hover:bg-[#7c4fb3] 
-        hover:scale-105 hover:-translate-y-0.5 
-        active:scale-95 active:translate-y-0
-        shadow-lg hover:shadow-xl 
-        active:shadow-md
-        overflow-hidden
-        cursor-pointer
-        select-none
-        touch-manipulation
-        tap-highlight-transparent
-        focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
-        z-20 relative
-      "
+                  group relative px-6 md:px-8 py-2.5 md:py-3 
+                  rounded-full 
+                  bg-[#69429a] text-white 
+                  font-semibold text-base md:text-lg 
+                  transition-all duration-300 ease-out 
+                  hover:bg-[#7c4fb3] 
+                  hover:scale-105 hover:-translate-y-0.5 
+                  active:scale-95 active:translate-y-0
+                  shadow-lg hover:shadow-xl 
+                  active:shadow-md
+                  overflow-hidden
+                  cursor-pointer
+                  select-none
+                  touch-manipulation
+                  tap-highlight-transparent
+                  focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
+                  z-20 relative
+                "
                 style={{
                   WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
                 }}
               >
-                {/* Shine effect - desktop only */}
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                {/* Content */}
                 <span className="relative flex items-center gap-2">
                   <span>{t('seeMoreLabel')}</span>
                   <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-0">
@@ -938,7 +912,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                           <img
                             src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
                             alt={product.name || "Շան ծննդյան տորթ"}
-
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
                             onError={(e) => {
@@ -947,7 +920,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                           />
                           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
 
-                          {/* Ցուցադրել նկարների ինդեքսը, եթե կան մի քանի նկարներ */}
                           {productImages.length > 1 && !hasError && (
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                               {productImages.map((_: any, index: number) => (
@@ -968,7 +940,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                             <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
                               {product.name}
                             </h3>
-                            {/* Կարող եք ավելացնել նաև գինը */}
                             {product.price && (
                               <p className="text-sm text-gray-500 mt-1">
                                 {product.price} AMD
@@ -1129,12 +1100,11 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         </section>
       </div>
 
-      {/* AD SLIDER */}
+      {/* AD SLIDER - FIXED */}
       {isAdVisible && currentAd && (
         <div
           key={currentAd.id}
-          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 will-change-transform ${isClosing ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
-            }`}
+          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out`}
           style={{
             transform: isClosing ? "translateY(100%)" : "translateY(0)",
             opacity: isClosing ? 0 : 1,
@@ -1142,7 +1112,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         >
           <div className="px-2 pb-2 sm:px-4 sm:pb-4">
             <div
-              className={`relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-r ${currentAd.bgColor} animate-slide-up`}
+              className={`relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-r ${currentAd.bgColor}`}
             >
               <button
                 onClick={(e) => {
@@ -1150,6 +1120,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   handleCloseAd();
                 }}
                 className="absolute top-1 right-1 md:top-2 md:right-2 z-20 bg-black/50 hover:bg-black/70 rounded-full p-1 md:p-1.5 transition-all hover:scale-110"
+                aria-label="Close ad"
               >
                 <X className="h-3 w-3 md:h-4 md:w-4 text-white" />
               </button>
@@ -1163,7 +1134,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 </div>
                 <button
                   onClick={() => window.open(currentAd.ctaLink, "_blank")}
-                  className="bg-white text-[#69429a] px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap hover:bg-gray-100 transition-all hover:scale-105 shadow-md"
+                  className="bg-white text-[#69429a] px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap hover:bg-gray-100 transition-all hover:scale-105 shadow-md flex-shrink-0"
                 >
                   {currentAd.ctaText}
                 </button>
@@ -1174,142 +1145,138 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
       )}
 
       <style>{`
-  /* Կրճատված շարժումներ ծանրաբեռնվածության զգայունության դեպքում */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-float-center,
-    .animate-float-left,
-    .animate-float-right {
-      animation: none !important;
-      transform: translate(-50%, -50%) !important;
-      transition: none !important;
-    }
-  }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-float-center,
+          .animate-float-left,
+          .animate-float-right {
+            animation: none !important;
+            transform: translate(-50%, -50%) !important;
+            transition: none !important;
+          }
+        }
 
-  /* Desktop (մեծ էկրաններ) - լիարժեք անիմացիա */
-  @media (min-width: 768px) {
-    @keyframes progress {
-      0% { width: 0%; }
-      100% { width: 100%; }
-    }
+        @media (min-width: 768px) {
+          @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
 
-    @keyframes floatCenter {
-      0%, 100% {
-        transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
-      }
-      20% {
-        transform: translate(-50%, -50%) translateY(-30px) rotate(6deg) scale(1.03);
-      }
-      40% {
-        transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
-      }
-      60% {
-        transform: translate(-50%, -50%) translateY(25px) rotate(-5deg) scale(0.97);
-      }
-      80% {
-        transform: translate(-50%, -50%) translateY(-15px) rotate(3deg) scale(1.01);
-      }
-    }
+          @keyframes floatCenter {
+            0%, 100% {
+              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+            }
+            20% {
+              transform: translate(-50%, -50%) translateY(-30px) rotate(6deg) scale(1.03);
+            }
+            40% {
+              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+            }
+            60% {
+              transform: translate(-50%, -50%) translateY(25px) rotate(-5deg) scale(0.97);
+            }
+            80% {
+              transform: translate(-50%, -50%) translateY(-15px) rotate(3deg) scale(1.01);
+            }
+          }
 
-    @keyframes floatLeft {
-      0%, 100% {
-        transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
-      }
-      15% {
-        transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-35px) translateY(-15px) rotate(-10deg) scale(0.96);
-      }
-      35% {
-        transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(-25px) rotate(0deg) scale(1);
-      }
-      55% {
-        transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(30px) translateY(15px) rotate(8deg) scale(1.04);
-      }
-      75% {
-        transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-20px) translateY(20px) rotate(-6deg) scale(0.98);
-      }
-    }
+          @keyframes floatLeft {
+            0%, 100% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+            }
+            15% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-35px) translateY(-15px) rotate(-10deg) scale(0.96);
+            }
+            35% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(-25px) rotate(0deg) scale(1);
+            }
+            55% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(30px) translateY(15px) rotate(8deg) scale(1.04);
+            }
+            75% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-20px) translateY(20px) rotate(-6deg) scale(0.98);
+            }
+          }
 
-    @keyframes floatRight {
-      0%, 100% {
-        transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
-      }
-      18% {
-        transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(30px) translateY(-20px) rotate(8deg) scale(1.03);
-      }
-      38% {
-        transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-25px) translateY(15px) rotate(-7deg) scale(0.97);
-      }
-      58% {
-        transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(20px) translateY(-30px) rotate(6deg) scale(1.02);
-      }
-      78% {
-        transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-30px) translateY(-10px) rotate(-8deg) scale(0.96);
-      }
-    }
+          @keyframes floatRight {
+            0%, 100% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+            }
+            18% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(30px) translateY(-20px) rotate(8deg) scale(1.03);
+            }
+            38% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-25px) translateY(15px) rotate(-7deg) scale(0.97);
+            }
+            58% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(20px) translateY(-30px) rotate(6deg) scale(1.02);
+            }
+            78% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-30px) translateY(-10px) rotate(-8deg) scale(0.96);
+            }
+          }
 
-    .animate-float-center {
-      animation: floatCenter 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    }
+          .animate-float-center {
+            animation: floatCenter 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
 
-    .animate-float-left {
-      animation: floatLeft 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    }
+          .animate-float-left {
+            animation: floatLeft 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
 
-    .animate-float-right {
-      animation: floatRight 11s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    }
-  }
+          .animate-float-right {
+            animation: floatRight 11s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
+        }
 
-  /* Հեռախոսի համար (768px-ից փոքր) - ՔԻՉ շարժում */
-  @media (max-width: 767px) {
-    
-    @keyframes floatCenterMobile {
-      0%, 100% {
-        transform: translate(-50%, -50%) translateY(10px) scale(1);
-      }
-      50% {
-        transform: translate(-50%, -50%) translateY(-10px) scale(1.03);
-      }
-    }
+        @media (max-width: 767px) {
+          @keyframes floatCenterMobile {
+            0%, 100% {
+              transform: translate(-50%, -50%) translateY(10px) scale(1);
+            }
+            50% {
+              transform: translate(-50%, -50%) translateY(-10px) scale(1.03);
+            }
+          }
 
-    @keyframes floatLeftMobile {
-      0%, 100% {
-        transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(10px) translateY(10px);
-      }
-      50% {
-        transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(-10px) translateY(-6px);
-      }
-    }
+          @keyframes floatLeftMobile {
+            0%, 100% {
+              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(10px) translateY(10px);
+            }
+            50% {
+              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(-10px) translateY(-6px);
+            }
+          }
 
-    @keyframes floatRightMobile {
-      0%, 100% {
-        transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(17px) translateY(5px);
-      }
-      50% {
-        transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(5px) translateY(-3px);
-      }
-    }
+          @keyframes floatRightMobile {
+            0%, 100% {
+              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(17px) translateY(5px);
+            }
+            50% {
+              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(5px) translateY(-3px);
+            }
+          }
 
-    .animate-float-center {
-      animation: floatCenterMobile 6s ease-in-out infinite;
-    }
+          .animate-float-center {
+            animation: floatCenterMobile 6s ease-in-out infinite;
+          }
 
-    .animate-float-left {
-      animation: floatLeftMobile 7s ease-in-out infinite;
-    }
+          .animate-float-left {
+            animation: floatLeftMobile 7s ease-in-out infinite;
+          }
 
-    .animate-float-right {
-      animation: floatRightMobile 7s ease-in-out infinite;
-    }
-  }
+          .animate-float-right {
+            animation: floatRightMobile 7s ease-in-out infinite;
+          }
+        }
 
-  @keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-  .carousel-track {
-    animation: scroll 20s linear infinite;
-  }
-`}</style>
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .carousel-track {
+          animation: scroll 20s linear infinite;
+        }
+      `}</style>
     </>
   );
 }
