@@ -96,7 +96,7 @@ const ImageModal = ({
     >
       <div 
         className="relative w-full h-full flex flex-col items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
+       
       >
         <button
           onClick={handleClose}
@@ -267,6 +267,9 @@ export default function ShopPage() {
           photo: imageSrc, 
           caption 
         }),
+
+
+        
       });
 
       const data = await response.json();
