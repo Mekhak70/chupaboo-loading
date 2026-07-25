@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
 import Image from "next/image"
 import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
-
 
 type Filter = "all" | "small" | 'midi' | "standart"
 
@@ -23,6 +22,12 @@ export default function ShopPage() {
   const [pendingImage, setPendingImage] = useState<string | null>(null)
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  
+  // State for mobile scroll effect
+  const [visibleProductId, setVisibleProductId] = useState<string | null>(null);
+  const cardRefs = useRef<{ [key: string]: HTMLAnchorElement | null }>({});
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const filteredProducts = products.filter((p) => {
     console.log(p.category, filter);
     return filter === "all" || p.category === filter;
@@ -42,10 +47,7 @@ export default function ShopPage() {
     </div>
   );
 
-
-
   const SITE_URL = "https://www.chupaboo.com"
-
 
   const whatsappMessage = selectedImage
     ? `Բարև, ուզում եմ պատվիրել այս տորթը լինի ${type} և ${creamType}։ Նկարը՝ ${SITE_URL}${selectedImage}`
@@ -54,6 +56,84 @@ export default function ShopPage() {
   const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(
     whatsappMessage
   )}`
+
+  // Scroll effect for mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check only on mobile (screen width < 640px)
+      if (window.innerWidth >= 640) {
+        setVisibleProductId(null);
+        return;
+      }
+
+      let closestId: string | null = null;
+      let closestDistance = Infinity;
+      const windowCenter = window.innerHeight / 2;
+
+      // Find which product card is closest to center
+      Object.keys(cardRefs.current).forEach((id) => {
+        const element = cardRefs.current[id];
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const cardCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(cardCenter - windowCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestId = id;
+        }
+      });
+
+      // If a card is within 100px of center, show its button
+      if (closestId && closestDistance < 100) {
+        setVisibleProductId(closestId);
+
+        // Clear previous timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+
+        // Hide after 2.5 seconds
+        timeoutRef.current = setTimeout(() => {
+          setVisibleProductId(null);
+        }, 2500);
+      } else {
+        // If no card is near center, hide all buttons
+        setVisibleProductId(null);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      }
+    };
+
+    // Throttle scroll events for better performance
+    let ticking = false;
+    const throttledScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", throttledScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    
+    // Initial check
+    setTimeout(handleScroll, 100);
+
+    return () => {
+      window.removeEventListener("scroll", throttledScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [filteredProducts]); // Re-run when products change
+
   useEffect(() => {
     async function loadProducts() {
       try {
@@ -119,6 +199,7 @@ export default function ShopPage() {
       </div>
     );
   }
+
   return (
     <>
       <div className="flex flex-col">
@@ -135,9 +216,8 @@ export default function ShopPage() {
         </section>
 
         {/* Filter & Products */}
-        <section >
+        <section>
           <div className="container mx-auto px-4">
-
             <section className="bg-white py-10">
               <div className="container mx-auto px-4">
                 {/* FILTER BUTTONS */}
@@ -218,36 +298,57 @@ export default function ShopPage() {
                   style={{ paddingTop: "10px" }}
                 >
                   {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product) => (
-                      <Link
-  key={product.id}
-  href={`/${locale}/product/${product.id}`}
-  className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
->
-  <div className="relative aspect-square">
-    <Image
-      src={product.image}
-      alt={"Շան ծննդյան տորթ"}
-      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-      height={300}
-      width={300}
-    />
-    
-    {/* Desktop-ի համար - hover */}
-    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
-      <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
-        {locale === "hy" ? "Տեսնել ավելին" : "View details"}
-      </span>
-    </div>
+                    filteredProducts.map((product) => {
+                      const isVisible = visibleProductId === product.id;
+                      
+                      return (
+                        <Link
+                          key={product.id}
+                          href={`/${locale}/product/${product.id}`}
+                          className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
+                          ref={(el) => {
+                            cardRefs.current[product.id] = el;
+                          }}
+                        >
+                          <div className="relative aspect-square">
+                            <Image
+                              src={product.image}
+                              alt={"Շան ծննդյան տորթ"}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              height={300}
+                              width={300}
+                            />
+                            
+                            {/* Desktop-ի համար - hover */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
+                              <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
+                                {locale === "hy" ? "Տեսնել ավելին" : "View details"}
+                              </span>
+                            </div>
 
-    {/* Mobile-ի համար - միշտ երևում է */}
-    <div className="absolute bottom-2 right-2 sm:hidden bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
-      <span>👆</span>
-      <span>{locale === "hy" ? "Մանրամասն" : "Details"}</span>
-    </div>
-  </div>
-</Link>
-                    ))
+                            {/* Mobile-ի համար - ցույց է տալիս, երբ կարտը կենտրոնում է */}
+                            <div 
+                              className={`
+                                absolute inset-0 bg-black/40 flex items-center justify-center sm:hidden
+                                transition-all duration-500 ease-out
+                                ${isVisible 
+                                  ? 'opacity-100 scale-100' 
+                                  : 'opacity-0 scale-90 pointer-events-none'
+                                }
+                              `}
+                            >
+                              <div className="bg-black/80 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center gap-2 shadow-xl">
+                                <span className="text-white font-medium text-base">
+                                  {locale === "hy" ? " Տեսնել ավելին" : " View details"}
+                                </span>
+                              </div>
+                            </div>
+
+                           
+                          </div>
+                        </Link>
+                      );
+                    })
                   ) : (
                     <div className="col-span-full text-center py-10">
                       <p className="text-gray-500 text-lg">{t('noProductsAvailable')}</p>
@@ -279,20 +380,19 @@ export default function ShopPage() {
                   {t("contactUs")}
                 </a>
               </Button>
-
             </div>
           </div>
         </section>
       </div>
       <style jsx>{`
-      @media (max-width: 450px) {
-        .responsive-text {
-          font-size: 10.5px !important;
-          line-height: 1.2;
-          gap: 6px !important;
+        @media (max-width: 450px) {
+          .responsive-text {
+            font-size: 10.5px !important;
+            line-height: 1.2;
+            gap: 6px !important;
+          }
         }
-      }
-    `}</style>
+      `}</style>
     </>
   )
 }
