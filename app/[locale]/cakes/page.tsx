@@ -9,11 +9,11 @@ import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
 
 
-type Filter = "all" | "small" | 'midi' | "standart" 
+type Filter = "all" | "small" | 'midi' | "standart"
 
 export default function ShopPage() {
-    const { locale } = useParams()
-  
+  const { locale } = useParams()
+
   const { t } = useLanguage()
   const [filter, setFilter] = useState<Filter>("all")
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -27,7 +27,7 @@ export default function ShopPage() {
     console.log(p.category, filter);
     return filter === "all" || p.category === filter;
   });
-  
+
   const ProductSkeleton = () => (
     <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
       <div className="aspect-square bg-gray-200"></div>
@@ -61,24 +61,24 @@ export default function ShopPage() {
         const res = await fetch(
           "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
         );
-  
+
         if (!res.ok) {
           throw new Error(`HTTP Error: ${res.status}`);
         }
-  
+
         const data = await res.json();
-  
+
         console.log("Products:", data);
-  
+
         const formatted = data.map((item: any) => {
           let image = item["նկար"] || "";
-  
+
           // Google Drive link → direct image
           const match = image.match(/\/d\/([^/]+)/);
           if (match) {
             image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
-  
+
           return {
             id: item.id,
             name: item.name,
@@ -89,15 +89,15 @@ export default function ShopPage() {
             stock: 999,
           };
         });
-  
+
         setProducts(formatted);
       } catch (err) {
         console.error("Load products error:", err);
-      }finally {
+      } finally {
         setLoading(false);
       }
     }
-  
+
     loadProducts();
   }, []);
 
@@ -137,144 +137,125 @@ export default function ShopPage() {
         {/* Filter & Products */}
         <section >
           <div className="container mx-auto px-4">
-            {/* Filter Buttons */}
-            {/* <div className="mb-8 flex flex-wrap justify-center gap-3">
-            {filters.map((f) => (
-              <Button
-                key={f.value}
-                variant={filter === f.value ? "default" : "outline"}
-                onClick={() => setFilter(f.value)}
-                className={filter === f.value ? "bg-primary text-primary-foreground" : ""}
-              >
-                <f.icon className="mr-2 h-4 w-4" />
-                {f.label}
-              </Button>
-            ))}
-          </div> */}
 
-
-            {/* Products Grid */}
-            
             <section className="bg-white py-10">
-          <div className="container mx-auto px-4">
-            {/* FILTER BUTTONS */}
-            <div className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap" style={{ paddingBottom: '20px' }}>
-              <button 
-                onClick={() => setFilter('all')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'all' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("all")}
-              </button>
-              <button 
-                onClick={() => setFilter('small')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'small' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("mini")}
-              </button>
-              <button 
-                onClick={() => setFilter('midi')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'midi' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("midi")}
-              </button>
-              <button 
-                onClick={() => setFilter('standart')} 
-                style={{ 
-                  padding: '10px 15px', 
-                  background: filter === 'standart' ? '#aed137' : '#69429a', 
-                  color: '#fff', 
-                  borderRadius: '20px', 
-                  fontSize: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  border: 'none'
-                }}
-              >
-                {t("standard")}
-              </button>
-            </div>
-
-            {/* PRODUCTS GRID */}
-            <div
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-              style={{ paddingTop: "10px" }}
-            >
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-
-                  console.log(product.image, 'product'),
-                  <Link
-                    key={product.id}
-                    href={`/${locale}/product/${product.id}`}
-                    className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
+              <div className="container mx-auto px-4">
+                {/* FILTER BUTTONS */}
+                <div className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap" style={{ paddingBottom: '20px' }}>
+                  <button
+                    onClick={() => setFilter('all')}
+                    style={{
+                      padding: '10px 15px',
+                      background: filter === 'all' ? '#aed137' : '#69429a',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      fontSize: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: 'none'
+                    }}
                   >
-                    <div className="relative aspect-square">
-                      <Image
-                        src={product.image}
-                        alt={"Շան ծննդյան տորթ"}
-                        className="w-full h-full object-cover"
-                        height={300}
-                        width={300}
-                      />
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-gray-500 text-lg">Ապրանքներ չկան</p>
+                    {t("all")}
+                  </button>
+                  <button
+                    onClick={() => setFilter('small')}
+                    style={{
+                      padding: '10px 15px',
+                      background: filter === 'small' ? '#aed137' : '#69429a',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      fontSize: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: 'none'
+                    }}
+                  >
+                    {t("mini")}
+                  </button>
+                  <button
+                    onClick={() => setFilter('midi')}
+                    style={{
+                      padding: '10px 15px',
+                      background: filter === 'midi' ? '#aed137' : '#69429a',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      fontSize: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: 'none'
+                    }}
+                  >
+                    {t("midi")}
+                  </button>
+                  <button
+                    onClick={() => setFilter('standart')}
+                    style={{
+                      padding: '10px 15px',
+                      background: filter === 'standart' ? '#aed137' : '#69429a',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      fontSize: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: 'none'
+                    }}
+                  >
+                    {t("standard")}
+                  </button>
                 </div>
-              )}
-            </div>
-          </div>
-        </section>
 
-            {/* ORDER BUTTON */}
-            {/* <div className="container mx-auto py-10 text-center bg-white">
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-8 py-4 text-white font-semibold rounded-lg transition"
-                style={{ backgroundColor: "#69429a" }}
-              >
-                {t("orderNow")}
-              </a>
-            </div> */}
+                {/* PRODUCTS GRID */}
+                <div
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  style={{ paddingTop: "10px" }}
+                >
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map((product) => (
+                      <Link
+  key={product.id}
+  href={`/${locale}/product/${product.id}`}
+  className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
+>
+  <div className="relative aspect-square">
+    <Image
+      src={product.image}
+      alt={"Շան ծննդյան տորթ"}
+      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+      height={300}
+      width={300}
+    />
+    
+    {/* Desktop-ի համար - hover */}
+    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
+      <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
+        {locale === "hy" ? "Տեսնել ավելին" : "View details"}
+      </span>
+    </div>
+
+    {/* Mobile-ի համար - միշտ երևում է */}
+    <div className="absolute bottom-2 right-2 sm:hidden bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
+      <span>👆</span>
+      <span>{locale === "hy" ? "Մանրամասն" : "Details"}</span>
+    </div>
+  </div>
+</Link>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-10">
+                      <p className="text-gray-500 text-lg">{t('noProductsAvailable')}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
           </div>
         </section>
 
@@ -282,7 +263,7 @@ export default function ShopPage() {
         <section className="border-t border-border bg-muted/30 py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
-              <Image src={Cake} alt="cake" width={40} height={40} className="mb-4 mx-auto" priority/>
+              <Image src={Cake} alt="cake" width={40} height={40} className="mb-4 mx-auto" priority />
               <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ color: '#69429a' }}>{t("customOrdersWelcome")}</h2>
               <p className="mb-6 text-muted-foreground" style={{ color: '#69429a' }}>{t("customOrdersDesc")}</p>
               <Button
