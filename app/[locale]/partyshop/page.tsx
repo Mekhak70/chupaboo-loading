@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShoppingCart, CheckCircle, Minus, Plus } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { ShoppingCart, CheckCircle, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -27,6 +27,157 @@ const ProductSkeleton = () => (
 // Placeholder image
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
 
+// ⚠️ Telegram Bot Token and Chat ID
+const TELEGRAM_BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk";
+const TELEGRAM_CHAT_ID = "8072053329";
+const SITE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://your-site.com';
+
+// Image Modal Component
+const ImageModal = ({ 
+  isOpen, 
+  onClose, 
+  images, 
+  currentIndex, 
+  onPrev, 
+  onNext,
+  productName 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  images: string[]; 
+  currentIndex: number; 
+  onPrev: () => void; 
+  onNext: () => void;
+  productName: string;
+}) => {
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 300);
+  }, [onClose]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, handleClose]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onPrev, onNext]);
+
+  if (!isOpen && !isClosing) return null;
+
+  return (
+    <div 
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${
+        isClosing ? 'opacity-0' : 'opacity-100'
+      }`}
+      style={{ background: 'rgba(0, 0, 0, 0.85)' }}
+      onClick={handleClose}
+    >
+      <div 
+        className="relative w-full h-full flex flex-col items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={handleClose}
+          className="absolute top-6 right-6 text-white hover:text-gray-300 transition-all duration-300 z-20 bg-black/40 hover:bg-black/60 rounded-full p-3 backdrop-blur-sm hover:scale-110"
+        >
+          <X className="h-8 w-8" />
+        </button>
+
+        {productName && (
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 text-white text-2xl md:text-3xl font-bold z-20 text-center max-w-[80vw]">
+            {productName}
+          </div>
+        )}
+
+        <img
+          src={images[currentIndex] || PLACEHOLDER_IMAGE}
+          alt={productName || "Product image"}
+          className="w-auto h-auto max-w-[92vw] max-h-[82vh] object-contain rounded-lg shadow-2xl transition-transform duration-300"
+          style={{
+            width: 'auto',
+            height: 'auto',
+            maxWidth: '92vw',
+            maxHeight: '82vh',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-4 transition-all duration-300 z-20 backdrop-blur-sm hover:scale-110"
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-4 transition-all duration-300 z-20 backdrop-blur-sm hover:scale-110"
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium z-20 border border-white/10">
+              {currentIndex + 1} / {images.length}
+            </div>
+
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const diff = index - currentIndex;
+                    if (diff > 0) {
+                      for (let i = 0; i < diff; i++) onNext();
+                    } else if (diff < 0) {
+                      for (let i = 0; i < Math.abs(diff); i++) onPrev();
+                    }
+                  }}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentIndex === index
+                      ? "bg-white scale-125 shadow-lg"
+                      : "bg-white/40 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function ShopPage() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<any[]>([]);
@@ -36,6 +187,14 @@ export default function ShopPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
+  
+  // 📌 useRef for preventing duplicate sends
+  const hasSentTelegram = useRef<Record<string, boolean>>({});
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalProductId, setModalProductId] = useState<string | null>(null);
+  const [modalCurrentIndex, setModalCurrentIndex] = useState(0);
 
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
@@ -53,11 +212,9 @@ export default function ShopPage() {
     }));
   };
 
-  // ShopPage-ում
   const addToCartHandler = (product: any) => {
     const quantity = quantities[String(product.id)] || 1;
 
-    // ✅ Ճիշտ վերցնել նկարի URL-ը
     let imageUrl = '';
     if (product.image) {
       if (Array.isArray(product.image)) {
@@ -70,7 +227,7 @@ export default function ShopPage() {
     addToCart({
       id: String(product.id),
       name: product.name,
-      image: imageUrl, // ✅ Փոխանցել որպես string
+      image: imageUrl,
       price: product.price,
       quantity: quantity,
       options: null,
@@ -83,11 +240,9 @@ export default function ShopPage() {
 
   const cartCount = getItemCount();
 
-  // ⭐ ՆՈՐ ՖՈՒՆԿՑԻԱՆ՝ API ROUTE-ՈՎ
   const getWorkingImageUrl = (url: string) => {
     if (!url) return PLACEHOLDER_IMAGE;
 
-    // Եթե դա Google Drive-ի հղում է, օգտագործել API route-ը
     if (url.includes('drive.google.com') ||
       url.includes('drive.usercontent.google.com') ||
       url.includes('googleusercontent.com')) {
@@ -97,11 +252,98 @@ export default function ShopPage() {
     return url;
   };
 
+  // 📤 Telegram function - send product view (ՁԵՐ ՈՒԶԵԼՈՎ)
+  const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
+    try {
+      console.log("📤 Sending to Telegram:", productName);
+      
+      const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
+      
+      const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          chat_id: TELEGRAM_CHAT_ID, 
+          photo: imageSrc, 
+          caption 
+        }),
+      });
+
+      const data = await response.json();
+      console.log("📨 Telegram response:", data);
+      
+      if (data.ok) {
+        console.log("✅ Successfully sent to Telegram!");
+      } else {
+        console.error("❌ Telegram error:", data.description);
+      }
+    } catch (err) {
+      console.error("❌ Telegram send error:", err);
+    }
+  };
+
+  // 🔄 useEffect for sending Telegram notification when modal opens
+  useEffect(() => {
+    if (modalProductId && modalProduct) {
+      const productId = modalProductId;
+      
+      // Check if already sent for this product
+      if (!hasSentTelegram.current[productId]) {
+        hasSentTelegram.current[productId] = true;
+        
+        // Get image URL
+        const imageSrc = Array.isArray(modalProduct.image) 
+          ? modalProduct.image[0] 
+          : modalProduct.image || PLACEHOLDER_IMAGE;
+        
+        // Create full URL if needed
+        const fullImageUrl = imageSrc.startsWith("http") 
+          ? imageSrc 
+          : `${SITE_URL}${imageSrc}`;
+        
+        // Send to Telegram
+        sendToTelegramProductView(modalProduct.name, fullImageUrl);
+      }
+    }
+  }, [modalProductId, ]);
+
+  // Open modal function
+  const openModal = (productId: string) => {
+    setModalProductId(productId);
+    setModalCurrentIndex(currentImage[productId] || 0);
+    setModalOpen(true);
+  };
+
+  // Close modal function
+  const closeModal = () => {
+    setModalOpen(false);
+    // Don't reset modalProductId immediately to allow useEffect to run
+    setTimeout(() => {
+      setModalProductId(null);
+    }, 100);
+  };
+
+  // Navigation functions for modal
+  const handlePrevImage = () => {
+    if (!modalProductId) return;
+    const product = products.find(p => String(p.id) === modalProductId);
+    if (!product) return;
+    const images = Array.isArray(product.image) ? product.image : [product.image || PLACEHOLDER_IMAGE];
+    setModalCurrentIndex(prev => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNextImage = () => {
+    if (!modalProductId) return;
+    const product = products.find(p => String(p.id) === modalProductId);
+    if (!product) return;
+    const images = Array.isArray(product.image) ? product.image : [product.image || PLACEHOLDER_IMAGE];
+    setModalCurrentIndex(prev => (prev + 1) % images.length);
+  };
+
   useEffect(() => {
     async function loadProducts() {
       try {
         setLoading(true);
-
 
         const res = await fetch(
           "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
@@ -139,6 +381,15 @@ export default function ShopPage() {
 
     loadProducts();
   }, []);
+
+  // Get current product for modal
+  const modalProduct = modalProductId 
+    ? products.find(p => String(p.id) === modalProductId) 
+    : null;
+  
+  const modalImages = modalProduct 
+    ? (Array.isArray(modalProduct.image) ? modalProduct.image : [modalProduct.image || PLACEHOLDER_IMAGE])
+    : [];
 
   if (loading) {
     return (
@@ -181,8 +432,6 @@ export default function ShopPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-
                 {products.map((product) => {
                   const productId = String(product.id);
                   const inCart = isProductInCart(productId);
@@ -199,11 +448,12 @@ export default function ShopPage() {
                       key={productId}
                       className="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300"
                     >
-                      <div className="relative aspect-square overflow-hidden bg-gray-100">
+                      <div className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer">
                         <img
                           src={productImages[currentImageIndex]}
                           alt={product.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onClick={() => openModal(productId)}
                           onError={(e) => {
                             console.log(`Image error for product ${productId}:`, productImages[currentImageIndex]);
                             setImageErrors(prev => ({
@@ -221,6 +471,14 @@ export default function ShopPage() {
                           }}
                         />
 
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-2 backdrop-blur-sm">
+                            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m-3-3h6" />
+                            </svg>
+                          </div>
+                        </div>
+
                         {productImages.length > 1 && !hasError && (
                           <>
                             <button
@@ -236,7 +494,7 @@ export default function ShopPage() {
                                   [productId]: false
                                 }));
                               }}
-                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 hover:bg-white transition-colors"
+                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 hover:bg-white transition-colors z-10 backdrop-blur-sm"
                             >
                               <ChevronLeft className="w-5 h-5" />
                             </button>
@@ -254,18 +512,19 @@ export default function ShopPage() {
                                   [productId]: false
                                 }));
                               }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 hover:bg-white transition-colors"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 hover:bg-white transition-colors z-10 backdrop-blur-sm"
                             >
                               <ChevronRight className="w-5 h-5" />
                             </button>
 
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
                               {productImages.map((_: any, index: number) => (
                                 <div
                                   key={index}
-                                  className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
-                                    ? "bg-white"
-                                    : "bg-white/50"
+                                  className={`w-2 h-2 rounded-full transition-colors ${
+                                    currentImageIndex === index
+                                      ? "bg-white"
+                                      : "bg-white/50"
                                     }`}
                                 />
                               ))}
@@ -274,7 +533,7 @@ export default function ShopPage() {
                         )}
 
                         {product.stock <= 0 && (
-                          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
                             {t('outOfStock')}
                           </div>
                         )}
@@ -292,9 +551,6 @@ export default function ShopPage() {
                             {product.notes}
                           </p>
                         )}
-                        {/* <p className="text-xs text-gray-400 mt-0.5">
-                          Stock: {product.stock} {t('pieces') || 'pcs'}
-                        </p> */}
 
                         {!inCart && product.stock > 0 && (
                           <div className="flex items-center justify-between mt-3 border border-gray-200 rounded-full p-1 bg-gray-50">
@@ -392,6 +648,16 @@ export default function ShopPage() {
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           orderInfo={orderInfo}
+        />
+
+        <ImageModal
+          isOpen={modalOpen}
+          onClose={closeModal}
+          images={modalImages}
+          currentIndex={modalCurrentIndex}
+          onPrev={handlePrevImage}
+          onNext={handleNextImage}
+          productName={modalProduct?.name || ""}
         />
       </div>
     </>

@@ -369,7 +369,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const productImageSrc = product?.image || "/placeholder-image.jpg";
   
   const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
-    console.log(imageSrc, 'imageSrc')
     try {
       const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
