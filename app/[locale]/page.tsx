@@ -218,12 +218,11 @@ export default function HomePage() {
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<any[]>([]);
 
-  // AD STATES - FIXED
+  // AD STATES - FIXED (always show on mobile)
   const [currentAd, setCurrentAd] = useState<Ad | null>(null);
   const [isAdVisible, setIsAdVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isAdClosedPermanently, setIsAdClosedPermanently] = useState(false);
-  const [adTimer, setAdTimer] = useState<NodeJS.Timeout | null>(null);
 
   // HERO SLIDER STATE
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -261,7 +260,7 @@ export default function HomePage() {
     () => [
       {
         id: 1,
-        title: "📢 Այստեղ կարող է լինել ձեր գովազդը ",
+        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
         description: "Հասեք 1000+ հաճախորդների ամեն օր",
         ctaText: "Մանրամասն →",
         ctaLink: "https://www.chupaboo.com/contact",
@@ -348,10 +347,13 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
   const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(whatsappMessage)}`;
 
-  // AD LOGIC - FIXED
+  // AD LOGIC - FIXED (always shows on mobile, ignores localStorage)
   const showRandomAd = useCallback(() => {
-    // Don't show if permanently closed
-    if (isAdClosedPermanently) {
+    // Only check localStorage on desktop, always show on mobile
+    const isMobile = window.innerWidth < 768;
+    
+    // On desktop, check if permanently closed
+    if (!isMobile && isAdClosedPermanently) {
       return;
     }
 
@@ -391,30 +393,38 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         clearTimeout(adTimeoutRef.current);
         adTimeoutRef.current = null;
       }
-    }, 500); // Animation duration
+    }, 500);
   }, [isClosing, isAdVisible]);
 
   // Initialize ad system
   useEffect(() => {
-    // Check if user closed ads permanently
-    const adClosed = localStorage.getItem("chupaboo_ad_closed");
-    if (adClosed === "true") {
-      setIsAdClosedPermanently(true);
-      return;
+    const isMobile = window.innerWidth < 768;
+    
+    // Only check localStorage on desktop
+    if (!isMobile) {
+      const adClosed = localStorage.getItem("chupaboo_ad_closed");
+      if (adClosed === "true") {
+        setIsAdClosedPermanently(true);
+        return;
+      }
+    } else {
+      // On mobile - always reset the closed state
+      setIsAdClosedPermanently(false);
     }
 
-    // Show first ad after 3 seconds
+    // Show first ad after 2 seconds
     const initialTimeout = setTimeout(() => {
       showRandomAd();
-    }, 3000);
+    }, 2000);
 
     // Set interval for next ads
     intervalRef.current = setInterval(() => {
-      // Only show if not currently visible and not closed permanently
-      if (!isAdVisible && !isAdClosedPermanently) {
+      const currentIsMobile = window.innerWidth < 768;
+      // On mobile always show, on desktop check if not permanently closed
+      if (!isAdVisible && (currentIsMobile || !isAdClosedPermanently)) {
         showRandomAd();
       }
-    }, 12000); // 12 seconds between ads
+    }, 12000);
 
     return () => {
       clearTimeout(initialTimeout);
@@ -423,12 +433,36 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     };
   }, [showRandomAd, isAdVisible, isAdClosedPermanently]);
 
-  // Save ad closed state to localStorage
+  // Save ad closed state to localStorage (only for desktop)
   useEffect(() => {
-    if (isAdClosedPermanently) {
+    const isMobile = window.innerWidth < 768;
+    // Only save on desktop
+    if (!isMobile && isAdClosedPermanently) {
       localStorage.setItem("chupaboo_ad_closed", "true");
+    } else if (isMobile) {
+      // On mobile, always keep it false
+      setIsAdClosedPermanently(false);
     }
   }, [isAdClosedPermanently]);
+
+  // Handle window resize to reset ad state on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        setIsAdClosedPermanently(false);
+        // If no ad is visible, show one after a delay
+        if (!isAdVisible && !isClosing) {
+          setTimeout(() => {
+            showRandomAd();
+          }, 1000);
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isAdVisible, isClosing, showRandomAd]);
 
   // HERO SLIDER LOGIC
   const nextSlide = useCallback(() => {
@@ -1100,7 +1134,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         </section>
       </div>
 
-      {/* AD SLIDER - FIXED */}
+      {/* AD SLIDER - FIXED (always shows on mobile) */}
       {isAdVisible && currentAd && (
         <div
           key={currentAd.id}
