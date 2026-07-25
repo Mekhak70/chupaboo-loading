@@ -366,9 +366,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   // Product view tracking
   const SITE_URL = "https://www.chupaboo.com";
   const productName = product?.name || "";
-  const productImageSrc = product?.image?.src || "/placeholder-image.jpg";
+  const productImageSrc = product?.image || "/placeholder-image.jpg";
   
   const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
+    console.log(imageSrc, 'imageSrc')
     try {
       const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
@@ -485,11 +486,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       customText: designType === "CUSTOM_TEXT" ? customText : "",
       petName: petName || "",
     };
-
     addToCart({
       id: product.id,
       name: product.name,
-      image: product.image.src || "/placeholder-image.jpg",
+      image: product.image,
       price: price,
       quantity: quantity,
       options: productOptions,
