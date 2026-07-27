@@ -586,12 +586,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     today.setDate(today.getDate() + 2);
     return today.toISOString().split("T")[0];
   }
-  const getTomorrowDate = () => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 2);
-    return tomorrow.toISOString().split('T')[0];
-  };
+ 
   const formatDate = (date:any) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -603,6 +598,26 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return formatDate(d);
+  };
+  const handleDateChange = (e:any) => {
+    const selectedDate = e.target.value;
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const minDate = formatDate(today);
+    
+    if (!selectedDate) {
+      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք ամսաթիվ" }));
+      return;
+    }
+    
+    if (selectedDate < minDate) {
+      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
+      setOrderInfo(prev => ({ ...prev, deliveryDate: "" }));
+      return;
+    }
+    
+    setOrderInfo(prev => ({ ...prev, deliveryDate: selectedDate }));
+    clearFieldError("deliveryDate");
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -797,10 +812,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
               <input
                 type="date"
                 value={orderInfo.deliveryDate}
-                onChange={(e) => {
-                  setOrderInfo(prev => ({ ...prev, deliveryDate: e.target.value }));
-                  if (e.target.value) clearFieldError("deliveryDate");
-                }}
+                onChange={handleDateChange}
                 min={getMinDate()}   // ← փոխել սա
                             className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                 required
