@@ -5,7 +5,7 @@ export interface Product {
   priceInCents: number
   image: any
   cream?: boolean
-  category: "small" | "standart"
+  category: "small" | "standart" | "midi"
 }
 
 export interface PartyShop {
