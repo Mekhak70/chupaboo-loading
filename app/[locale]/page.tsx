@@ -263,7 +263,7 @@ export default function HomePage() {
         title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
         description: "Հասեք 1000+ հաճախորդների ամեն օր",
         ctaText: "Մանրամասն →",
-        ctaLink: "https://www.chupaboo.com/contact",
+        ctaLink: `https://www.chupaboo.com/${locale}/contact`,
         bgColor: "from-[#69429a] to-[#8b5fcf]",
         icon: "📢",
       },
