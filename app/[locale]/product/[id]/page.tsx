@@ -3,7 +3,7 @@
 import { use, useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter,  } from "next/navigation";
+import { useRouter, } from "next/navigation";
 
 import {
   ArrowLeft,
@@ -87,7 +87,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  
+
   // --- Global cart ---
   const { addToCart, getItemCount, cart, updateOrderInfo } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -123,7 +123,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     distance: null,
     isYerevanAddress: null,
   });
-  
+
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,7 +134,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   // Helper function
   function getTodayDate() {
     const today = new Date();
-    today.setDate(today.getDate() + 1);
+    today.setDate(today.getDate() + 2);
     return today.toISOString().split("T")[0];
   }
 
@@ -144,7 +144,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       try {
         setLoading(true);
         setError(null);
-        
+
         const res = await fetch(
           "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
         );
@@ -180,11 +180,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         });
 
         setProducts(formatted);
-        
+
         // Find current product
         const foundProduct = formatted.find((p: any) => String(p.id) === String(id));
         setProduct(foundProduct || null);
-        
+
       } catch (err) {
         console.error("Load products error:", err);
         setError(err instanceof Error ? err.message : "Failed to load products");
@@ -334,7 +334,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   // Price calculation
   useEffect(() => {
     if (!product) return;
-    
+
     let basePrice = 0;
     if (cakeType === "MEAT") {
       if (selectedAnimal === "CHICKEN") basePrice = id === "cookieboo" ? 15000 : 12000;
@@ -359,7 +359,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (id === "pawy-1") basePrice += 2000;
     let finalPrice = basePrice + extra;
     if (product.category === "small") {
-       finalPrice = Math.round(finalPrice / 3);
+      finalPrice = Math.round(finalPrice / 3);
     }
     if (product.category === "midi") finalPrice = Math.round(finalPrice / 2);
 
@@ -373,7 +373,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const SITE_URL = "https://www.chupaboo.com";
   const productName = product?.name || "";
   const productImageSrc = product?.image || "/placeholder-image.jpg";
-  
+
   const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
     try {
       const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
@@ -386,7 +386,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       console.error("Telegram error:", err);
     }
   };
-  
+
   useEffect(() => {
     if (product && !hasSent.current) {
       hasSent.current = true;
@@ -416,7 +416,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-[#69429a] text-white rounded-lg hover:bg-[#5a3a85] transition-colors"
           >
@@ -433,7 +433,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   // ========== REST OF THE LOGIC ==========
-  
+
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
     let isValid = true;
@@ -498,7 +498,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       price: price,
       quantity: quantity,
       options: productOptions,
-            //@ts-ignore
+      //@ts-ignore
       orderInfo: {
         deliveryOption: orderInfo.deliveryOption,
         deliveryAddress: orderInfo.deliveryAddress,
@@ -557,12 +557,8 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
   };
 
   // UI helpers
-  const getMinDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
-  };
-  
+
+
   const getMaxDate = () => {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 30);
@@ -588,6 +584,18 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
       setSelectedVegetables(updated);
     }
     clearFieldError("selectedVegetables");
+  };
+
+  const getTomorrowDate = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 2);
+    return tomorrow.toISOString().split('T')[0];
+  };
+  const getMinDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1); // վաղը
+    return d.toISOString().split('T')[0];
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -619,7 +627,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
   return (
     <div className="min-h-screen bg-gray-50">
       <Link href="/" className="block w-full bg-[#69429a]">
-        <div className="bg-[#69429a] text-white py-4" onClick={()=>router.back()}>
+        <div className="bg-[#69429a] text-white py-4" onClick={() => router.back()}>
           <div className="container mx-auto px-4 flex items-center gap-2">
             <ArrowLeft className="w-5 h-5" />
             <span>{t("mainPage")}</span>
@@ -631,11 +639,11 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Left column: Product image */}
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg">
-            <Image 
-              src={product.image} 
-              alt={productName} 
-              fill 
-              className="object-cover" 
+            <Image
+              src={product.image}
+              alt={productName}
+              fill
+              className="object-cover"
             />
           </div>
 
@@ -779,8 +787,17 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
             {/* Delivery Date */}
             <div id="error-deliveryDate">
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Calendar className="w-5 h-5" />{t("deliveryDate")}</p>
-              <input type="date" value={orderInfo.deliveryDate} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryDate: e.target.value })); if (e.target.value) clearFieldError("deliveryDate"); }} min={getMinDate()} max={getMaxDate()} className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300" required />
-              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
+              <input
+                type="date"
+                value={orderInfo.deliveryDate}
+                onChange={(e) => {
+                  setOrderInfo(prev => ({ ...prev, deliveryDate: e.target.value }));
+                  if (e.target.value) clearFieldError("deliveryDate");
+                }}
+                min={getTomorrowDate()}   // ← փոխել սա
+                            className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
+                required
+              />              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
             </div>
 
             {/* Delivery Time */}
