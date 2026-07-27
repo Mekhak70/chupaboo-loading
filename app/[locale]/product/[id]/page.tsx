@@ -132,7 +132,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const prevOrderInfoRef = useRef(orderInfo);
 
   // Helper function
- 
+
 
   // ✅ Load products
   useEffect(() => {
@@ -586,36 +586,36 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     today.setDate(today.getDate() + 2);
     return today.toISOString().split("T")[0];
   }
- 
-  const formatDate = (date:any) => {
+
+  const formatDate = (date: any) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-  
+
   const getMinDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return formatDate(d);
   };
-  const handleDateChange = (e:any) => {
+  const handleDateChange = (e: any) => {
     const selectedDate = e.target.value;
     const today = new Date();
     today.setDate(today.getDate() + 1);
     const minDate = formatDate(today);
-    
+
     if (!selectedDate) {
       setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք ամսաթիվ" }));
       return;
     }
-    
+
     if (selectedDate < minDate) {
       setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
       setOrderInfo(prev => ({ ...prev, deliveryDate: "" }));
       return;
     }
-    
+
     setOrderInfo(prev => ({ ...prev, deliveryDate: selectedDate }));
     clearFieldError("deliveryDate");
   };
@@ -639,12 +639,33 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     }
   };
 
-  const removeImage = () => {
-    setCustomImage(null);
-    setCustomImageFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const isAfter9PM = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    return hours >= 21; // 21:00 կամ ավելի ուշ
   };
 
+  const getAvailableTimeSlots = () => {
+    const selectedDate = orderInfo.deliveryDate;
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = selectedDate === today;
+
+    // Եթե ընտրված է այսօր և ժամը 21:00-ից հետո
+    if (  isAfter9PM()) {
+      return [
+        { value: "21:00-24:00", label: "21:00 - 24:00" }
+      ];
+    }
+
+    // Մնացած դեպքերում բոլոր ժամերը
+    return [
+      { value: "12:00-15:00", label: "12:00 - 15:00" },
+      { value: "15:00-18:00", label: "15:00 - 18:00" },
+      { value: "18:00-21:00", label: "18:00 - 21:00" },
+      { value: "21:00-24:00", label: "21:00 - 24:00" }
+    ];
+  };
   // ========== JSX ==========
   return (
     <div className="min-h-screen bg-gray-50">
@@ -814,7 +835,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
                 value={orderInfo.deliveryDate}
                 onChange={handleDateChange}
                 min={getMinDate()}   // ← փոխել սա
-                            className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
+                className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                 required
               />              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
             </div>
@@ -824,10 +845,11 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Clock className="w-5 h-5" />{t("preferredDeliveryTime")}</p>
               <select value={orderInfo.deliveryTime} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryTime: e.target.value })); if (e.target.value) clearFieldError("deliveryTime"); }} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300">
                 <option value="">{t("selectDeliveryTime")}</option>
-                <option value="12:00-15:00">12:00 - 15:00</option>
-                <option value="15:00-18:00">15:00 - 18:00</option>
-                <option value="18:00-21:00">18:00 - 21:00</option>
-                <option value="21:00-24:00">21:00 - 24:00</option>
+                {getAvailableTimeSlots().map((slot) => (
+                  <option key={slot.value} value={slot.value}>
+                    {slot.label}
+                  </option>
+                ))}
               </select>
               {errors.deliveryTime && <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>}
             </div>
