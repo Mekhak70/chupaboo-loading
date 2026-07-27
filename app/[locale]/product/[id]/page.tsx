@@ -132,11 +132,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const prevOrderInfoRef = useRef(orderInfo);
 
   // Helper function
-  function getTodayDate() {
-    const today = new Date();
-    today.setDate(today.getDate() + 2);
-    return today.toISOString().split("T")[0];
-  }
+ 
 
   // ✅ Load products
   useEffect(() => {
@@ -585,17 +581,28 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     }
     clearFieldError("selectedVegetables");
   };
-
+  function getTodayDate() {
+    const today = new Date();
+    today.setDate(today.getDate() + 2);
+    return today.toISOString().split("T")[0];
+  }
   const getTomorrowDate = () => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 2);
     return tomorrow.toISOString().split('T')[0];
   };
+  const formatDate = (date:any) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   const getMinDate = () => {
     const d = new Date();
-    d.setDate(d.getDate() + 1); // վաղը
-    return d.toISOString().split('T')[0];
+    d.setDate(d.getDate() + 1);
+    return formatDate(d);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -794,7 +801,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
                   setOrderInfo(prev => ({ ...prev, deliveryDate: e.target.value }));
                   if (e.target.value) clearFieldError("deliveryDate");
                 }}
-                min={getTomorrowDate()}   // ← փոխել սա
+                min={getMinDate()}   // ← փոխել սա
                             className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                 required
               />              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
