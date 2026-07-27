@@ -3,6 +3,8 @@
 import { use, useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter,  } from "next/navigation";
+
 import {
   ArrowLeft,
   Calendar,
@@ -19,6 +21,7 @@ import { type Product } from "@/lib/products";
 import { notFound } from "next/navigation";
 import { useCart } from "@/components/cart-context";
 import { CartDrawer } from "@/components/CartDrawer";
+
 
 // ========== TYPES ==========
 type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | "";
@@ -82,6 +85,8 @@ const TELEGRAM_CHAT_ID = "8072053329";
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { t, language } = useLanguage();
+  const router = useRouter();
+
   
   // --- Global cart ---
   const { addToCart, getItemCount, cart, updateOrderInfo } = useCart();
@@ -356,7 +361,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (product.category === "small") {
        finalPrice = Math.round(finalPrice / 3);
     }
-    if (product.id === "midi") finalPrice = Math.round(finalPrice / 2);
+    if (product.category === "midi") finalPrice = Math.round(finalPrice / 2);
 
     if (product.category !== "small" && designType === "CUSTOM_PHOTO") finalPrice += 5000;
     const roundingStep = 500;
@@ -614,7 +619,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
   return (
     <div className="min-h-screen bg-gray-50">
       <Link href="/" className="block w-full bg-[#69429a]">
-        <div className="bg-[#69429a] text-white py-4">
+        <div className="bg-[#69429a] text-white py-4" onClick={()=>router.back()}>
           <div className="container mx-auto px-4 flex items-center gap-2">
             <ArrowLeft className="w-5 h-5" />
             <span>{t("mainPage")}</span>

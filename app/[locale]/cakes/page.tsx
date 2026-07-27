@@ -7,11 +7,14 @@ import { useLanguage } from "@/components/language-provider"
 import Image from "next/image"
 import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
-
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 type Filter = "all" | "small" | 'midi' | "standart"
 
 export default function ShopPage() {
   const { locale } = useParams()
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const { t } = useLanguage()
   const [filter, setFilter] = useState<Filter>("all")
@@ -22,7 +25,7 @@ export default function ShopPage() {
   const [pendingImage, setPendingImage] = useState<string | null>(null)
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   // State for mobile scroll effect
   const [visibleProductId, setVisibleProductId] = useState<string | null>(null);
   const cardRefs = useRef<{ [key: string]: HTMLAnchorElement | null }>({});
@@ -32,7 +35,28 @@ export default function ShopPage() {
     console.log(p.category, filter);
     return filter === "all" || p.category === filter;
   });
+  const handleFilterChange = (newFilter: string) => {
+    setFilter(newFilter as Filter);
 
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("filter", newFilter);
+
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: false,
+    });
+  };
+
+
+
+  useEffect(() => {
+    const currentFilter = searchParams.get("filter");
+  
+    if (currentFilter) {
+      if (["all", "small", "midi", "standart"].includes(currentFilter)) {
+        setFilter(currentFilter as Filter);
+      }
+    }
+  }, [searchParams]);
   const ProductSkeleton = () => (
     <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
       <div className="aspect-square bg-gray-200"></div>
@@ -121,7 +145,7 @@ export default function ShopPage() {
 
     window.addEventListener("scroll", throttledScroll, { passive: true });
     window.addEventListener("resize", handleScroll, { passive: true });
-    
+
     // Initial check
     setTimeout(handleScroll, 100);
 
@@ -223,7 +247,7 @@ export default function ShopPage() {
                 {/* FILTER BUTTONS */}
                 <div className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap" style={{ paddingBottom: '20px' }}>
                   <button
-                    onClick={() => setFilter('all')}
+                    onClick={() => handleFilterChange("all")}
                     style={{
                       padding: '10px 15px',
                       background: filter === 'all' ? '#aed137' : '#69429a',
@@ -240,8 +264,8 @@ export default function ShopPage() {
                     {t("all")}
                   </button>
                   <button
-                    onClick={() => setFilter('small')}
-                    style={{
+  onClick={() => handleFilterChange("small")}
+  style={{
                       padding: '10px 15px',
                       background: filter === 'small' ? '#aed137' : '#69429a',
                       color: '#fff',
@@ -257,8 +281,8 @@ export default function ShopPage() {
                     {t("mini")}
                   </button>
                   <button
-                    onClick={() => setFilter('midi')}
-                    style={{
+  onClick={() => handleFilterChange("midi")}
+  style={{
                       padding: '10px 15px',
                       background: filter === 'midi' ? '#aed137' : '#69429a',
                       color: '#fff',
@@ -274,8 +298,8 @@ export default function ShopPage() {
                     {t("midi")}
                   </button>
                   <button
-                    onClick={() => setFilter('standart')}
-                    style={{
+  onClick={() => handleFilterChange("standart")}
+  style={{
                       padding: '10px 15px',
                       background: filter === 'standart' ? '#aed137' : '#69429a',
                       color: '#fff',
@@ -300,7 +324,7 @@ export default function ShopPage() {
                   {filteredProducts.length > 0 ? (
                     filteredProducts.map((product) => {
                       const isVisible = visibleProductId === product.id;
-                      
+
                       return (
                         <Link
                           key={product.id}
@@ -318,7 +342,7 @@ export default function ShopPage() {
                               height={300}
                               width={300}
                             />
-                            
+
                             {/* Desktop-ի համար - hover */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
                               <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
@@ -327,12 +351,12 @@ export default function ShopPage() {
                             </div>
 
                             {/* Mobile-ի համար - ցույց է տալիս, երբ կարտը կենտրոնում է */}
-                            <div 
+                            <div
                               className={`
                                 absolute inset-0 bg-black/40 flex items-center justify-center sm:hidden
                                 transition-all duration-500 ease-out
-                                ${isVisible 
-                                  ? 'opacity-100 scale-100' 
+                                ${isVisible
+                                  ? 'opacity-100 scale-100'
                                   : 'opacity-0 scale-90 pointer-events-none'
                                 }
                               `}
@@ -344,7 +368,7 @@ export default function ShopPage() {
                               </div>
                             </div>
 
-                           
+
                           </div>
                         </Link>
                       );
