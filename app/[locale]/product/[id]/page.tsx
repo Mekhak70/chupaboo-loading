@@ -354,9 +354,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (id === "pawy-1") basePrice += 2000;
     let finalPrice = basePrice + extra;
     if (product.category === "small") {
-      if (product.id === "midi") finalPrice = Math.round(finalPrice / 2);
-      else finalPrice = Math.round(finalPrice / 3);
+       finalPrice = Math.round(finalPrice / 3);
     }
+    if (product.id === "midi") finalPrice = Math.round(finalPrice / 2);
+
     if (product.category !== "small" && designType === "CUSTOM_PHOTO") finalPrice += 5000;
     const roundingStep = 500;
     finalPrice = Math.round(finalPrice / roundingStep) * roundingStep;
