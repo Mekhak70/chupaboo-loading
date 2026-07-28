@@ -1,15 +1,141 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { ShoppingCart, CheckCircle, Minus, Plus, X } from "lucide-react";
+import { ShoppingCart, CheckCircle, Minus, Plus, X, Percent, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { CartDrawer } from "@/components/CartDrawer";
 import partyShop from "@/public/party-shop-main.jpg";
 import { useCart } from "@/components/cart-context";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
-// Skeleton Component
+// ========== DISCOUNT CONSTANTS ==========
+const DISCOUNT_THRESHOLD_1 = 5000;
+const DISCOUNT_THRESHOLD_2 = 10000;
+const DISCOUNT_PERCENT_1 = 10;
+const DISCOUNT_PERCENT_2 = 20;
+
+// ========== GET DISCOUNT PERCENT ==========
+const getDiscountPercent = (cakePrice: number): number => {
+  if (cakePrice >= DISCOUNT_THRESHOLD_2) return DISCOUNT_PERCENT_2;
+  if (cakePrice >= DISCOUNT_THRESHOLD_1) return DISCOUNT_PERCENT_1;
+  return 0;
+};
+
+// ========== PARTY SHOP DISCOUNT POPUP ==========
+const PartyShopDiscountPopup = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const popupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasBeenShown, setHasBeenShown] = useState(false);
+
+  useEffect(() => {
+    if (!hasBeenShown) {
+      popupTimeoutRef.current = setTimeout(() => {
+        setIsVisible(true);
+        setHasBeenShown(true);
+      }, 2000);
+    }
+
+    return () => {
+      if (popupTimeoutRef.current) {
+        clearTimeout(popupTimeoutRef.current);
+      }
+    };
+  }, [hasBeenShown]);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsClosing(false);
+    }, 400);
+  };
+
+  if (!isVisible) return null;
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.8, opacity: 0, y: 30 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-0 z-[101] flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+              <div className="bg-gradient-to-r from-[#69429a] to-[#8b5cf6] p-6 text-center">
+                <div className="text-5xl mb-3 animate-bounce">🎉</div>
+
+                <h2 className="text-2xl font-black text-white leading-tight">
+                  Party Shop-ի զեղչ
+                  <br />
+                  <span className="text-white">տորթի հետ</span>
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Տորթի գինը</p>
+                      <p className="text-xl font-bold text-gray-800">5,000 - 9,999 AMD</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Զեղչ</p>
+                      <p className="text-2xl font-black text-green-600">10%</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">🎯 5,000 դրամը գերազանցող տորթ գնելիս</p>
+                </div>
+
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Տորթի գինը</p>
+                      <p className="text-xl font-bold text-gray-800">10,000+ AMD</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Զեղչ</p>
+                      <p className="text-2xl font-black text-green-600">20%</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">🎯 10,000 դրամը գերազանցող տորթ գնելիս</p>
+                </div>
+
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                  <p className="text-xs text-blue-700 text-center">💡 Զեղչը կիրառվում է <strong>միայն Party Shop-ի</strong> ապրանքների վրա</p>
+                </div>
+
+                <button
+                  onClick={handleClose}
+                  className="w-full py-3 rounded-xl bg-[#69429a] text-white font-semibold hover:bg-[#7c4fb3] transition-all shadow-md hover:shadow-lg"
+                >
+                  Հասկացա՛
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ========== SKELETON COMPONENT ==========
 const ProductSkeleton = () => (
   <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
     <div className="aspect-square bg-gray-200"></div>
@@ -24,29 +150,29 @@ const ProductSkeleton = () => (
   </div>
 );
 
-// Placeholder image
+// ========== PLACEHOLDER IMAGE ==========
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
 
-// ⚠️ Telegram Bot Token and Chat ID
+// ========== TELEGRAM BOT CONFIG ==========
 const TELEGRAM_BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk";
 const TELEGRAM_CHAT_ID = "8072053329";
 const SITE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://your-site.com';
 
-// Image Modal Component
-const ImageModal = ({ 
-  isOpen, 
-  onClose, 
-  images, 
-  currentIndex, 
-  onPrev, 
+// ========== IMAGE MODAL ==========
+const ImageModal = ({
+  isOpen,
+  onClose,
+  images,
+  currentIndex,
+  onPrev,
   onNext,
-  productName 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  images: string[]; 
-  currentIndex: number; 
-  onPrev: () => void; 
+  productName
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  images: string[];
+  currentIndex: number;
+  onPrev: () => void;
   onNext: () => void;
   productName: string;
 }) => {
@@ -87,17 +213,13 @@ const ImageModal = ({
   if (!isOpen && !isClosing) return null;
 
   return (
-    <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${
-        isClosing ? 'opacity-0' : 'opacity-100'
-      }`}
+    <div
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'
+        }`}
       style={{ background: 'rgba(0, 0, 0, 0.85)' }}
       onClick={handleClose}
     >
-      <div 
-        className="relative w-full h-full flex flex-col items-center justify-center"
-       
-      >
+      <div className="relative w-full h-full flex flex-col items-center justify-center">
         <button
           onClick={handleClose}
           className="absolute top-6 right-6 text-white hover:text-gray-300 transition-all duration-300 z-20 bg-black/40 hover:bg-black/60 rounded-full p-3 backdrop-blur-sm hover:scale-110"
@@ -163,11 +285,10 @@ const ImageModal = ({
                       for (let i = 0; i < Math.abs(diff); i++) onPrev();
                     }
                   }}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    currentIndex === index
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${currentIndex === index
                       ? "bg-white scale-125 shadow-lg"
                       : "bg-white/40 hover:bg-white/70"
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -178,6 +299,7 @@ const ImageModal = ({
   );
 };
 
+// ========== MAIN COMPONENT ==========
 export default function ShopPage() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<any[]>([]);
@@ -187,10 +309,13 @@ export default function ShopPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
-  
-  // 📌 useRef for preventing duplicate sends
+
+  // 🔥 State for discount simulation
+  const [simulatedCakePrice, setSimulatedCakePrice] = useState<number | null>(null);
+  const [showDiscountSimulator, setShowDiscountSimulator] = useState(false);
+
   const hasSentTelegram = useRef<Record<string, boolean>>({});
-  
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProductId, setModalProductId] = useState<string | null>(null);
@@ -252,29 +377,25 @@ export default function ShopPage() {
     return url;
   };
 
-  // 📤 Telegram function - send product view (ՁԵՐ ՈՒԶԵԼՈՎ)
   const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
     try {
       console.log("📤 Sending to Telegram:", productName);
-      
+
       const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
-      
+
       const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          chat_id: TELEGRAM_CHAT_ID, 
-          photo: imageSrc, 
-          caption 
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          photo: imageSrc,
+          caption
         }),
-
-
-        
       });
 
       const data = await response.json();
       console.log("📨 Telegram response:", data);
-      
+
       if (data.ok) {
         console.log("✅ Successfully sent to Telegram!");
       } else {
@@ -285,48 +406,39 @@ export default function ShopPage() {
     }
   };
 
-  // 🔄 useEffect for sending Telegram notification when modal opens
   useEffect(() => {
     if (modalProductId && modalProduct) {
       const productId = modalProductId;
-      
-      // Check if already sent for this product
+
       if (!hasSentTelegram.current[productId]) {
         hasSentTelegram.current[productId] = true;
-        
-        // Get image URL
-        const imageSrc = Array.isArray(modalProduct.image) 
-          ? modalProduct.image[0] 
+
+        const imageSrc = Array.isArray(modalProduct.image)
+          ? modalProduct.image[0]
           : modalProduct.image || PLACEHOLDER_IMAGE;
-        
-        // Create full URL if needed
-        const fullImageUrl = imageSrc.startsWith("http") 
-          ? imageSrc 
+
+        const fullImageUrl = imageSrc.startsWith("http")
+          ? imageSrc
           : `${SITE_URL}${imageSrc}`;
-        
-        // Send to Telegram
+
         sendToTelegramProductView(modalProduct.name, fullImageUrl);
       }
     }
-  }, [modalProductId, ]);
+  }, [modalProductId]);
 
-  // Open modal function
   const openModal = (productId: string) => {
     setModalProductId(productId);
     setModalCurrentIndex(currentImage[productId] || 0);
     setModalOpen(true);
   };
 
-  // Close modal function
   const closeModal = () => {
     setModalOpen(false);
-    // Don't reset modalProductId immediately to allow useEffect to run
     setTimeout(() => {
       setModalProductId(null);
     }, 100);
   };
 
-  // Navigation functions for modal
   const handlePrevImage = () => {
     if (!modalProductId) return;
     const product = products.find(p => String(p.id) === modalProductId);
@@ -385,12 +497,11 @@ export default function ShopPage() {
     loadProducts();
   }, []);
 
-  // Get current product for modal
-  const modalProduct = modalProductId 
-    ? products.find(p => String(p.id) === modalProductId) 
+  const modalProduct = modalProductId
+    ? products.find(p => String(p.id) === modalProductId)
     : null;
-  
-  const modalImages = modalProduct 
+
+  const modalImages = modalProduct
     ? (Array.isArray(modalProduct.image) ? modalProduct.image : [modalProduct.image || PLACEHOLDER_IMAGE])
     : [];
 
@@ -416,6 +527,7 @@ export default function ShopPage() {
   return (
     <>
       <div className="flex flex-col">
+        {/* ========== PARTY SHOP HEADER IMAGE ========== */}
         <section>
           <img
             src={partyShop.src}
@@ -427,6 +539,41 @@ export default function ShopPage() {
           />
         </section>
 
+        {/* ========== DISCOUNT BANNER (VISIBLE ON PAGE) ========== */}
+        <section className="bg-gradient-to-r from-purple-50 to-pink-50 py-4 border-b border-purple-100">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="bg-[#69429a] rounded-full p-2 text-white">
+                  <Percent className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-800 text-sm sm:text-base">
+                    🎉 Party Shop Հատուկ Զեղչեր
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Տորթի գնից կախված՝ <span className="font-bold text-green-600">10%</span> կամ <span className="font-bold text-green-600">20%</span> զեղչ
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <div className="bg-white rounded-lg px-3 py-1.5 text-center shadow-sm border border-green-200">
+                  <p className="text-[10px] text-gray-500">5,000-9,999 AMD</p>
+                  <p className="text-lg font-black text-green-600">10%</p>
+                </div>
+                <div className="bg-white rounded-lg px-3 py-1.5 text-center shadow-sm border border-green-200">
+                  <p className="text-[10px] text-gray-500">10,000+ AMD</p>
+                  <p className="text-lg font-black text-green-600">20%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========== DISCOUNT SIMULATOR ========== */}
+       
+
+        {/* ========== PRODUCTS GRID ========== */}
         <section className="bg-white py-10">
           <div className="container mx-auto px-4">
             {products.length === 0 ? (
@@ -446,11 +593,30 @@ export default function ShopPage() {
 
                   const currentImageIndex = currentImage[productId] || 0;
                   const hasError = imageErrors[productId];
+
+                  // 🏷️ Calculate discount for this product (if simulator is active)
+                  const discountPercent = simulatedCakePrice !== null
+                    ? getDiscountPercent(simulatedCakePrice)
+                    : 0;
+
+                  const discountedPrice = discountPercent > 0
+                    ? product.price * (1 - discountPercent / 100)
+                    : product.price;
+
+                  const hasDiscount = discountPercent > 0;
+
                   return (
                     !!product.stock && <div
                       key={productId}
-                      className="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300"
+                      className="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300 relative"
                     >
+                      {/* 🏷️ DISCOUNT BADGE */}
+                      {hasDiscount && (
+                        <div className="absolute top-2 left-2 z-20 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                          -{discountPercent}% 🎉
+                        </div>
+                      )}
+
                       <div className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer">
                         <img
                           src={productImages[currentImageIndex]}
@@ -524,8 +690,7 @@ export default function ShopPage() {
                               {productImages.map((_: any, index: number) => (
                                 <div
                                   key={index}
-                                  className={`w-2 h-2 rounded-full transition-colors ${
-                                    currentImageIndex === index
+                                  className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
                                       ? "bg-white"
                                       : "bg-white/50"
                                     }`}
@@ -546,9 +711,28 @@ export default function ShopPage() {
                         <h3 className="font-semibold text-lg text-gray-800 tracking-tight line-clamp-2">
                           {product.name}
                         </h3>
-                        <p className="text-gray-500 mt-1 text-sm font-medium">
-                          {product.price} {t('currency') || 'AMD'}
-                        </p>
+
+                        {/* 💰 Price with discount */}
+                        <div className="mt-1">
+                          {hasDiscount ? (
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-green-600">
+                                {Math.round(discountedPrice)} {t('currency') || 'AMD'}
+                              </p>
+                              <p className="text-xs text-gray-400 line-through">
+                                {product.price} {t('currency') || 'AMD'}
+                              </p>
+                              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                                -{discountPercent}%
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-sm font-medium">
+                              {product.price} {t('currency') || 'AMD'}
+                            </p>
+                          )}
+                        </div>
+
                         {product.notes && (
                           <p className="text-xs text-gray-400 mt-0.5 italic">
                             {product.notes}
@@ -597,11 +781,10 @@ export default function ShopPage() {
                             }
                           }}
                           disabled={inCart || product.stock <= 0}
-                          className={`mt-3 w-full min-h-[44px] rounded-full px-3 py-2 text-xs sm:text-sm font-medium tracking-tight transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none flex items-center justify-center gap-2 text-center whitespace-normal break-words leading-tight ${
-                            inCart || product.stock <= 0
+                          className={`mt-3 w-full min-h-[44px] rounded-full px-3 py-2 text-xs sm:text-sm font-medium tracking-tight transition-all duration-200 ease-in-out shadow-sm focus:ring-2 focus:ring-purple-300 focus:outline-none flex items-center justify-center gap-2 text-center whitespace-normal break-words leading-tight ${inCart || product.stock <= 0
                               ? "bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-90 shadow-none"
                               : "bg-indigo-500 hover:bg-indigo-600 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-                          }`}
+                            }`}
                           style={{
                             color: "#fff",
                             backgroundColor: inCart
@@ -634,6 +817,7 @@ export default function ShopPage() {
           </div>
         </section>
 
+        {/* ========== FLOATING CART BUTTON ========== */}
         <button
           onClick={() => setIsCartOpen(true)}
           className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center hover:scale-105 active:scale-95"
@@ -647,12 +831,14 @@ export default function ShopPage() {
           )}
         </button>
 
+        {/* ========== CART DRAWER ========== */}
         <CartDrawer
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           orderInfo={orderInfo}
         />
 
+        {/* ========== IMAGE MODAL ========== */}
         <ImageModal
           isOpen={modalOpen}
           onClose={closeModal}
@@ -662,6 +848,9 @@ export default function ShopPage() {
           onNext={handleNextImage}
           productName={modalProduct?.name || ""}
         />
+
+        {/* ========== 🎉 PARTY SHOP DISCOUNT POPUP ========== */}
+        <PartyShopDiscountPopup />
       </div>
     </>
   );

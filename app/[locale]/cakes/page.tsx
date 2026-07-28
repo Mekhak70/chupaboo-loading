@@ -7,6 +7,8 @@ import { useLanguage } from "@/components/language-provider"
 import Image from "next/image"
 import Cake from "@/public/cake.png"
 import { useParams } from "next/navigation"
+import partyShop from "@/public/banner-our-cakes.png";
+
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 type Filter = "all" | "small" | 'midi' | "standart"
 
@@ -228,15 +230,13 @@ export default function ShopPage() {
     <>
       <div className="flex flex-col">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10 py-16 md:py-24" style={{ background: '#69429a' }}>
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-3xl text-center">
-              <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl" style={{ color: '#fff' }}>
-                {t("shopTitle")}
-              </h1>
-              <p className="text-lg text-muted-foreground md:text-xl" style={{ color: '#fff' }}>{t("shopDesc")}</p>
-            </div>
-          </div>
+        <section>
+          <img
+            src={partyShop.src}
+            alt="Party Shop"
+            className="w-full h-[auto] object-contain"
+            
+          />
         </section>
 
         {/* Filter & Products */}
