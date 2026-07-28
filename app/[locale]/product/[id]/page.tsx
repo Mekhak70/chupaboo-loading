@@ -650,9 +650,14 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     const selectedDate = orderInfo.deliveryDate;
     const today = new Date().toISOString().split('T')[0];
     const isToday = selectedDate === today;
+    const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const tomorrowDate = tomorrow.toISOString().split("T")[0];
+const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
 
     // Եթե ընտրված է այսօր և ժամը 21:00-ից հետո
-    if (  isAfter9PM()) {
+    if ( isTomorrow &&  isAfter9PM()) {
       return [
         { value: "21:00-24:00", label: "21:00 - 24:00" }
       ];
