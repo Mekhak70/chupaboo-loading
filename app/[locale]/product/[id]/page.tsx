@@ -7,13 +7,6 @@ import { useRouter, } from "next/navigation";
 
 import {
   ArrowLeft,
-  Calendar,
-  Clock,
-  MapPin,
-  Phone,
-  CreditCard,
-  Truck,
-  Home,
   ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
@@ -89,7 +82,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
 
   // --- Global cart ---
-  const { addToCart, getItemCount, cart, updateOrderInfo } = useCart();
+  const { addToCart, getItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   // --- States ---
@@ -194,28 +187,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       loadProducts();
     }
   }, [id]);
+  ;
 
-  // ✅ Order info update
-  useEffect(() => {
-    if (JSON.stringify(prevOrderInfoRef.current) !== JSON.stringify(orderInfo)) {
-      prevOrderInfoRef.current = orderInfo;
-      updateOrderInfo({
-        ...orderInfo,
-      });
-    }
-  }, [orderInfo, updateOrderInfo]);
 
-  // ✅ Delivery fee logic
-  const calculateDeliveryFee = (distanceInKm: number): number => {
-    if (distanceInKm <= 0) return BASE_DELIVERY_FEE;
-    let fee = BASE_DELIVERY_FEE;
-    if (distanceInKm > EXTRA_DISTANCE_THRESHOLD) {
-      const extraDistance = distanceInKm - EXTRA_DISTANCE_THRESHOLD;
-      const extraSegments = Math.ceil(extraDistance / EXTRA_DISTANCE_THRESHOLD);
-      fee += extraSegments * EXTRA_DISTANCE_FEE;
-    }
-    return fee;
-  };
+
 
   const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
     if (!address || address.trim().length < 5) return null;
@@ -273,59 +248,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return yerevanKeywords.some((keyword) => address.toLowerCase().includes(keyword));
   };
 
-  const updateDeliveryFee = useCallback(async (address: string, productTotal: number, option: DeliveryOption) => {
-    if (option === "pickup") {
-      setOrderInfo(prev => ({ ...prev, deliveryFee: 0, distance: null, isYerevanAddress: null }));
-      return;
-    }
-    if (!address || address.trim().length < 5) {
-      setOrderInfo(prev => ({ ...prev, deliveryFee: 0, distance: null, isYerevanAddress: null }));
-      return;
-    }
-    const inYerevan = isAddressInYerevanByText(address);
-    setOrderInfo(prev => ({ ...prev, isYerevanAddress: inYerevan }));
-    const dist = await calculateDrivingDistance(address);
-    if (dist !== null) {
-      setOrderInfo(prev => ({ ...prev, distance: dist }));
-      if (productTotal >= FREE_DELIVERY_THRESHOLD) {
-        if (dist <= FREE_DELIVERY_MAX_DISTANCE) {
-          setOrderInfo(prev => ({ ...prev, deliveryFee: 0 }));
-          return;
-        } else {
-          const extraDistance = dist - FREE_DELIVERY_MAX_DISTANCE;
-          const extraSegments = Math.ceil(extraDistance / EXTRA_DISTANCE_THRESHOLD);
-          const fee = extraSegments * EXTRA_DISTANCE_FEE;
-          setOrderInfo(prev => ({ ...prev, deliveryFee: fee }));
-          return;
-        }
-      }
-      const fee = calculateDeliveryFee(dist);
-      setOrderInfo(prev => ({ ...prev, deliveryFee: fee }));
-    } else {
-      setOrderInfo(prev => ({ ...prev, deliveryFee: productTotal >= FREE_DELIVERY_THRESHOLD ? 0 : BASE_DELIVERY_FEE, distance: null }));
-    }
-  }, []);
 
-  useEffect(() => {
-    if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
-    const productTotal = price * quantity;
-    if (orderInfo.deliveryOption === "delivery" && orderInfo.deliveryAddress && orderInfo.deliveryAddress.trim().length > 5) {
-      debounceTimeoutRef.current = setTimeout(() => {
-        updateDeliveryFee(orderInfo.deliveryAddress, productTotal, orderInfo.deliveryOption);
-      }, 1500);
-    } else if (orderInfo.deliveryOption === "pickup") {
-      setOrderInfo(prev => ({ ...prev, deliveryFee: 0, distance: null, isYerevanAddress: null }));
-    } else {
-      setOrderInfo(prev => ({ ...prev, deliveryFee: 0, distance: null, isYerevanAddress: null }));
-    }
-    return () => { if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current); };
-  }, [orderInfo.deliveryAddress, orderInfo.deliveryOption, price, quantity, updateDeliveryFee]);
 
-  useEffect(() => {
-    if (orderInfo.deliveryOption === "delivery" && orderInfo.deliveryAddress && orderInfo.deliveryAddress.trim().length > 5) {
-      updateDeliveryFee(orderInfo.deliveryAddress, price * quantity, orderInfo.deliveryOption);
-    }
-  }, [price, quantity, orderInfo.deliveryOption, orderInfo.deliveryAddress, updateDeliveryFee]);
+
 
   // Price calculation
   useEffect(() => {
@@ -440,25 +365,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (cakeType === "MEAT" && !selectedAnimal) { newErrors.selectedAnimal = t("meatTypeRequired") || "Please select meat type"; isValid = false; }
     if (product.category !== "small" && !designType) { newErrors.designType = t("designTypeRequired") || "Please select design type"; isValid = false; }
     if (designType === "CUSTOM_TEXT" && !customText.trim()) { newErrors.customText = t("customTextRequired") || "Please enter custom text"; isValid = false; }
-    const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
-    if (!orderInfo.phoneNumber.trim()) { newErrors.phoneNumber = t("phoneNumberRequired") || "Please enter phone number"; isValid = false; }
-    else if (!phoneRegex.test(orderInfo.phoneNumber)) { newErrors.phoneNumber = t("phoneNumberInvalid") || "Please enter a valid phone number"; isValid = false; }
-    if (!orderInfo.deliveryDate) { newErrors.deliveryDate = t("deliveryDateRequired") || "Please select delivery date"; isValid = false; }
-    else {
-      const selectedDate = new Date(orderInfo.deliveryDate);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
-      if (selectedDate < today) { newErrors.deliveryDate = t("deliveryDatePast") || "Delivery date cannot be in the past"; isValid = false; }
-      else if (selectedDate > maxDate) { newErrors.deliveryDate = t("deliveryDateTooFar") || "Delivery date cannot be more than 30 days from now"; isValid = false; }
-    }
-    if (orderInfo.deliveryOption === "delivery") {
-      if (!orderInfo.deliveryAddress.trim()) { newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address"; isValid = false; }
-      else if (orderInfo.deliveryAddress.trim().length < 5) { newErrors.deliveryAddress = t("deliveryAddressTooShort") || "Please enter a valid delivery address"; isValid = false; }
-    }
-    if (!orderInfo.deliveryTime) { newErrors.deliveryTime = t("deliveryTimeRequired") || "Please select delivery time"; isValid = false; }
-    if (!orderInfo.paymentMethod) { newErrors.paymentMethod = t("paymentMethodRequired") || "Please select payment method"; isValid = false; }
+    // const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
+    // if (!orderInfo.phoneNumber.trim()) { newErrors.phoneNumber = t("phoneNumberRequired") || "Please enter phone number"; isValid = false; }
+    // else if (!phoneRegex.test(orderInfo.phoneNumber)) { newErrors.phoneNumber = t("phoneNumberInvalid") || "Please enter a valid phone number"; isValid = false; }
+    // if (!orderInfo.deliveryDate) { newErrors.deliveryDate = t("deliveryDateRequired") || "Please select delivery date"; isValid = false; }
+    // else {
+    //   const selectedDate = new Date(orderInfo.deliveryDate);
+    //   const today = new Date(); today.setHours(0, 0, 0, 0);
+    //   const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
+    //   if (selectedDate < today) { newErrors.deliveryDate = t("deliveryDatePast") || "Delivery date cannot be in the past"; isValid = false; }
+    //   else if (selectedDate > maxDate) { newErrors.deliveryDate = t("deliveryDateTooFar") || "Delivery date cannot be more than 30 days from now"; isValid = false; }
+    // }
+    // if (orderInfo.deliveryOption === "delivery") {
+    //   if (!orderInfo.deliveryAddress.trim()) { newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address"; isValid = false; }
+    //   else if (orderInfo.deliveryAddress.trim().length < 5) { newErrors.deliveryAddress = t("deliveryAddressTooShort") || "Please enter a valid delivery address"; isValid = false; }
+    // }
+    // if (!orderInfo.deliveryTime) { newErrors.deliveryTime = t("deliveryTimeRequired") || "Please select delivery time"; isValid = false; }
+    // if (!orderInfo.paymentMethod) { newErrors.paymentMethod = t("paymentMethodRequired") || "Please select payment method"; isValid = false; }
 
-    setErrors(newErrors);
+    // setErrors(newErrors);
     return isValid;
   };
 
@@ -494,65 +419,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       price: price,
       quantity: quantity,
       options: productOptions,
-      //@ts-ignore
-      orderInfo: {
-        deliveryOption: orderInfo.deliveryOption,
-        deliveryAddress: orderInfo.deliveryAddress,
-        deliveryDate: orderInfo.deliveryDate,
-        deliveryTime: orderInfo.deliveryTime,
-        paymentMethod: orderInfo.paymentMethod,
-        phoneNumber: orderInfo.phoneNumber,
-        deliveryFee: orderInfo.deliveryFee,
-      },
     });
 
     setIsCartOpen(true);
   };
 
-  const getWhatsAppMessage = () => {
-    if (cart.length === 0) return "";
 
-    const productLines = cart.map((item) => {
-      let details = `🍰 ${item.name} x${item.quantity} — ${item.price * item.quantity} ֏\n`;
-      if (item.options) {
-        const opts = item.options;
-        details += `   📌 ${t("cakeType")}: ${opts.cakeType}\n`;
-        details += `   🥛 ${t("creamType")}: ${opts.creamType}\n`;
-        details += `   🥗 ${t("ingredients")}: ${opts.selectedVegetables.join(", ")}\n`;
-        if (opts.selectedAnimal) details += `   🍗 ${t("meatType")}: ${opts.selectedAnimal}\n`;
-        if (opts.designType) details += `   🎨 ${t("designType")}: ${opts.designType}\n`;
-        if (opts.customText) details += `   ✏️ ${t("customText")}: ${opts.customText}\n`;
-        if (opts.petName) details += `   🐶 ${t("petName")}: ${opts.petName}\n`;
-      } else {
-        details += `   ${t("simpleProduct")} (${t("noCustomization")})\n`;
-      }
-      return details;
-    }).join("\n");
-
-    const orderLines = `
-📦 ${t("orderDetails")}:
-${t("deliveryOption")}: ${orderInfo.deliveryOption === "delivery" ? t("delivery") : t("pickup")}
-${orderInfo.deliveryOption === "delivery" ? `${t("deliveryAddress")}: ${orderInfo.deliveryAddress}\n` : ""}
-📅 ${t("deliveryDate")}: ${orderInfo.deliveryDate}
-⏰ ${t("deliveryTime")}: ${orderInfo.deliveryTime}
-💳 ${t("paymentMethod")}: ${orderInfo.paymentMethod}
-📞 ${t("phoneNumber")}: ${orderInfo.phoneNumber}
-    `;
-
-    const itemsTotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const deliveryFee = orderInfo.deliveryOption === "delivery" ? orderInfo.deliveryFee : 0;
-    const total = itemsTotal + deliveryFee;
-
-    const summary = `
-💰 ${t("subtotal")}: ${itemsTotal} ֏
-${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
-💎 ${t("total")}: ${total} ֏
-    `;
-
-    return `${productLines}\n${orderLines}\n${summary}\n🙏 ${t("thanksForOrder")}`;
-  };
-
-  // UI helpers
 
 
   const getMaxDate = () => {
@@ -639,38 +511,7 @@ ${deliveryFee > 0 ? `🚚 ${t("deliveryFee")}: ${deliveryFee} ֏\n` : ""}
     }
   };
 
-  const isAfter9PM = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    return hours >= 21; // 21:00 կամ ավելի ուշ
-  };
-
-  const getAvailableTimeSlots = () => {
-    const selectedDate = orderInfo.deliveryDate;
-    const today = new Date().toISOString().split('T')[0];
-    const isToday = selectedDate === today;
-    const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-const tomorrowDate = tomorrow.toISOString().split("T")[0];
-const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
-
-    // Եթե ընտրված է այսօր և ժամը 21:00-ից հետո
-    if ( isTomorrow &&  isAfter9PM()) {
-      return [
-        { value: "21:00-24:00", label: "21:00 - 24:00" }
-      ];
-    }
-
-    // Մնացած դեպքերում բոլոր ժամերը
-    return [
-      { value: "12:00-15:00", label: "12:00 - 15:00" },
-      { value: "15:00-18:00", label: "15:00 - 18:00" },
-      { value: "18:00-21:00", label: "18:00 - 21:00" },
-      { value: "21:00-24:00", label: "21:00 - 24:00" }
-    ];
-  };
+  
   // ========== JSX ==========
   return (
     <div className="min-h-screen bg-gray-50">
@@ -767,7 +608,7 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
             </div>
 
             {/* Cream Type */}
-            {id !== "midi" && <div id="error-creamType">
+            {product.cream && <div id="error-creamType">
               <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosecream")}</p>
               <div className="flex flex-wrap gap-3">
                 <button onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
@@ -807,8 +648,8 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
               </>
             )}
 
-            {/* Delivery Address */}
-            {orderInfo.deliveryOption === "delivery" && (
+
+            {/* {orderInfo.deliveryOption === "delivery" && (
               <div id="error-deliveryAddress">
                 <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><MapPin className="w-5 h-5" />{t("deliveryAddress")}</p>
                 <textarea value={orderInfo.deliveryAddress} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryAddress: e.target.value })); if (e.target.value.trim().length >= 5) clearFieldError("deliveryAddress"); }} placeholder={t("placeholder")} rows={3} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none border-gray-300" required />
@@ -820,19 +661,19 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
               </div>
             )}
 
-            {/* Pickup Address */}
+            
             {orderInfo.deliveryOption === "pickup" && (
               <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200"><p className="text-sm text-green-800 flex items-center gap-2"><Home className="w-4 h-4" /><span className="font-semibold">{t("pickupAddress")}:</span> {PICKUP_ADDRESS}</p><p className="text-xs text-green-600 mt-1">ℹ️ {t("pickupInstructions")}</p></div>
             )}
 
-            {/* Phone Number */}
+           
             <div id="error-phoneNumber">
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Phone className="w-5 h-5" />{t("phoneNumber")}</p>
               <input type="tel" value={orderInfo.phoneNumber} onChange={(e) => { setOrderInfo(prev => ({ ...prev, phoneNumber: e.target.value })); if (e.target.value.trim()) clearFieldError("phoneNumber"); }} placeholder={t("enterPhoneNumber")} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300" required />
               {errors.phoneNumber && <p className="text-red-500 text-sm mt-2">{errors.phoneNumber}</p>}
             </div>
 
-            {/* Delivery Date */}
+           
             <div id="error-deliveryDate">
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Calendar className="w-5 h-5" />{t("deliveryDate")}</p>
               <input
@@ -845,7 +686,6 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
               />              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
             </div>
 
-            {/* Delivery Time */}
             <div id="error-deliveryTime">
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Clock className="w-5 h-5" />{t("preferredDeliveryTime")}</p>
               <select value={orderInfo.deliveryTime} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryTime: e.target.value })); if (e.target.value) clearFieldError("deliveryTime"); }} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300">
@@ -859,7 +699,6 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
               {errors.deliveryTime && <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>}
             </div>
 
-            {/* Payment Method */}
             <div id="error-paymentMethod">
               <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" />{t("paymentMethod")}</p>
               <div className="flex flex-wrap gap-3">
@@ -867,7 +706,7 @@ const isTomorrow = orderInfo.deliveryDate === tomorrowDate;
                 <button onClick={() => { setOrderInfo(prev => ({ ...prev, paymentMethod: "bankTransfer" })); clearFieldError("paymentMethod"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.paymentMethod === "bankTransfer" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"}`}>🏦 {t("bankTransfer")}</button>
               </div>
               {errors.paymentMethod && <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>}
-            </div>
+            </div> */}
 
             {/* Quantity */}
             <div>

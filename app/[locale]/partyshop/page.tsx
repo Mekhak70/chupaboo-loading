@@ -9,6 +9,7 @@ import partyShop from "@/public/party-shop-main.jpg";
 import { useCart } from "@/components/cart-context";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { text } from "stream/consumers";
 
 // ========== DISCOUNT CONSTANTS ==========
 const DISCOUNT_THRESHOLD_1 = 5000;
@@ -177,6 +178,8 @@ const ImageModal = ({
   productName: string;
 }) => {
   const [isClosing, setIsClosing] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
@@ -185,6 +188,27 @@ const ImageModal = ({
       setIsClosing(false);
     }, 300);
   }, [onClose]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe && images.length > 1) onNext();
+    if (isRightSwipe && images.length > 1) onPrev();
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -214,65 +238,85 @@ const ImageModal = ({
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'
-        }`}
-      style={{ background: 'rgba(0, 0, 0, 0.85)' }}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300 ${
+        isClosing ? 'opacity-0' : 'opacity-100'
+      }`}
+      style={{ background: 'rgba(0, 0, 0, 0.92)' }}
       onClick={handleClose}
     >
-      <div className="relative w-full h-full flex flex-col items-center justify-center">
-        <button
-          onClick={handleClose}
-          className="absolute top-6 right-6 text-white hover:text-gray-300 transition-all duration-300 z-20 bg-black/40 hover:bg-black/60 rounded-full p-3 backdrop-blur-sm hover:scale-110"
-        >
-          <X className="h-8 w-8" />
-        </button>
+      <div 
+        className="relative w-full h-full flex flex-col"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* ====== TOP BAR ====== */}
+        <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 z-30">
+          {/* Left: Counter */}
+          {images.length > 1 && (
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-4 md:px-5 py-1.5 md:py-2">
+              <span className="text-white/70 text-xs md:text-sm font-mono">
+                {String(currentIndex + 1).padStart(2, '0')} <span className="text-white/30">/</span> {String(images.length).padStart(2, '0')}
+              </span>
+            </div>
+          )}
 
-        {productName && (
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 text-white text-2xl md:text-3xl font-bold z-20 text-center max-w-[80vw]">
-            {productName}
+          {/* Center: Product Name */}
+          {productName && (
+            <div className="flex-1 flex items-center justify-center">
+            <div className=" text mx-4 md:mx-6" style={{textAlign: 'center'}}>
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-4 md:px-6 py-1.5 md:py-2">
+                <p className="text-white/90 text-xs md:text-sm lg:text-base font-light text-center truncate">
+                  {productName}
+                </p>
+              </div>
+            </div>
+            </div>
+          )}
+
+          {/* Right: Close Button */}
+          <button
+            onClick={handleClose}
+            className="flex-shrink-0 text-white/80 hover:text-white transition-all duration-300 bg-white/5 hover:bg-white/20 border border-white/10 rounded-full p-2 md:p-3 backdrop-blur-xl hover:scale-105 active:scale-95"
+          >
+            <X className="h-4 w-4 md:h-5 md:w-5" />
+          </button>
+        </div>
+
+        {/* ====== IMAGE AREA ====== */}
+        <div className="flex-1 flex items-center justify-center min-h-0 px-4 md:px-8 py-2 md:py-4">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <img
+              src={images[currentIndex] || PLACEHOLDER_IMAGE}
+              alt={productName || "Product image"}
+              className="w-auto h-auto max-w-full max-h-full object-contain select-none"
+              style={{
+                maxWidth: 'min(90vw, 1000px)',
+                maxHeight: '100%',
+                filter: 'drop-shadow(0 20px 60px rgba(0,0,0,0.6))'
+              }}
+              onClick={(e) => e.stopPropagation()}
+              draggable={false}
+            />
           </div>
-        )}
+        </div>
 
-        <img
-          src={images[currentIndex] || PLACEHOLDER_IMAGE}
-          alt={productName || "Product image"}
-          className="w-auto h-auto max-w-[92vw] max-h-[82vh] object-contain rounded-lg shadow-2xl transition-transform duration-300"
-          style={{
-            width: 'auto',
-            height: 'auto',
-            maxWidth: '92vw',
-            maxHeight: '82vh',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
-
+        {/* ====== BOTTOM BAR ====== */}
         {images.length > 1 && (
-          <>
+          <div className="flex-shrink-0 flex items-center justify-center gap-4 md:gap-6 px-4 md:px-8 py-3 md:py-4 z-30">
+            {/* Prev Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onPrev();
               }}
-              className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-4 transition-all duration-300 z-20 backdrop-blur-sm hover:scale-110"
+              className="group bg-white/5 hover:bg-white/20 backdrop-blur-xl border border-white/10 rounded-full p-2 md:p-3 transition-all duration-300 hover:scale-110 active:scale-95"
             >
-              <ChevronLeft className="h-8 w-8" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onNext();
-              }}
-              className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-4 transition-all duration-300 z-20 backdrop-blur-sm hover:scale-110"
-            >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronLeft className="h-4 w-4 md:h-5 md:w-5 text-white/70 group-hover:text-white transition-colors" />
             </button>
 
-            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium z-20 border border-white/10">
-              {currentIndex + 1} / {images.length}
-            </div>
-
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+            {/* Dots */}
+            <div className="flex items-center gap-1.5 md:gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-3 md:px-4 py-1.5 md:py-2">
               {images.map((_, index) => (
                 <button
                   key={index}
@@ -285,14 +329,26 @@ const ImageModal = ({
                       for (let i = 0; i < Math.abs(diff); i++) onPrev();
                     }
                   }}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${currentIndex === index
-                      ? "bg-white scale-125 shadow-lg"
-                      : "bg-white/40 hover:bg-white/70"
-                    }`}
+                  className={`transition-all duration-300 ${
+                    currentIndex === index
+                      ? 'w-6 md:w-8 h-1.5 bg-white rounded-full shadow-lg shadow-white/20'
+                      : 'w-1.5 h-1.5 bg-white/30 hover:bg-white/50 rounded-full'
+                  }`}
                 />
               ))}
             </div>
-          </>
+
+            {/* Next Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              className="group bg-white/5 hover:bg-white/20 backdrop-blur-xl border border-white/10 rounded-full p-2 md:p-3 transition-all duration-300 hover:scale-110 active:scale-95"
+            >
+              <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-white/70 group-hover:text-white transition-colors" />
+            </button>
+          </div>
         )}
       </div>
     </div>

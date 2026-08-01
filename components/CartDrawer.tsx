@@ -5,8 +5,9 @@ import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect, use } from "react";
-import { set } from "date-fns";
 
+type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
+type DeliveryOption = "delivery" | "pickup";
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,7 +21,32 @@ interface CartDrawerProps {
     deliveryFee: number;
   };
 }
-
+interface ValidationErrors {
+  cakeType?: string;
+  creamType?: string;
+  selectedVegetables?: string;
+  selectedAnimal?: string;
+  designType?: string;
+  phoneNumber?: string;
+  deliveryDate?: string;
+  deliveryAddress?: string;
+  deliveryTime?: string;
+  paymentMethod?: string;
+  petName?: string;
+  customImage?: string;
+  customText?: string;
+}
+interface OrderInfo {
+  deliveryOption: DeliveryOption;
+  deliveryAddress: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  paymentMethod: PaymentMethod;
+  phoneNumber: string;
+  deliveryFee: number;
+  distance: number | null;
+  isYerevanAddress: boolean | null;
+}
 // ========== DELIVERY CONSTANTS ==========
 const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const PICKUP_LAT = 40.195059;
@@ -103,12 +129,17 @@ const getDiscountPercentForPartyShop = (cakePrice: number): number => {
 
 export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDrawerProps) {
   const { cart, updateQuantity, removeFromCart, orderInfo: contextOrderInfo, clearCart } = useCart();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showMessengerSelector, setShowMessengerSelector] = useState(false);
-  
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const existingOrderInfo = contextOrderInfo || propOrderInfo;
+
+
+
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
     deliveryOption: "delivery",
@@ -121,15 +152,23 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     isCalculating: false,
   });
 
+  // ✅ Երբ propOrderInfo-ն փոխվում է, թարմացնել tempOrderInfo-ն
+  useEffect(() => {
+    if (existingOrderInfo) {
+      setTempOrderInfo(prev => ({
+        ...prev,
+        phoneNumber: existingOrderInfo.phoneNumber || prev.phoneNumber,
+        deliveryOption: existingOrderInfo.deliveryOption || prev.deliveryOption,
+        deliveryAddress: existingOrderInfo.deliveryAddress || prev.deliveryAddress,
+        deliveryDate: existingOrderInfo.deliveryDate || prev.deliveryDate,
+        deliveryTime: existingOrderInfo.deliveryTime || prev.deliveryTime,
+        paymentMethod: existingOrderInfo.paymentMethod || prev.paymentMethod,
+        deliveryFee: existingOrderInfo.deliveryFee || prev.deliveryFee,
+      }));
+    }
+  }, [existingOrderInfo]);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasCake = cart.some((item) => item.options?.cakeType);
-  const existingOrderInfo = contextOrderInfo || propOrderInfo;
-
-console.log(existingOrderInfo.deliveryFee
-  , 'existingOrderInfo')
-
-
 
   // ========== CALCULATE TOTAL WITH PARTYSHOP DISCOUNT ==========
   const hasCakeInCart = cart.some((item) => item.options?.cakeType);
@@ -167,7 +206,10 @@ console.log(existingOrderInfo.deliveryFee
   };
 
   const discountInfo = getDiscountInfo();
-  const effectiveTotal = productsTotal + (tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 ? tempOrderInfo.deliveryFee : 0);
+  
+  // ✅ Ճիշտ հաշվարկ ընդհանուր գումարի համար
+  const deliveryFeeToUse = tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0;
+  const effectiveTotal = productsTotal + deliveryFeeToUse;
 
   // ========== GEOCODING & DISTANCE ==========
   const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
@@ -254,8 +296,6 @@ console.log(existingOrderInfo.deliveryFee
     }
     return () => { if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current); };
   }, [tempOrderInfo.deliveryAddress, tempOrderInfo.deliveryOption, productsTotal, updateDeliveryFee]);
-
-  const orderInfo = hasCake ? existingOrderInfo : (showDeliveryForm ? null : tempOrderInfo);
 
   const toggleItemExpand = (itemId: string) => {
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
@@ -382,7 +422,7 @@ console.log(existingOrderInfo.deliveryFee
   };
 
   const formatDeliveryInfo = () => {
-    const info = hasCake ? existingOrderInfo : tempOrderInfo;
+    const info = tempOrderInfo;
     if (!info) return null;
 
     const details: { emoji: string; label: string; value: string }[] = [];
@@ -441,13 +481,14 @@ console.log(existingOrderInfo.deliveryFee
       details.push({ emoji: "💳", label: t('paymentMethod') || "Վճարման եղանակ", value: t('notSpecified') || "նշված չէ" });
     }
 
-    if (info.deliveryOption === "delivery" && 'deliveryFee' in info && info.deliveryFee > 0) {
+    // ✅ Delivery fee-ն ավելացնել միայն մեկ անգամ
+    if (info.deliveryOption === "delivery" && info.deliveryFee > 0) {
       details.push({
         emoji: "💰",
         label: t('deliveryFee') || "Առաքման վճար",
         value: `${info.deliveryFee} ${t('currency')}`
       });
-    } else if (info.deliveryOption === "delivery" && 'deliveryFee' in info && info.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
+    } else if (info.deliveryOption === "delivery" && info.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
       details.push({
         emoji: "🎉",
         label: t('deliveryFee') || "Առաքման վճար",
@@ -471,7 +512,7 @@ console.log(existingOrderInfo.deliveryFee
               imageUrl = item.image;
             } else if (typeof item.image === 'object') {
               //@ts-ignore
-              imageUrl = item.image?.url || item.image?.src || '';
+              imageUrl = item.image || item.image || '';
             }
           }
 
@@ -502,19 +543,17 @@ console.log(existingOrderInfo.deliveryFee
   };
 
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
-    const deliveryInfoToUse = hasCake ? existingOrderInfo : tempOrderInfo;
-  
     let message = `${t('greeting')}\n\n`;
-  
+
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
       let finalPrice = item.price;
-  
+
       if (hasCakeInCart && !isCake && discountPercent > 0) {
         const discountAmount = finalPrice * (discountPercent / 100);
         finalPrice = Math.max(0, finalPrice - discountAmount);
       }
-  
+
       message += `▸ ${item.name} — ${item.quantity} ${t('quantity') || "հատ"} — ${finalPrice * item.quantity} ${t('currency')}\n`;
       if (isCake && item.options) {
         if (item.options.cakeType) {
@@ -582,64 +621,61 @@ console.log(existingOrderInfo.deliveryFee
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
     });
-  
+
     // ✅ Ավելացնել նկարների հղումներ
     message += buildProductImagesLinks();
-  
+
     // ✅ Delivery տվյալներ
-    if (deliveryInfoToUse && deliveryInfoToUse.phoneNumber) {
+    if (tempOrderInfo && tempOrderInfo.phoneNumber) {
       message += `\n🚚 *${t('deliveryDetails') || "ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ"}*\n`;
-      message += `▸ 📞 ${t('phone') || "Հեռախոս"}: ${deliveryInfoToUse.phoneNumber || t('notSpecified') || "նշված չէ"}\n`;
+      message += `▸ 📞 ${t('phone') || "Հեռախոս"}: ${tempOrderInfo.phoneNumber || t('notSpecified') || "նշված չէ"}\n`;
       const deliveryOptMap: Record<string, string> = {
         delivery: t('delivery') || "Առաքում",
         pickup: t('pickup') || "Տեղում վերցնել",
       };
-      message += `▸ 🚚 ${t('deliveryOption') || "Առաքման տարբերակ"}: ${deliveryOptMap[deliveryInfoToUse.deliveryOption] || deliveryInfoToUse.deliveryOption}\n`;
-  
-      if (deliveryInfoToUse.deliveryOption === "delivery") {
-        message += `▸ 📍 ${t('deliveryAddress') || "Հասցե"}: ${deliveryInfoToUse.deliveryAddress || t('notSpecified') || "նշված չէ"}\n`;
-        // ✅ Delivery fee-ն ավելացնում ենք միայն մեկ անգամ
-        if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee > 0) {
-          message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${deliveryInfoToUse.deliveryFee} ${t('currency')}\n`;
-        } else if ('deliveryFee' in deliveryInfoToUse && deliveryInfoToUse.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
+      message += `▸ 🚚 ${t('deliveryOption') || "Առաքման տարբերակ"}: ${deliveryOptMap[tempOrderInfo.deliveryOption] || tempOrderInfo.deliveryOption}\n`;
+
+      if (tempOrderInfo.deliveryOption === "delivery") {
+        message += `▸ 📍 ${t('deliveryAddress') || "Հասցե"}: ${tempOrderInfo.deliveryAddress || t('notSpecified') || "նշված չէ"}\n`;
+        if (tempOrderInfo.deliveryFee > 0) {
+          message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${tempOrderInfo.deliveryFee} ${t('currency')}\n`;
+        } else if (tempOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD) {
           message += `▸ 💰 ${t('deliveryFee') || "Առաքման վճար"}: ${t('free') || "Անվճար"}\n`;
         }
       } else {
         message += `▸ 🏠 ${t('pickupAddress') || "Վերցման կետ"}: ${PICKUP_ADDRESS}\n`;
       }
-  
-      message += `▸ 📅 ${t('deliveryDate') || "Ամսաթիվ"}: ${deliveryInfoToUse.deliveryDate || t('notSpecified') || "նշված չէ"}\n`;
-      message += `▸ ⏰ ${t('preferredDeliveryTime') || "Ժամ"}: ${deliveryInfoToUse.deliveryTime || t('notSpecified') || "նշված չէ"}\n`;
-  
+
+      message += `▸ 📅 ${t('deliveryDate') || "Ամսաթիվ"}: ${tempOrderInfo.deliveryDate || t('notSpecified') || "նշված չէ"}\n`;
+      message += `▸ ⏰ ${t('preferredDeliveryTime') || "Ժամ"}: ${tempOrderInfo.deliveryTime || t('notSpecified') || "նշված չէ"}\n`;
+
       const paymentMap: Record<string, string> = {
         cash: t('cash') || "Կանխիկ",
         bankTransfer: t('bankTransfer') || "Բանկային փոխանցում",
         CARD: "💳 " + (t('bankTransfer') || "Կարտով"),
       };
-      message += `▸ 💳 ${t('paymentMethod') || "Վճարման եղանակ"}: ${paymentMap[deliveryInfoToUse.paymentMethod] || deliveryInfoToUse.paymentMethod}\n`;
+      message += `▸ 💳 ${t('paymentMethod') || "Վճարման եղանակ"}: ${paymentMap[tempOrderInfo.paymentMethod] || tempOrderInfo.paymentMethod}\n`;
     }
-  
-    // ✅ Ընդհանուր գումար - ճիշտ հաշվարկ
-    const deliveryFee = tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee > 0 ? existingOrderInfo.deliveryFee : 0;
-    const totalWithDelivery = productsTotal + deliveryFee;
-  
+
+    // ✅ Ընդհանուր գումար
+    const totalWithDelivery = productsTotal + (tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0);
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
     message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${totalWithDelivery} ${t('currency')}\n`;
-  
+
     return message;
   };
 
   const handleOrderClick = () => {
-    if (hasCake || (tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate)) {
-      if (existingOrderInfo && existingOrderInfo.phoneNumber && existingOrderInfo.deliveryDate) {
-        setShowMessengerSelector(true);
-      } else if (!hasCake && tempOrderInfo.phoneNumber.trim() !== "" && tempOrderInfo.deliveryDate) {
-        setShowMessengerSelector(true);
-      } else {
-        setShowDeliveryForm(true);
-      }
+    const isPhoneValid = tempOrderInfo.phoneNumber.trim() !== "";
+    const isDateValid = tempOrderInfo.deliveryDate !== "";
+    const isAddressValid = tempOrderInfo.deliveryOption === "pickup" || tempOrderInfo.deliveryAddress.trim() !== "";
+
+    if (isPhoneValid && isDateValid && isAddressValid) {
+      setShowMessengerSelector(true);
+      setShowDeliveryForm(false);
     } else {
       setShowDeliveryForm(true);
+      setShowMessengerSelector(false);
     }
   };
 
@@ -685,6 +721,68 @@ console.log(existingOrderInfo.deliveryFee
   };
 
   const deliveryInfo = formatDeliveryInfo();
+
+  const isAfter9PM = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    return hours >= 21;
+  };
+
+  const getAvailableTimeSlots = () => {
+    const selectedDate = tempOrderInfo.deliveryDate;
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = selectedDate === today;
+    
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowDate = tomorrow.toISOString().split("T")[0];
+    const isTomorrow = selectedDate === tomorrowDate;
+
+    // ✅ Եթե ընտրված է այսօր կամ վաղը և ժամը 21:00-ից հետո
+    if ((isToday || isTomorrow) && isAfter9PM()) {
+      return [
+        { value: "21:00-24:00", label: "21:00 - 24:00" }
+      ];
+    }
+    return [
+      { value: "12:00-15:00", label: "12:00 - 15:00" },
+      { value: "15:00-18:00", label: "15:00 - 18:00" },
+      { value: "18:00-21:00", label: "18:00 - 21:00" },
+      { value: "21:00-24:00", label: "21:00 - 24:00" }
+    ];
+  };
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const minDate = formatDate(today);
+
+    if (!selectedDate) {
+      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք ամսաթիվ" }));
+      return;
+    }
+
+    if (selectedDate < minDate) {
+      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
+      setTempOrderInfo(prev => ({ ...prev, deliveryDate: "" }));
+      return;
+    }
+
+    setTempOrderInfo(prev => ({ ...prev, deliveryDate: selectedDate }));
+    clearFieldError("deliveryDate");
+  };
+
+  const clearFieldError = (field: keyof ValidationErrors) => {
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   return (
     <AnimatePresence>
@@ -855,7 +953,7 @@ console.log(existingOrderInfo.deliveryFee
                     );
                   })}
 
-                  {deliveryInfo && deliveryInfo[0].value !== 'notSpecified' && deliveryInfo.length > 0 && !showDeliveryForm && (
+                  {deliveryInfo && deliveryInfo.length > 0 && !showDeliveryForm && tempOrderInfo.deliveryAddress && (
                     <div className="border rounded-lg p-3 bg-white shadow-sm">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -925,33 +1023,10 @@ console.log(existingOrderInfo.deliveryFee
                         exit={{ opacity: 0, y: 20 }}
                         className="space-y-5"
                       >
-                        {/* <div>
-                          <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
-                            <Truck className="w-5 h-5" />
-                            {t('deliveryOption')}
-                          </p>
-                          <div className="flex flex-wrap gap-3">
-                            <button
-                              onClick={() => handleTempOrderChange("deliveryOption", "delivery")}
-                              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.deliveryOption === "delivery"
-                                  ? "bg-[#69429a] text-white border-[#69429a] shadow-md scale-105"
-                                  : "bg-white text-[#69429a] border-[#69429a] hover:bg-[#f3e8ff]"
-                                }`}
-                            >
-                              🚚 {t('delivery')}
-                            </button>
-                            <button
-                              onClick={() => handleTempOrderChange("deliveryOption", "pickup")}
-                              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.deliveryOption === "pickup"
-                                  ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
-                                  : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
-                                }`}
-                            >
-                              🏠 {t('pickup')}
-                            </button>
-                          </div>
-                        </div> */}
+                        {/* Delivery Option */}
+                      
 
+                        {/* Delivery Address */}
                         {tempOrderInfo.deliveryOption === "delivery" && (
                           <div>
                             <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
@@ -1005,6 +1080,7 @@ console.log(existingOrderInfo.deliveryFee
                           </div>
                         )}
 
+                        {/* Phone Number */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Phone className="w-5 h-5" />
@@ -1020,6 +1096,7 @@ console.log(existingOrderInfo.deliveryFee
                           />
                         </div>
 
+                        {/* Delivery Date */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
@@ -1028,14 +1105,16 @@ console.log(existingOrderInfo.deliveryFee
                           <input
                             type="date"
                             value={tempOrderInfo.deliveryDate}
-                            onChange={(e) => handleTempOrderChange("deliveryDate", e.target.value)}
+                            onChange={handleDateChange}
                             min={getMinDate()}
                             max={getMaxDate()}
                             className="w-full h-10 px-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                             required
                           />
+                          {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
                         </div>
 
+                        {/* Delivery Time */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Clock className="w-5 h-5" />
@@ -1043,17 +1122,23 @@ console.log(existingOrderInfo.deliveryFee
                           </p>
                           <select
                             value={tempOrderInfo.deliveryTime}
-                            onChange={(e) => handleTempOrderChange("deliveryTime", e.target.value)}
+                            onChange={(e) => {
+                              handleTempOrderChange("deliveryTime", e.target.value);
+                              if (e.target.value) clearFieldError("deliveryTime");
+                            }}
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
                           >
                             <option value="">{t('selectDeliveryTime')}</option>
-                            <option value="12:00-15:00">12:00 - 15:00</option>
-                            <option value="15:00-18:00">15:00 - 18:00</option>
-                            <option value="18:00-21:00">18:00 - 21:00</option>
-                            <option value="21:00-24:00">21:00 - 24:00</option>
+                            {getAvailableTimeSlots().map((slot) => (
+                              <option key={slot.value} value={slot.value}>
+                                {slot.label}
+                              </option>
+                            ))}
                           </select>
+                          {errors.deliveryTime && <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>}
                         </div>
 
+                        {/* Payment Method */}
                         <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <CreditCard className="w-5 h-5" />
@@ -1063,8 +1148,8 @@ console.log(existingOrderInfo.deliveryFee
                             <button
                               onClick={() => handleTempOrderChange("paymentMethod", "cash")}
                               className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.paymentMethod === "cash"
-                                  ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
-                                  : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
+                                ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
+                                : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"
                                 }`}
                             >
                               💵 {t('cash')}
@@ -1072,8 +1157,8 @@ console.log(existingOrderInfo.deliveryFee
                             <button
                               onClick={() => handleTempOrderChange("paymentMethod", "bankTransfer")}
                               className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.paymentMethod === "bankTransfer"
-                                  ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105"
-                                  : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"
+                                ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105"
+                                : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"
                                 }`}
                             >
                               🏦 {t('bankTransfer')}
@@ -1085,8 +1170,8 @@ console.log(existingOrderInfo.deliveryFee
                           onClick={handleDeliveryFormSubmit}
                           disabled={!isTempOrderValid()}
                           className={`w-full py-3 rounded-lg text-white font-semibold transition ${isTempOrderValid()
-                              ? "bg-[#69429a] hover:bg-[#7c4fb3]"
-                              : "bg-gray-300 cursor-not-allowed"
+                            ? "bg-[#69429a] hover:bg-[#7c4fb3]"
+                            : "bg-gray-300 cursor-not-allowed"
                             }`}
                         >
                           ✅ {t('confirmAndContinue')}
@@ -1127,13 +1212,13 @@ console.log(existingOrderInfo.deliveryFee
                       <span>-{discountInfo.totalDiscount.toFixed(0)} {t('currency')} ({discountInfo.discountPercent}%)</span>
                     </div>
                   )}
-                  {tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee > 0 && (
+                  {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{t('deliveryFee')}</span>
-                      <span className="font-medium">{existingOrderInfo.deliveryFee} {t('currency')}</span>
+                      <span className="font-medium">{tempOrderInfo.deliveryFee} {t('currency')}</span>
                     </div>
                   )}
-                  {tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD && (
+                  {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{t('deliveryFee')}</span>
                       <span className="font-medium text-green-600">{t('free')}</span>
@@ -1142,7 +1227,7 @@ console.log(existingOrderInfo.deliveryFee
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-700">{t('total')}</span>
-                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal + existingOrderInfo.deliveryFee} {t('currency')}</span>
+                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal} {t('currency')}</span>
                     </div>
                   </div>
                 </div>
