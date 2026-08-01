@@ -147,6 +147,26 @@ export const translations: Translations = {
     ru: "Нет доступных товаров",
     pl: "Brak dostępnych produktów"
   },
+  
+    currentStockLabel: {
+      hy: "Այսօրվա տեսականին",
+      "en": "Today's stock",
+      "ru": "Сегодняшний ассортимент",
+      "pl": "Dzisiejszy asortyment"
+    },
+    "viewAllLabel": {
+      "hy": "Դիտել բոլորը",
+      "en": "View all",
+      "ru": "Смотреть все",
+      "pl": "Zobacz wszystkie"
+    },
+    "viewProductLabel": {
+      "hy": "Դիտել ապրանքը",
+      "en": "View product",
+      "ru": "Смотреть товар",
+      "pl": "Zobacz produkt"
+    },
+   
   outOfStock: {
     hy: "Առկա չէ",
     en: "Out of Stock",

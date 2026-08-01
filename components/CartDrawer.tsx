@@ -4,7 +4,8 @@ import { X, Minus, Plus, Trash2, ChevronDown, ChevronUp, Info, Truck, MapPin, Ph
 import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, use } from "react";
+import { set } from "date-fns";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -120,9 +121,15 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     isCalculating: false,
   });
 
+
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasCake = cart.some((item) => item.options?.cakeType);
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
+
+console.log(existingOrderInfo.deliveryFee
+  , 'existingOrderInfo')
+
+
 
   // ========== CALCULATE TOTAL WITH PARTYSHOP DISCOUNT ==========
   const hasCakeInCart = cart.some((item) => item.options?.cakeType);
@@ -613,7 +620,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
   
     // ✅ Ընդհանուր գումար - ճիշտ հաշվարկ
-    const deliveryFee = tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 ? tempOrderInfo.deliveryFee : 0;
+    const deliveryFee = tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee > 0 ? existingOrderInfo.deliveryFee : 0;
     const totalWithDelivery = productsTotal + deliveryFee;
   
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
@@ -1120,13 +1127,13 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                       <span>-{discountInfo.totalDiscount.toFixed(0)} {t('currency')} ({discountInfo.discountPercent}%)</span>
                     </div>
                   )}
-                  {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee > 0 && (
+                  {tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{t('deliveryFee')}</span>
-                      <span className="font-medium">{tempOrderInfo.deliveryFee} {t('currency')}</span>
+                      <span className="font-medium">{existingOrderInfo.deliveryFee} {t('currency')}</span>
                     </div>
                   )}
-                  {tempOrderInfo.deliveryOption === "delivery" && tempOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD && (
+                  {tempOrderInfo.deliveryOption === "delivery" && existingOrderInfo.deliveryFee === 0 && productsTotal >= FREE_DELIVERY_THRESHOLD && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{t('deliveryFee')}</span>
                       <span className="font-medium text-green-600">{t('free')}</span>
@@ -1135,7 +1142,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-700">{t('total')}</span>
-                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal} {t('currency')}</span>
+                      <span className="text-2xl font-bold text-[#69429a]">{effectiveTotal + existingOrderInfo.deliveryFee} {t('currency')}</span>
                     </div>
                   </div>
                 </div>
