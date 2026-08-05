@@ -161,7 +161,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             price: Number(item.price) || 0,
             category: item.size || "standard",
             image: image || "/placeholder-image.jpg", // ✅ Default image
-            cream: +item.cream ? true : false, // Convert to boolean
+            cream: +item.cream ? true : false, 
             stock: 999,
             description: item.description || "No description available", // Add description
             priceInCents: Math.round(Number(item.price) * 100) || 0, // Add priceInCents
