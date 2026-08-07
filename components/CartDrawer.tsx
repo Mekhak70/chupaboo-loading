@@ -371,7 +371,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         beef: t('beef'),
         lamb: t('lamb'),
         turkey: t('turkey'),
-        fish: t('fish'),
+        salmon: t('salmon'),
       };
       details.push({
         emoji: "🍗",
@@ -604,7 +604,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
             beef: t('beef'),
             lamb: t('lamb'),
             turkey: t('turkey'),
-            fish: t('fish'),
+            salmon: t('salmon'),
           };
           message += `   🍗 ${animalMap[item.options.selectedAnimal.toLowerCase()] || item.options.selectedAnimal}\n`;
         }

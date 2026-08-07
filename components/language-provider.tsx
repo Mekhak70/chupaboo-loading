@@ -1143,6 +1143,12 @@ pieces: {
     ru: "Закрыть подробности",
     pl: "Zamknij szczegóły"
   },
+  salmon: {
+    hy: "Սաղմոն",
+    en: "Salmon",
+    ru: "Лосось",
+    pl: "Łosoś"
+  },
   deliveryDetails: {
     hy: "Առաքման տվյալներ",
     en: "Delivery details",

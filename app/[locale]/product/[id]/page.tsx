@@ -262,6 +262,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       else if (selectedAnimal === "BEEF") basePrice = id === "cookieboo" ? 16000 : 13000;
       else if (selectedAnimal === "LAMB") basePrice = id === "cookieboo" ? 18000 : 15000;
       else if (selectedAnimal === "TURKEY") basePrice = id === "cookieboo" ? 22000 : 19000;
+      else if (selectedAnimal === "SALMON") basePrice = id === "cookieboo" ? 24000 : 21000;
+
     } else if (cakeType === "FRUIT") {
       basePrice = id === "cookieboo" ? 13000 : 10000;
     } else if (cakeType === "VEGETABLES") {
@@ -365,29 +367,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (cakeType === "MEAT" && !selectedAnimal) { newErrors.selectedAnimal = t("meatTypeRequired") || "Please select meat type"; isValid = false; }
     if (product.category !== "small" && !designType) { newErrors.designType = t("designTypeRequired") || "Please select design type"; isValid = false; }
     if (designType === "CUSTOM_TEXT" && !customText.trim()) { newErrors.customText = t("customTextRequired") || "Please enter custom text"; isValid = false; }
-    // const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
-    // if (!orderInfo.phoneNumber.trim()) { newErrors.phoneNumber = t("phoneNumberRequired") || "Please enter phone number"; isValid = false; }
-    // else if (!phoneRegex.test(orderInfo.phoneNumber)) { newErrors.phoneNumber = t("phoneNumberInvalid") || "Please enter a valid phone number"; isValid = false; }
-    // if (!orderInfo.deliveryDate) { newErrors.deliveryDate = t("deliveryDateRequired") || "Please select delivery date"; isValid = false; }
-    // else {
-    //   const selectedDate = new Date(orderInfo.deliveryDate);
-    //   const today = new Date(); today.setHours(0, 0, 0, 0);
-    //   const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
-    //   if (selectedDate < today) { newErrors.deliveryDate = t("deliveryDatePast") || "Delivery date cannot be in the past"; isValid = false; }
-    //   else if (selectedDate > maxDate) { newErrors.deliveryDate = t("deliveryDateTooFar") || "Delivery date cannot be more than 30 days from now"; isValid = false; }
-    // }
-    // if (orderInfo.deliveryOption === "delivery") {
-    //   if (!orderInfo.deliveryAddress.trim()) { newErrors.deliveryAddress = t("deliveryAddressRequired") || "Please enter delivery address"; isValid = false; }
-    //   else if (orderInfo.deliveryAddress.trim().length < 5) { newErrors.deliveryAddress = t("deliveryAddressTooShort") || "Please enter a valid delivery address"; isValid = false; }
-    // }
-    // if (!orderInfo.deliveryTime) { newErrors.deliveryTime = t("deliveryTimeRequired") || "Please select delivery time"; isValid = false; }
-    // if (!orderInfo.paymentMethod) { newErrors.paymentMethod = t("paymentMethodRequired") || "Please select payment method"; isValid = false; }
 
-    // setErrors(newErrors);
     return isValid;
   };
 
-  console.log(product, 'product.cream')
 
   const clearFieldError = (field: keyof ValidationErrors) => {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -566,6 +549,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     { key: "BEEF", label: t("beef"), emoji: "🐄", color: "#8B4513" },
                     { key: "LAMB", label: t("lamb"), emoji: "🐑", color: "#FF8C00" },
                     { key: "TURKEY", label: t("turkey"), emoji: "🦃", color: "#DAA520" },
+                    { key: "SALMON", label: t("salmon"), emoji: "🐟", color: "#FF6F61" },
                   ].map((veg) => (
                     <button key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError("selectedAnimal"); }} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: selectedAnimal === veg.key ? veg.color : "white", color: selectedAnimal === veg.key ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
                   ))}
