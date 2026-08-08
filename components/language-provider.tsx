@@ -1236,6 +1236,24 @@ pieces: {
     pl: "Przeglądaj torty"
   },
 
+  productNotFound: {
+    hy: "Ապրանքը չի գտնվել",
+    en: "Product not found",
+    ru: "Товар не найден",
+    pl: "Nie znaleziono produktu"
+  },
+  unitPrice: {
+    hy: "1 հատի արժեքը",
+    en: "Price per item",
+    ru: "Цена за 1 шт.",
+    pl: "Cena za 1 szt."
+  },
+  backToHome: {
+    hy: "Վերադառնալ գլխավոր էջ",
+    en: "Back to home",
+    ru: "Вернуться на главную",
+    pl: "Wróć na stronę główną"
+  },
   backToShop: {
     hy: "Վերադառնալ խանութ",
     en: "Back to Shop",
@@ -1474,6 +1492,30 @@ pieces: {
     en: "Potato",
     ru: "Картофель",
     pl: "Ziemniak"
+  },
+  available: {
+    hy: "Առկա տեսականի",
+    en: "Available",
+    ru: "В наличии",
+    pl: "Dostępne"
+  },
+  addedToCart: {
+    hy: "Ավելացվել է զամբյուղ",
+    en: "Added to cart",
+    ru: "Добавлено в корзину",
+    pl: "Dodano do koszyka"
+  },
+  ingredient: {
+    hy: "Բաղադրություն",
+    en: "Ingredients",
+    ru: "Состав",
+    pl: "Składniki"
+  },
+  inStock: {
+    hy: "Առկա է",
+    en: "In stock",
+    ru: "В наличии",
+    pl: "Dostępny"
   }
 
 }

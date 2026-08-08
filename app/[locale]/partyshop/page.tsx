@@ -791,7 +791,7 @@ export default function ShopPage() {
 
                         {product.notes && (
                           <p className="text-xs text-gray-400 mt-0.5 italic">
-                            {product.notes}
+                            {t('unitPrice')}
                           </p>
                         )}
 

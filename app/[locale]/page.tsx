@@ -22,6 +22,7 @@ import homepageMobile from "@/public/fon-mobile.png";
 import main1Mobile from "@/public/main-mobile1.png";
 import main2Mobile from "@/public/main-mobile2.png";
 import main3Mobile from "@/public/main-mobile3.png";
+import Available from "./available/page";
 
 const ProductSkeleton = () => (
   <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
@@ -276,7 +277,7 @@ export default function HomePage() {
         bgColor: "from-[#4a90e2] to-[#2c5aa0]",
         icon: "🚕",
       },
-      
+
     ],
     []
   );
@@ -334,7 +335,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     if (currentAd && ads[randomIndex].id === currentAd.id && ads.length > 1) {
       randomIndex = (randomIndex + 1) % ads.length;
     }
-    
+
     const nextAd = ads[randomIndex];
     setCurrentAd(nextAd);
     setIsClosing(false);
@@ -348,15 +349,15 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
   const handleCloseAd = useCallback(() => {
     if (isClosing || !isAdVisible) return;
-    
+
     setIsClosing(true);
-    
+
     // Save to sessionStorage that ad was closed in this session
     if (typeof window !== "undefined") {
       sessionStorage.setItem("chupaboo_ad_closed_session", "true");
     }
     setIsAdClosedInSession(true);
-    
+
     // Hide after animation
     setTimeout(() => {
       setIsAdVisible(false);
@@ -430,6 +431,40 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
 
   // PartyShop slider state
   const [isPartyShopAutoPlaying, setIsPartyShopAutoPlaying] = useState(true);
+
+  const availableProductsControls = useAnimation();
+
+  useEffect(() => {
+    if (!products.length) return;
+
+    if (!isPartyShopAutoPlaying) {
+      availableProductsControls.stop();
+      return;
+    }
+
+    const itemWidth =
+      window.innerWidth < 768
+        ? 240 + 16 // mobile
+        : window.innerWidth < 1024
+          ? 280 + 24 // tablet
+          : 320 + 24; // desktop
+
+    const totalWidth = products.slice(0, 6).length * itemWidth;
+
+    availableProductsControls.set({ x: 0 });
+
+    availableProductsControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 20,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    });
+  }, [products, isPartyShopAutoPlaying, availableProductsControls]);
+
+
   const partyShopControls = useAnimation();
 
   // Products slider animation
@@ -509,7 +544,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     async function loadData() {
       try {
         setLoading(true);
-  
+
         const [partyRes, productsRes] = await Promise.all([
           fetch(
             "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
@@ -518,24 +553,24 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
           ),
         ]);
-  
+
         if (!partyRes.ok) {
           throw new Error(`Party HTTP Error: ${partyRes.status}`);
         }
-  
+
         if (!productsRes.ok) {
           throw new Error(`Products HTTP Error: ${productsRes.status}`);
         }
-  
+
         const [partyData, productsData] = await Promise.all([
           partyRes.json(),
           productsRes.json(),
         ]);
-  
+
         // Party products
         const partyFormatted = partyData.map((item: any, index: number) => {
           const imageUrl = item["նկար"] || item["Image"] || "";
-  
+
           return {
             id: index + 1,
             name: item["Անուն"] || item["Name"] || "Unnamed Product",
@@ -546,16 +581,16 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             set: false,
           };
         });
-  
+
         // Chupaboo products
         const productsFormatted = productsData.map((item: any, index: number) => {
           let image = item["նկար"] || item.image || "";
-  
+
           const match = image.match(/\/d\/([^/]+)/);
           if (match) {
             image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
           }
-  
+
           return {
             id: item.id || index + 1,
             name: item.name,
@@ -564,9 +599,10 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             image,
             cream: String(item.cream).toLowerCase() === "true",
             stock: Number(item.stock || 999),
+            available: item.available === "1" ? true : false,
           };
         });
-  
+
         setProductParty(partyFormatted);
         setProducts(productsFormatted);
       } catch (err) {
@@ -575,7 +611,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
         setLoading(false);
       }
     }
-  
+
     loadData();
   }, []);
 
@@ -607,6 +643,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     );
   }
 
+
+  
   return (
     <>
       <div className="flex flex-col">
@@ -835,6 +873,95 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </Link>
           </div>
         </ScrollReveal>
+
+        {/* ========== AVAILABLE PRODUCTS SECTION ========== */}
+        <section className="bg-white py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <ScrollReveal direction="up">
+              <Link href={`/${locale}/available`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">
+                    Առկա տեսականի
+                  </h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
+              </Link>
+            </ScrollReveal>
+
+            <div
+              className="relative overflow-hidden w-full"
+              onMouseEnter={() => setIsProductsAutoPlaying(false)}
+              onMouseLeave={() => setIsProductsAutoPlaying(true)}
+            >
+              <motion.div
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={availableProductsControls}
+                style={{
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                {[...products.filter((product) => product.available),
+                ...products.filter((product) => product.available)
+                ].map((product, idx) => (
+
+                  <Link href={`/${locale}/available`}
+                    key={`${product.id}-${idx}`}
+
+                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group block flex-shrink-0"
+                  >
+                    <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white border border-gray-100">
+                      <div className="relative aspect-square overflow-hidden">
+                        <Image
+                          src={product.image || PLACEHOLDER_IMAGE}
+                          alt={product.name || "Առկա ապրանք"}
+                          fill
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                        />
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                        <div className="absolute top-3 left-3">
+                          <span className="inline-flex items-center gap-1 bg-[#aed137] text-white text-xs md:text-sm font-bold px-3 py-1.5 rounded-full shadow-md">
+                            ✓ Առկա է
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 md:p-4 text-center bg-white">
+                        <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors line-clamp-2">
+                          {product.name}
+                        </h3>
+
+                        {product.price > 0 && (
+                          <p className="text-sm md:text-base font-bold text-[#69429a] mt-2">
+                            {Number(product.price).toLocaleString()} AMD
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </motion.div>
+            </div>
+
+            <ScrollReveal direction="up" delay={0.3}>
+              <div className="flex justify-center mt-8 md:mt-12">
+                <Link href={`/${locale}/available`}>
+                  <button
+                    className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg"
+                  >
+                    Տեսնել ամբողջ տեսականին →
+                  </button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
 
         {/* PARTY SHOP SECTION */}
         <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">

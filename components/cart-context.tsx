@@ -11,6 +11,7 @@ export type CartItem = {
   price: number;
   quantity: number;
   options: any | null;
+  ingredient?: string | null;
 };
 
 export interface OrderInfo {

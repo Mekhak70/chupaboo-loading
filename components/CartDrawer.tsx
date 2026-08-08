@@ -138,7 +138,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
 
-
+console.log(cart, 'cartcartcart')
 
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
@@ -620,6 +620,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         if (item.options.petName) message += `   🐾 ${item.options.petName}\n`;
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
+      if (item?.ingredient) { const translatedIngredients = item.ingredient .split(",") .map((ingredient: string) => t(ingredient.trim())) .join(", "); message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n`; }
+
     });
 
     // ✅ Ավելացնել նկարների հղումներ
@@ -885,6 +887,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                 )}
                               </div>
                             </div>
+                           
 
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                               {!isCake && effectivePrice !== originalPrice && discountPercentForItem > 0 ? (
@@ -912,17 +915,17 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                           </div>
                         </div>
 
-                        {isCake && itemCakeDetails && itemCakeDetails.length > 0 && (
+                        {((isCake && itemCakeDetails && itemCakeDetails.length > 0) ||  item?.ingredient) && (
                           <>
                             <button
                               onClick={() => toggleItemExpand(`${item.id}-${idx}`)}
                               className="mt-2 text-xs text-[#69429a] hover:text-[#8b5cf6] flex items-center gap-1 transition"
                             >
                               <Info className="h-3 w-3" />
-                              {isExpanded ? t('closeDetails') : t('seeCakeComposition')}
+                              {(isExpanded ||  item?.ingredient )? t('closeDetails') : t('seeCakeComposition')}
                             </button>
                             <AnimatePresence>
-                              {isExpanded && (
+                              {isExpanded  && (
                                 <motion.div
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: "auto", opacity: 1 }}
@@ -933,15 +936,18 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                   <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
                                     <div className="text-xs font-semibold text-[#69429a] uppercase tracking-wide mb-2">📋 {t('cakeComposition')}</div>
                                     <div className="space-y-1.5">
-                                      {itemCakeDetails.map((detail, i) => (
+                                      {!item?.ingredient && itemCakeDetails ? itemCakeDetails.map((detail, i) => (
                                         <div key={i} className="flex items-start gap-2 text-xs">
                                           <span className="text-sm">{detail.emoji}</span>
                                           <div>
                                             <span className="font-medium text-gray-700">{detail.label}:</span>
                                             <span className="text-gray-600 ml-1">{detail.value}</span>
                                           </div>
-                                        </div>
-                                      ))}
+                                        </div> 
+                                      )):item?.ingredient?.split(',')
+                                      .map((ingredient: string) => t(ingredient.trim()))
+                                      .join(', ')}
+                                        
                                     </div>
                                   </div>
                                 </motion.div>
