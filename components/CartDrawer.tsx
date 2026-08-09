@@ -5,6 +5,7 @@ import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect, use } from "react";
+import { supabase } from "@/lib/supabase";
 
 type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
 type DeliveryOption = "delivery" | "pickup";
@@ -138,7 +139,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
 
-console.log(cart, 'cartcartcart')
+  console.log(cart, 'cartcartcart')
 
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
@@ -206,7 +207,7 @@ console.log(cart, 'cartcartcart')
   };
 
   const discountInfo = getDiscountInfo();
-  
+
   // ✅ Ճիշտ հաշվարկ ընդհանուր գումարի համար
   const deliveryFeeToUse = tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0;
   const effectiveTotal = productsTotal + deliveryFeeToUse;
@@ -620,7 +621,7 @@ console.log(cart, 'cartcartcart')
         if (item.options.petName) message += `   🐾 ${item.options.petName}\n`;
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
-      if (item?.ingredient) { const translatedIngredients = item.ingredient .split(",") .map((ingredient: string) => t(ingredient.trim())) .join(", "); message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n`; }
+      if (item?.ingredient) { const translatedIngredients = item.ingredient.split(",").map((ingredient: string) => t(ingredient.trim())).join(", "); message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n`; }
 
     });
 
@@ -700,28 +701,147 @@ console.log(cart, 'cartcartcart')
     return true;
   };
 
-  const redirectToMessenger = (platform: 'whatsapp' | 'telegram') => {
-    const message = buildOrderMessage(platform);
-    const encodedMessage = encodeURIComponent(message);
-    const phoneNumber = '37433775750';
+  const redirectToMessenger = async (
+    platform: "whatsapp" | "telegram"
+  ) => {
 
-    if (platform === 'whatsapp') {
-      window.open(
-        `https://wa.me/${phoneNumber}?text=${encodedMessage}`,
-        '_blank'
+    console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log(
+  "SUPABASE KEY EXISTS:",
+  !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+);
+    try {
+      const orderId = `CH-${Date.now()}`;
+  
+      const orderItems = cart.map((item) => {
+        const isCake = !!item.options?.cakeType;
+  
+        let finalPrice = item.price;
+  
+        if (hasCakeInCart && !isCake && discountPercent > 0) {
+          const discountAmount =
+            finalPrice * (discountPercent / 100);
+  
+          finalPrice = Math.max(
+            0,
+            finalPrice - discountAmount
+          );
+        }
+  
+        return {
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: finalPrice,
+          original_price: item.price,
+          image: item.image || null,
+          ingredient: item.ingredient || null,
+          options: item.options || null,
+        };
+      });
+  
+      const deliveryFee =
+        tempOrderInfo.deliveryOption === "delivery"
+          ? tempOrderInfo.deliveryFee
+          : 0;
+  
+      const total = productsTotal + deliveryFee;
+  
+      const order = {
+        id: orderId,
+        name: "",
+        phone: tempOrderInfo.phoneNumber,
+        address:
+          tempOrderInfo.deliveryOption === "delivery"
+            ? tempOrderInfo.deliveryAddress
+            : PICKUP_ADDRESS,
+        delivery_date: tempOrderInfo.deliveryDate,
+        delivery_time: tempOrderInfo.deliveryTime,
+        payment_method: tempOrderInfo.paymentMethod,
+        items: orderItems,
+        subtotal: productsTotal,
+        delivery_fee: deliveryFee,
+        total,
+        notes: `Order sent via ${platform}`,
+        status: "pending",
+      };
+  
+      console.log("Saving order:", order);
+  
+      // ==========================================
+      // SUPABASE INSERT
+      // ==========================================
+      console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log(
+        "KEY:",
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.slice(0, 20) + "..."
       );
-    } else {
-      window.open(
-        `https://t.me/Chupaboo?text=${encodedMessage}`,
-        '_blank'
+      
+      console.log("Supabase client:", supabase);
+      const { data, error } = await supabase
+        .from("orders")
+        .insert(order)
+        .select()
+        .single();
+  
+      if (error) {
+        console.error("Supabase order error:", error);
+  
+        alert(
+          `Պատվերը չհաջողվեց պահպանել։\n${error.message}`
+        );
+  
+        return;
+      }
+  
+      console.log("Order saved successfully:", data);
+  
+      // ==========================================
+      // BUILD MESSAGE
+      // ==========================================
+  
+      const message = buildOrderMessage(platform);
+      const encodedMessage = encodeURIComponent(message);
+  
+      const phoneNumber = "37433775750";
+  
+      // ==========================================
+      // OPEN MESSENGER
+      // ==========================================
+  
+      if (platform === "whatsapp") {
+        window.open(
+          `https://wa.me/${phoneNumber}?text=${encodedMessage}`,
+          "_blank"
+        );
+      } else {
+        window.open(
+          `https://t.me/Chupaboo?text=${encodedMessage}`,
+          "_blank"
+        );
+      }
+  
+      // ==========================================
+      // CLEANUP
+      // ==========================================
+  
+      setShowMessengerSelector(false);
+  
+      clearCart();
+  
+      onClose();
+  
+    } catch (error) {
+      console.error(
+        "Failed to create order:",
+        error
+      );
+  
+      alert(
+        "Պատվերի պահպանման ժամանակ սխալ տեղի ունեցավ։"
       );
     }
-
-    setShowMessengerSelector(false);
-    clearCart();
-    onClose();
   };
-
   const deliveryInfo = formatDeliveryInfo();
 
   const isAfter9PM = () => {
@@ -734,7 +854,7 @@ console.log(cart, 'cartcartcart')
     const selectedDate = tempOrderInfo.deliveryDate;
     const today = new Date().toISOString().split('T')[0];
     const isToday = selectedDate === today;
-    
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowDate = tomorrow.toISOString().split("T")[0];
@@ -785,6 +905,9 @@ console.log(cart, 'cartcartcart')
   const clearFieldError = (field: keyof ValidationErrors) => {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
+
+
+
 
   return (
     <AnimatePresence>
@@ -887,7 +1010,7 @@ console.log(cart, 'cartcartcart')
                                 )}
                               </div>
                             </div>
-                           
+
 
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                               {!isCake && effectivePrice !== originalPrice && discountPercentForItem > 0 ? (
@@ -915,17 +1038,17 @@ console.log(cart, 'cartcartcart')
                           </div>
                         </div>
 
-                        {((isCake && itemCakeDetails && itemCakeDetails.length > 0) ||  item?.ingredient) && (
+                        {((isCake && itemCakeDetails && itemCakeDetails.length > 0) || item?.ingredient) && (
                           <>
                             <button
                               onClick={() => toggleItemExpand(`${item.id}-${idx}`)}
                               className="mt-2 text-xs text-[#69429a] hover:text-[#8b5cf6] flex items-center gap-1 transition"
                             >
                               <Info className="h-3 w-3" />
-                              {(isExpanded ||  item?.ingredient )? t('closeDetails') : t('seeCakeComposition')}
+                              {(isExpanded || item?.ingredient) ? t('closeDetails') : t('seeCakeComposition')}
                             </button>
                             <AnimatePresence>
-                              {isExpanded  && (
+                              {isExpanded && (
                                 <motion.div
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: "auto", opacity: 1 }}
@@ -943,11 +1066,11 @@ console.log(cart, 'cartcartcart')
                                             <span className="font-medium text-gray-700">{detail.label}:</span>
                                             <span className="text-gray-600 ml-1">{detail.value}</span>
                                           </div>
-                                        </div> 
-                                      )):item?.ingredient?.split(',')
-                                      .map((ingredient: string) => t(ingredient.trim()))
-                                      .join(', ')}
-                                        
+                                        </div>
+                                      )) : item?.ingredient?.split(',')
+                                        .map((ingredient: string) => t(ingredient.trim()))
+                                        .join(', ')}
+
                                     </div>
                                   </div>
                                 </motion.div>
@@ -1030,7 +1153,7 @@ console.log(cart, 'cartcartcart')
                         className="space-y-5"
                       >
                         {/* Delivery Option */}
-                      
+
 
                         {/* Delivery Address */}
                         {tempOrderInfo.deliveryOption === "delivery" && (
