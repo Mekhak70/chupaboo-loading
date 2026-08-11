@@ -23,8 +23,6 @@ export default function Available() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null)
     const [type, setType] = useState<string>("")
     const [creamType, setCreamType] = useState<string>("")
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [pendingImage, setPendingImage] = useState<string | null>(null)
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -34,7 +32,6 @@ export default function Available() {
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const filteredProducts = products.filter((p) => {
-        console.log(p.category, filter);
         return filter === "all" || p.category === filter;
     });
     const handleFilterChange = (newFilter: string) => {
@@ -158,14 +155,14 @@ export default function Available() {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [filteredProducts]); // Re-run when products change
+    }, [filteredProducts]); 
 
     useEffect(() => {
         async function loadProducts() {
             try {
                 setLoading(true);
                 const res = await fetch(
-                    "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
+                    "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
                 );
 
                 if (!res.ok) {
@@ -173,8 +170,6 @@ export default function Available() {
                 }
 
                 const data = await res.json();
-
-                console.log("Products:", data);
 
                 const formatted = data.map((item: any) => {
                     let image = item["նկար"] || "";

@@ -218,6 +218,7 @@ export default function HomePage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<any[]>([]);
+  const [available, setAvailable] = useState<any[]>([]);
 
   // AD STATES - using sessionStorage
   const [currentAd, setCurrentAd] = useState<Ad | null>(null);
@@ -544,33 +545,49 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     async function loadData() {
       try {
         setLoading(true);
-
-        const [partyRes, productsRes] = await Promise.all([
+  
+        const [partyRes, productsRes, availableCakesRes] = await Promise.all([
           fetch(
             "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
           ),
+  
           fetch(
             "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
           ),
+  
+          fetch(
+          "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
+          ),
         ]);
-
+  
         if (!partyRes.ok) {
           throw new Error(`Party HTTP Error: ${partyRes.status}`);
         }
-
+  
         if (!productsRes.ok) {
           throw new Error(`Products HTTP Error: ${productsRes.status}`);
         }
-
-        const [partyData, productsData] = await Promise.all([
-          partyRes.json(),
-          productsRes.json(),
-        ]);
-
-        // Party products
+  
+        if (!availableCakesRes.ok) {
+          throw new Error(
+            `Available Cakes HTTP Error: ${availableCakesRes.status}`
+          );
+        }
+  
+        const [partyData, productsData, availableCakesData] =
+          await Promise.all([
+            partyRes.json(),
+            productsRes.json(),
+            availableCakesRes.json(),
+          ]);
+  
+        // =========================
+        // PARTY PRODUCTS
+        // =========================
+  
         const partyFormatted = partyData.map((item: any, index: number) => {
           const imageUrl = item["նկար"] || item["Image"] || "";
-
+  
           return {
             id: index + 1,
             name: item["Անուն"] || item["Name"] || "Unnamed Product",
@@ -581,37 +598,82 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             set: false,
           };
         });
-
-        // Chupaboo products
-        const productsFormatted = productsData.map((item: any, index: number) => {
-          let image = item["նկար"] || item.image || "";
-
-          const match = image.match(/\/d\/([^/]+)/);
-          if (match) {
-            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  
+        // =========================
+        // CHUPABOO PRODUCTS
+        // =========================
+  
+        const productsFormatted = productsData.map(
+          (item: any, index: number) => {
+            let image = item["նկար"] || item.image || "";
+  
+            const match = image.match(/\/d\/([^/]+)/);
+  
+            if (match) {
+              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+  
+            return {
+              id: item.id || index + 1,
+              name: item.name,
+              price: Number(item.price),
+              category: item.category || item.size,
+              image,
+              cream: String(item.cream).toLowerCase() === "true",
+              stock: Number(item.stock || 999),
+              available: item.available === "1",
+            };
           }
-
-          return {
-            id: item.id || index + 1,
-            name: item.name,
-            price: Number(item.price),
-            category: item.category || item.size,
-            image,
-            cream: String(item.cream).toLowerCase() === "true",
-            stock: Number(item.stock || 999),
-            available: item.available === "1" ? true : false,
-          };
-        });
-
+        );
+  
+        // =========================
+        // AVAILABLE CAKES
+        // Միայն available = 1
+        // =========================
+  
+        const availableCakesFormatted = availableCakesData
+          .filter((item: any) => String(item.available).trim() === "1")
+          .map((item: any, index: number) => {
+            let image = item["նկար"] || item.image || "";
+  
+            const match = image.match(/\/d\/([^/]+)/);
+  
+            if (match) {
+              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+  
+            return {
+              id: item.id || `available-${index + 1}`,
+              name: item.name,
+              price: Number(item.price),
+              category: item.category || item.size,
+              image,
+              cream: String(item.cream).toLowerCase() === "true",
+              stock: Number(item.stock || 999),
+              available: true,
+            };
+          });
+  
+  
         setProductParty(partyFormatted);
-        setProducts(productsFormatted);
+  
+        // Երկրորդ Sheet + Available cakes
+        setProducts([
+          ...productsFormatted,
+        ]);
+
+        setAvailable([
+          
+          ...availableCakesFormatted,
+        ]);
+  
       } catch (err) {
         console.error("Load products error:", err);
       } finally {
         setLoading(false);
       }
     }
-
+  
     loadData();
   }, []);
 
@@ -904,8 +966,8 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   backfaceVisibility: "hidden",
                 }}
               >
-                {[...products.filter((product) => product.available),
-                ...products.filter((product) => product.available)
+                {[...available,
+                ...available
                 ].map((product, idx) => (
 
                   <Link href={`/${locale}/available`}
