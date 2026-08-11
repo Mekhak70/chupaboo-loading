@@ -4,10 +4,12 @@ import { X, Minus, Plus, Trash2, ChevronDown, ChevronUp, Info, Truck, MapPin, Ph
 import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useCallback, useRef, useEffect, use } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+
 type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
 type DeliveryOption = "delivery" | "pickup";
+
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,6 +23,7 @@ interface CartDrawerProps {
     deliveryFee: number;
   };
 }
+
 interface ValidationErrors {
   cakeType?: string;
   creamType?: string;
@@ -36,6 +39,7 @@ interface ValidationErrors {
   customImage?: string;
   customText?: string;
 }
+
 interface OrderInfo {
   deliveryOption: DeliveryOption;
   deliveryAddress: string;
@@ -47,6 +51,7 @@ interface OrderInfo {
   distance: number | null;
   isYerevanAddress: boolean | null;
 }
+
 // ========== DELIVERY CONSTANTS ==========
 const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const PICKUP_LAT = 40.195059;
@@ -76,18 +81,6 @@ interface TempOrderInfo {
   deliveryFee: number;
   distance: number | null;
   isCalculating: boolean;
-}
-
-function getTodayDate() {
-  const today = new Date();
-  today.setDate(today.getDate() + 1);
-  return today.toISOString().split("T")[0];
-}
-
-function getMinDate() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split("T")[0];
 }
 
 function getMaxDate() {
@@ -139,6 +132,32 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
   const cartScrollRef = useRef<HTMLDivElement>(null);
 
+  // ========== AVAILABLE CHECK ==========
+  // Եթե զամբյուղում կա որևէ ապրանք ingredient-ով (Available բաժնից), ապա հնարավոր է նույն օրվա պատվեր
+  const available = cart.some((item) => !!item.ingredient);
+
+  // ========== GET TODAY DATE (կախված available-ից) ==========
+  const getTodayDate = useCallback(() => {
+    const today = new Date();
+    if (available) {
+      return today.toISOString().split("T")[0];
+    } else {
+      today.setDate(today.getDate() + 1);
+      return today.toISOString().split("T")[0];
+    }
+  }, [available]);
+
+  // ========== GET MIN DATE (կախված available-ից) ==========
+  const getMinDate = useCallback(() => {
+    const today = new Date();
+    if (available) {
+      return today.toISOString().split("T")[0];
+    } else {
+      today.setDate(today.getDate() + 1);
+      return today.toISOString().split("T")[0];
+    }
+  }, [available]);
+
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
     deliveryOption: "delivery",
@@ -151,7 +170,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     isCalculating: false,
   });
 
-  // ✅ Երբ propOrderInfo-ն փոխվում է, թարմացնել tempOrderInfo-ն
+  // Երբ propOrderInfo-ն փոխվում է, թարմացնել tempOrderInfo-ն
   useEffect(() => {
     if (existingOrderInfo) {
       setTempOrderInfo(prev => ({
@@ -166,6 +185,14 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       }));
     }
   }, [existingOrderInfo]);
+
+  // Երբ available-ը փոխվում է, թարմացնել ամսաթիվը
+  useEffect(() => {
+    setTempOrderInfo(prev => ({
+      ...prev,
+      deliveryDate: getTodayDate(),
+    }));
+  }, [available, getTodayDate]);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -206,7 +233,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const discountInfo = getDiscountInfo();
 
-  // ✅ Ճիշտ հաշվարկ ընդհանուր գումարի համար
   const deliveryFeeToUse = tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0;
   const effectiveTotal = productsTotal + deliveryFeeToUse;
 
@@ -480,7 +506,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       details.push({ emoji: "💳", label: t('paymentMethod') || "Վճարման եղանակ", value: t('notSpecified') || "նշված չէ" });
     }
 
-    // ✅ Delivery fee-ն ավելացնել միայն մեկ անգամ
     if (info.deliveryOption === "delivery" && info.deliveryFee > 0) {
       details.push({
         emoji: "💰",
@@ -622,10 +647,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
     });
 
-    // ✅ Ավելացնել նկարների հղումներ
     message += buildProductImagesLinks();
 
-    // ✅ Delivery տվյալներ
     if (tempOrderInfo && tempOrderInfo.phoneNumber) {
       message += `\n🚚 *${t('deliveryDetails') || "ԱՌԱՔՄԱՆ ՏՎՅԱԼՆԵՐ"}*\n`;
       message += `▸ 📞 ${t('phone') || "Հեռախոս"}: ${tempOrderInfo.phoneNumber || t('notSpecified') || "նշված չէ"}\n`;
@@ -657,7 +680,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       message += `▸ 💳 ${t('paymentMethod') || "Վճարման եղանակ"}: ${paymentMap[tempOrderInfo.paymentMethod] || tempOrderInfo.paymentMethod}\n`;
     }
 
-    // ✅ Ընդհանուր գումար
     const totalWithDelivery = productsTotal + (tempOrderInfo.deliveryOption === "delivery" ? tempOrderInfo.deliveryFee : 0);
     message += "\n━━━━━━━━━━━━━━━━━━━━━\n";
     message += `💰 ${t('total') || "ԸՆԴՀԱՆՈՒՐ"}: ${totalWithDelivery} ${t('currency')}\n`;
@@ -679,7 +701,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
     setTimeout(() => {
       const el = cartScrollRef.current;
-    
       if (el) {
         el.scrollTo({
           top: el.scrollHeight - el.clientHeight - 70,
@@ -711,7 +732,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const redirectToMessenger = async (
     platform: "whatsapp" | "telegram"
   ) => {
-
 
     try {
       const orderId = `CH-${Date.now()}`;
@@ -769,10 +789,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         status: "pending",
       };
 
-
-      // ==========================================
-      // SUPABASE INSERT
-
       const { data, error } = await supabase
         .from("orders")
         .insert(order)
@@ -780,27 +796,16 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         .single();
 
       if (error) {
-
         alert(
           `Պատվերը չհաջողվեց պահպանել։\n${error.message}`
         );
-
         return;
       }
-
-
-      // ==========================================
-      // BUILD MESSAGE
-      // ==========================================
 
       const message = buildOrderMessage(platform);
       const encodedMessage = encodeURIComponent(message);
 
       const phoneNumber = "37433775750";
-
-      // ==========================================
-      // OPEN MESSENGER
-      // ==========================================
 
       if (platform === "whatsapp") {
         window.open(
@@ -814,19 +819,11 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         );
       }
 
-      // ==========================================
-      // CLEANUP
-      // ==========================================
-
       setShowMessengerSelector(false);
-
       clearCart();
-
       onClose();
 
     } catch (error) {
-      ;
-
       alert(
         "Պատվերի պահպանման ժամանակ սխալ տեղի ունեցավ։"
       );
@@ -840,7 +837,18 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return hours >= 21;
   };
 
+  // ========== GET AVAILABLE TIME SLOTS (կախված available-ից) ==========
   const getAvailableTimeSlots = () => {
+    // ✅ Եթե available-ը true է, ցույց տալ բոլոր 4 ժամային սլոտները (առանց սահմանափակումների)
+    if (available) {
+      return [
+        { value: "12:00-15:00", label: "12:00 - 15:00" },
+        { value: "15:00-18:00", label: "15:00 - 18:00" },
+        { value: "18:00-21:00", label: "18:00 - 21:00" },
+        { value: "21:00-24:00", label: "21:00 - 24:00" }
+      ];
+    }
+
     const selectedDate = tempOrderInfo.deliveryDate;
     const today = new Date().toISOString().split('T')[0];
     const isToday = selectedDate === today;
@@ -871,11 +879,18 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return `${year}-${month}-${day}`;
   };
 
+  // ========== HANDLE DATE CHANGE (հաշվի առնելով available-ը) ==========
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     const today = new Date();
-    today.setDate(today.getDate() + 1);
-    const minDate = formatDate(today);
+    let minDate: string;
+
+    if (available) {
+      minDate = today.toISOString().split("T")[0];
+    } else {
+      today.setDate(today.getDate() + 1);
+      minDate = today.toISOString().split("T")[0];
+    }
 
     if (!selectedDate) {
       setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք ամսաթիվ" }));
@@ -883,7 +898,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     }
 
     if (selectedDate < minDate) {
-      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
+      setErrors(prev => ({ ...prev, deliveryDate: available ? "Ընտրեք այսօրվա կամ ավելի ուշ օր" : "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
       setTempOrderInfo(prev => ({ ...prev, deliveryDate: "" }));
       return;
     }
@@ -907,8 +922,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
     return url;
   };
-
-
 
   return (
     <AnimatePresence>
@@ -940,8 +953,9 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
             </div>
 
             <div
-            ref={cartScrollRef}
-             className="flex-1 overflow-y-auto p-4 space-y-4">
+              ref={cartScrollRef}
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+            >
               {cart.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🛒</div>
@@ -971,7 +985,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     const isExpanded = expandedItems[`${item.id}-${idx}`] || false;
 
                     let imageUrl = PLACEHOLDER_IMAGE;
-                    console.log('item.image:', item);
                     if (item.image) {
                       if (typeof item.image === 'string') {
                         imageUrl = item.image;
@@ -1014,7 +1027,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                 )}
                               </div>
                             </div>
-
 
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                               {!isCake && effectivePrice !== originalPrice && discountPercentForItem > 0 ? (
@@ -1074,7 +1086,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                       )) : item?.ingredient?.split(',')
                                         .map((ingredient: string) => t(ingredient.trim()))
                                         .join(', ')}
-
                                     </div>
                                   </div>
                                 </motion.div>
@@ -1157,7 +1168,32 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         className="space-y-5"
                       >
                         {/* Delivery Option */}
-
+                        <div>
+                          <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
+                            <Truck className="w-5 h-5" />
+                            {t('deliveryOption')}
+                          </p>
+                          <div className="flex flex-wrap gap-3">
+                            <button
+                              onClick={() => handleTempOrderChange("deliveryOption", "delivery")}
+                              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.deliveryOption === "delivery"
+                                ? "bg-[#69429a] text-white border-[#69429a] shadow-md scale-105"
+                                : "bg-white text-[#69429a] border-[#69429a] hover:bg-purple-50"
+                                }`}
+                            >
+                              🚚 {t('delivery')}
+                            </button>
+                            <button
+                              onClick={() => handleTempOrderChange("deliveryOption", "pickup")}
+                              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${tempOrderInfo.deliveryOption === "pickup"
+                                ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105"
+                                : "bg-white text-[#10b981] border-[#10b981] hover:bg-emerald-50"
+                                }`}
+                            >
+                              🏠 {t('pickup')}
+                            </button>
+                          </div>
+                        </div>
 
                         {/* Delivery Address */}
                         {tempOrderInfo.deliveryOption === "delivery" && (
