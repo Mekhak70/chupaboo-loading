@@ -6,7 +6,6 @@ import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect, use } from "react";
 import { supabase } from "@/lib/supabase";
-
 type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
 type DeliveryOption = "delivery" | "pickup";
 interface CartDrawerProps {
@@ -138,8 +137,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
-
-  console.log(cart, 'cartcartcart')
+  const cartScrollRef = useRef<HTMLDivElement>(null);
 
   const [tempOrderInfo, setTempOrderInfo] = useState<TempOrderInfo>({
     phoneNumber: "",
@@ -538,7 +536,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       return imageLinks || t('noImages') || 'Նկարներ չկան';
 
     } catch (error) {
-      console.error('Error in buildProductImagesLinks:', error);
       return t('noImages') || 'Նկարներ չկան';
     }
   };
@@ -680,6 +677,16 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       setShowDeliveryForm(true);
       setShowMessengerSelector(false);
     }
+    setTimeout(() => {
+      const el = cartScrollRef.current;
+    
+      if (el) {
+        el.scrollTo({
+          top: el.scrollHeight - el.clientHeight - 70,
+          behavior: "smooth",
+        });
+      }
+    }, 150);
   };
 
   const handleDeliveryFormSubmit = () => {
@@ -705,29 +712,25 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     platform: "whatsapp" | "telegram"
   ) => {
 
-    console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log(
-  "SUPABASE KEY EXISTS:",
-  !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-);
+
     try {
       const orderId = `CH-${Date.now()}`;
-  
+
       const orderItems = cart.map((item) => {
         const isCake = !!item.options?.cakeType;
-  
+
         let finalPrice = item.price;
-  
+
         if (hasCakeInCart && !isCake && discountPercent > 0) {
           const discountAmount =
             finalPrice * (discountPercent / 100);
-  
+
           finalPrice = Math.max(
             0,
             finalPrice - discountAmount
           );
         }
-  
+
         return {
           id: item.id,
           name: item.name,
@@ -739,14 +742,14 @@ console.log(
           options: item.options || null,
         };
       });
-  
+
       const deliveryFee =
         tempOrderInfo.deliveryOption === "delivery"
           ? tempOrderInfo.deliveryFee
           : 0;
-  
+
       const total = productsTotal + deliveryFee;
-  
+
       const order = {
         id: orderId,
         name: "",
@@ -765,50 +768,40 @@ console.log(
         notes: `Order sent via ${platform}`,
         status: "pending",
       };
-  
-      console.log("Saving order:", order);
-  
+
+
       // ==========================================
       // SUPABASE INSERT
-      // ==========================================
-      console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log(
-        "KEY:",
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.slice(0, 20) + "..."
-      );
-      
-      console.log("Supabase client:", supabase);
+
       const { data, error } = await supabase
         .from("orders")
         .insert(order)
         .select()
         .single();
-  
+
       if (error) {
-        console.error("Supabase order error:", error);
-  
+
         alert(
           `Պատվերը չհաջողվեց պահպանել։\n${error.message}`
         );
-  
+
         return;
       }
-  
-      console.log("Order saved successfully:", data);
-  
+
+
       // ==========================================
       // BUILD MESSAGE
       // ==========================================
-  
+
       const message = buildOrderMessage(platform);
       const encodedMessage = encodeURIComponent(message);
-  
+
       const phoneNumber = "37433775750";
-  
+
       // ==========================================
       // OPEN MESSENGER
       // ==========================================
-  
+
       if (platform === "whatsapp") {
         window.open(
           `https://wa.me/${phoneNumber}?text=${encodedMessage}`,
@@ -820,23 +813,20 @@ console.log(
           "_blank"
         );
       }
-  
+
       // ==========================================
       // CLEANUP
       // ==========================================
-  
+
       setShowMessengerSelector(false);
-  
+
       clearCart();
-  
+
       onClose();
-  
+
     } catch (error) {
-      console.error(
-        "Failed to create order:",
-        error
-      );
-  
+      ;
+
       alert(
         "Պատվերի պահպանման ժամանակ սխալ տեղի ունեցավ։"
       );
@@ -906,6 +896,17 @@ console.log(
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const getDriveImageUrl = (url: string) => {
+    if (!url) return PLACEHOLDER_IMAGE;
+
+    const match = url.match(/(?:id=|\/d\/)([^/&?]+)/);
+
+    if (match) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+    }
+
+    return url;
+  };
 
 
 
@@ -938,7 +939,9 @@ console.log(
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+            ref={cartScrollRef}
+             className="flex-1 overflow-y-auto p-4 space-y-4">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🛒</div>
@@ -968,12 +971,13 @@ console.log(
                     const isExpanded = expandedItems[`${item.id}-${idx}`] || false;
 
                     let imageUrl = PLACEHOLDER_IMAGE;
+                    console.log('item.image:', item);
                     if (item.image) {
                       if (typeof item.image === 'string') {
                         imageUrl = item.image;
                       } else if (typeof item.image === 'object') {
                         // @ts-ignore
-                        imageUrl = item.image?.url || item.image?.src || PLACEHOLDER_IMAGE;
+                        imageUrl = item.image?.url || item.image?.src || item.image || PLACEHOLDER_IMAGE;
                       }
                     }
 
@@ -988,11 +992,11 @@ console.log(
                         <div className="flex gap-3">
                           <div className="relative h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                             <img
-                              src={imageUrl}
+                              src={getDriveImageUrl(imageUrl)}
                               alt={String(item.name)}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                                e.currentTarget.src = PLACEHOLDER_IMAGE;
                               }}
                             />
                           </div>
