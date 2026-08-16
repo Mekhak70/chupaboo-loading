@@ -703,7 +703,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       const el = cartScrollRef.current;
       if (el) {
         el.scrollTo({
-          top: el.scrollHeight - el.clientHeight - 70,
+          top: el.scrollHeight - el.clientHeight - 140,
           behavior: "smooth",
         });
       }
@@ -732,25 +732,24 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const redirectToMessenger = async (
     platform: "whatsapp" | "telegram"
   ) => {
-
     try {
       const orderId = `CH-${Date.now()}`;
-
+  
       const orderItems = cart.map((item) => {
         const isCake = !!item.options?.cakeType;
-
+  
         let finalPrice = item.price;
-
+  
         if (hasCakeInCart && !isCake && discountPercent > 0) {
           const discountAmount =
             finalPrice * (discountPercent / 100);
-
+  
           finalPrice = Math.max(
             0,
             finalPrice - discountAmount
           );
         }
-
+  
         return {
           id: item.id,
           name: item.name,
@@ -762,14 +761,14 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
           options: item.options || null,
         };
       });
-
+  
       const deliveryFee =
         tempOrderInfo.deliveryOption === "delivery"
           ? tempOrderInfo.deliveryFee
           : 0;
-
+  
       const total = productsTotal + deliveryFee;
-
+  
       const order = {
         id: orderId,
         name: "",
@@ -788,42 +787,48 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         notes: `Order sent via ${platform}`,
         status: "pending",
       };
-
-      const { data, error } = await supabase
+  
+      // Պահպանում ենք պատվերը Supabase-ում
+      const { error } = await supabase
         .from("orders")
         .insert(order)
         .select()
         .single();
-
+  
       if (error) {
         alert(
           `Պատվերը չհաջողվեց պահպանել։\n${error.message}`
         );
         return;
       }
-
+  
+      // Ստեղծում ենք հաղորդագրությունը
       const message = buildOrderMessage(platform);
       const encodedMessage = encodeURIComponent(message);
-
+  
       const phoneNumber = "37433775750";
-
+  
+      let messengerUrl = "";
+  
       if (platform === "whatsapp") {
-        window.open(
-          `https://wa.me/${phoneNumber}?text=${encodedMessage}`,
-          "_blank"
-        );
+        messengerUrl =
+          `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       } else {
-        window.open(
-          `https://t.me/Chupaboo?text=${encodedMessage}`,
-          "_blank"
-        );
+        messengerUrl =
+          `https://t.me/Chupaboo?text=${encodedMessage}`;
       }
-
+  
+      // Փակում ենք modal-ը և մաքրում cart-ը
       setShowMessengerSelector(false);
       clearCart();
       onClose();
-
+  
+      // Բացում ենք messenger-ը
+      window.location.href = messengerUrl;
+  
     } catch (error) {
+      console.error("Messenger redirect error:", error);
+  
       alert(
         "Պատվերի պահպանման ժամանակ սխալ տեղի ունեցավ։"
       );
@@ -1168,7 +1173,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         className="space-y-5"
                       >
                         {/* Delivery Option */}
-                        <div>
+                        {/* <div>
                           <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2">
                             <Truck className="w-5 h-5" />
                             {t('deliveryOption')}
@@ -1193,7 +1198,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                               🏠 {t('pickup')}
                             </button>
                           </div>
-                        </div>
+                        </div> */}
 
                         {/* Delivery Address */}
                         {tempOrderInfo.deliveryOption === "delivery" && (
