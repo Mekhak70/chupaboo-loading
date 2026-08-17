@@ -1,4 +1,5 @@
 export interface Product {
+  photo?: any
   id: string
   name: string
   description: string
