@@ -1,1448 +1,1048 @@
-"use client";
+"use client"
 
-import Image from "next/image";
-import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
-import { useLanguage } from "@/components/language-provider";
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { StaticImport } from "next/dist/shared/lib/get-img-props";
-import { useCart } from "@/components/cart-context";
-import { CartDrawer } from "@/components/CartDrawer";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { useState, useEffect, useRef } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/components/language-provider"
+import Image from "next/image"
+import Cake from "@/public/cake.png"
+import { useParams } from "next/navigation"
+import partyShop from "@/public/banner-our-cakes.png"
+import {
+    useRouter,
+    usePathname,
+    useSearchParams,
+} from "next/navigation"
 
-// Desktop images
-import homepageDesktop from "@/public/fon.png";
-import main1Desktop from "@/public/main1.png";
-import main2Desktop from "@/public/main2.png";
-import main3Desktop from "@/public/main3.png";
+type Filter = "all" | "small" | "midi" | "standart"
 
-// Mobile images
-import homepageMobile from "@/public/fon-mobile.png";
-import main1Mobile from "@/public/main-mobile1.png";
-import main2Mobile from "@/public/main-mobile2.png";
-import main3Mobile from "@/public/main-mobile3.png";
-import Available from "./available/page";
+/* =========================================================
+   SIZE NORMALIZATION
+   ========================================================= */
 
-const ProductSkeleton = () => (
-  <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
-    <div className="aspect-square bg-gray-200"></div>
-    <div className="p-4 space-y-3">
-      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-      <div className="mt-3">
-        <div className="h-10 bg-gray-200 rounded-full w-full"></div>
-      </div>
-    </div>
-  </div>
-);
-type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
+const normalizeCategory = (value: any): Filter | null => {
+    const raw = String(value ?? "")
+        .trim()
+        .toLowerCase()
 
-interface Product {
-  id: string | number;
-  name: string;
-  image: string | StaticImport;
-  category: Filter;
+    switch (raw) {
+        case "small":
+        case "mini":
+            return "small"
+
+        case "midi":
+            return "midi"
+
+        case "standard":
+        case "standart":
+            return "standart"
+
+        default:
+            return null
+    }
 }
 
-interface Ad {
-  id: number;
-  title: string;
-  description: string;
-  ctaText: string;
-  ctaLink: string;
-  icon: string;
-  bgColor: string;
-}
-
-// Check if device is mobile
-const isMobileDevice = (): boolean => {
-  if (typeof window === "undefined") return false;
-  return window.innerWidth < 768;
-};
-
-// Hero slides with responsive images
-const getHeroSlides = () => [
-  {
-    id: 1,
-    imageDesktop: homepageDesktop,
-    imageMobile: homepageMobile,
-    title: "",
-    subtitle: "",
-    ctaText: "",
-    ctaLink: "",
-    bgColor: "",
-  },
-];
-
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
-
-// Get responsive floating images
-const getFloatingImages = () => ({
-  centerDesktop: main2Desktop,
-  centerMobile: main2Mobile,
-  leftDesktop: main1Desktop,
-  leftMobile: main1Mobile,
-  rightDesktop: main3Desktop,
-  rightMobile: main3Mobile,
-});
-
-// Scroll-triggered animation wrapper component
-const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }: { children: React.ReactNode; delay?: number; direction?: "up" | "down" | "left" | "right"; className?: string }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2, margin: "-50px" });
-  const controls = useAnimation();
-
-  const directions = {
-    up: { y: 80, x: 0 },
-    down: { y: -80, x: 0 },
-    left: { x: 80, y: 0 },
-    right: { x: -80, y: 0 },
-  };
-
-  useEffect(() => {
-    if (isInView) {
-      controls.start("visible");
-    }
-  }, [isInView, controls]);
-
-  return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={controls}
-      variants={{
-        hidden: { opacity: 0, ...directions[direction] },
-        visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.8, ease: "easeOut", delay } }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-// Staggered children wrapper
-const StaggerContainer = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.1 }}
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.2,
-          }
-        }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-const StaggerItem = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
-  return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-export default function HomePage() {
-
-  const [isHovering, setIsHovering] = useState(false);
-  const scrollRef = useRef(null);
-  const animationRef = useRef(null);
-  const positionRef = useRef(0);
-  const speed = 0.8;
-
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    let lastTimestamp = 0;
-
-    const animate = (timestamp: any) => {
-      if (!lastTimestamp) {
-        lastTimestamp = timestamp;
-        //@ts-ignore
-        animationRef.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      if (!isHovering) {
-        positionRef.current -= speed;
-        //@ts-ignore
-        const halfWidth = scrollContainer.scrollWidth / 2;
-        if (Math.abs(positionRef.current) >= halfWidth) {
-          positionRef.current = 0;
-        }
-        //@ts-ignore
-        scrollContainer.style.transform = `translateX(${positionRef.current}px)`;
-      }
-
-      lastTimestamp = timestamp;
-      //@ts-ignore
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    //@ts-ignore
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isHovering, speed]);
-
-  const { t, language } = useLanguage();
-  const [filter, setFilter] = useState<Filter>("all");
-  const [type, setType] = useState<string>("");
-  const [creamType, setCreamType] = useState<string>("");
-  const [isMobile, setIsMobile] = useState(false);
-  const [productsParty, setProductParty] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
-  const [products, setProducts] = useState<any[]>([]);
-  const [available, setAvailable] = useState<any[]>([]);
-
-  // AD STATES - using sessionStorage
-  const [currentAd, setCurrentAd] = useState<Ad | null>(null);
-  const [isAdVisible, setIsAdVisible] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
-  const [isAdClosedInSession, setIsAdClosedInSession] = useState(false);
-
-  // HERO SLIDER STATE
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-
-  const adTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const { locale } = useParams();
-  const SITE_URL = "https://www.chupaboo.com";
-
-  const { addToCart, getItemCount, cart, orderInfo } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // Detect mobile on mount and resize
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(isMobileDevice());
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Get responsive hero slides
-  const heroSlides = useMemo(() => getHeroSlides(), []);
-  const floatingImages = useMemo(() => getFloatingImages(), []);
-
-  // ADS
-  const ads: Ad[] = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
-        description: "Հասեք 1000+ հաճախորդների ամեն օր",
-        ctaText: "Մանրամասն →",
-        ctaLink: `https://www.chupaboo.com/${locale}/contact`,
-        bgColor: "from-[#69429a] to-[#8b5fcf]",
-        icon: "📢",
-      },
-      {
-        id: 2,
-        title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
-        description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
-        ctaText: "Պատվիրել →",
-        ctaLink: "https://pettaxi.am",
-        bgColor: "from-[#4a90e2] to-[#2c5aa0]",
-        icon: "🚕",
-      },
-
-    ],
-    []
-  );
-
-  const features = [
-    { icon: Heart, title: t("handmade"), description: t("handmadeDesc") },
-    { icon: Shield, title: t("petSafe"), description: t("petSafeDesc") },
-    { icon: Sparkles, title: t("freshDaily"), description: t("freshDailyDesc") },
-  ];
-
-  const filteredProducts = useMemo(() => {
-    if (filter === "all") return products;
-    return products.filter((product) => product.category === filter);
-  }, [filter]);
-
-  const [pendingImage, setPendingImage] = useState<string | null>(null);
-
-  const handleSelectImage = (image: { src: string } | StaticImport) => {
-    let src = "";
-    if (typeof image === "object" && "src" in image) {
-      src = (image as any).src || "";
-    } else if (typeof image === "string") {
-      src = image;
-    }
-    setPendingImage(src);
-  };
-
-  const whatsappMessage = pendingImage
-    ? `${t("whatsappMessageTextOne")}
-
-${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("/") ? pendingImage : "/" + pendingImage}`
-    : t("whatsappMessageText");
-
-  const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(whatsappMessage)}`;
-
-  // AD LOGIC - using sessionStorage
-  const showRandomAd = useCallback(() => {
-    // Check sessionStorage - if closed in this session, don't show
-    if (typeof window !== "undefined") {
-      const adClosed = sessionStorage.getItem("chupaboo_ad_closed_session");
-      if (adClosed === "true") {
-        setIsAdClosedInSession(true);
-        return;
-      }
-    }
-
-    // Clear any existing timeout
-    if (adTimeoutRef.current) {
-      clearTimeout(adTimeoutRef.current);
-      adTimeoutRef.current = null;
-    }
-
-    // Select random ad (different from current if possible)
-    let randomIndex = Math.floor(Math.random() * ads.length);
-    if (currentAd && ads[randomIndex].id === currentAd.id && ads.length > 1) {
-      randomIndex = (randomIndex + 1) % ads.length;
-    }
-
-    const nextAd = ads[randomIndex];
-    setCurrentAd(nextAd);
-    setIsClosing(false);
-    setIsAdVisible(true);
-
-    // Auto-close after 8 seconds
-    adTimeoutRef.current = setTimeout(() => {
-      handleCloseAd();
-    }, 8000);
-  }, [ads, currentAd]);
-
-  const handleCloseAd = useCallback(() => {
-    if (isClosing || !isAdVisible) return;
-
-    setIsClosing(true);
-
-    // Save to sessionStorage that ad was closed in this session
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("chupaboo_ad_closed_session", "true");
-    }
-    setIsAdClosedInSession(true);
-
-    // Hide after animation
-    setTimeout(() => {
-      setIsAdVisible(false);
-      setIsClosing(false);
-      if (adTimeoutRef.current) {
-        clearTimeout(adTimeoutRef.current);
-        adTimeoutRef.current = null;
-      }
-    }, 500);
-  }, [isClosing, isAdVisible]);
-
-  // Initialize ad system
-  useEffect(() => {
-    // Check sessionStorage
-    if (typeof window !== "undefined") {
-      const adClosed = sessionStorage.getItem("chupaboo_ad_closed_session");
-      if (adClosed === "true") {
-        setIsAdClosedInSession(true);
-        return;
-      }
-    }
-
-    // Show first ad after 2 seconds
-    const initialTimeout = setTimeout(() => {
-      showRandomAd();
-    }, 2000);
-
-    // Set interval for next ads (only if not closed in session)
-    intervalRef.current = setInterval(() => {
-      if (!isAdVisible && !isAdClosedInSession) {
-        showRandomAd();
-      }
-    }, 12000);
-
-    return () => {
-      clearTimeout(initialTimeout);
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
-    };
-  }, [showRandomAd, isAdVisible, isAdClosedInSession]);
-
-  // Clear sessionStorage when navigating away (optional - handled by browser)
-  // This effect runs when component unmounts (user leaves page)
-  useEffect(() => {
-    return () => {
-      // Don't clear sessionStorage on unmount - we want to keep it for the session
-      // sessionStorage will be cleared automatically when browser tab is closed
-    };
-  }, []);
-
-  // HERO SLIDER LOGIC
-  const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-  }, [heroSlides.length]);
-
-  const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
-  }, [heroSlides.length]);
-
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, nextSlide]);
-
-  // Products slider state
-  const [isProductsAutoPlaying, setIsProductsAutoPlaying] = useState(true);
-  const productsControls = useAnimation();
-
-  // PartyShop slider state
-  const [isPartyShopAutoPlaying, setIsPartyShopAutoPlaying] = useState(true);
-
-  const availableProductsControls = useAnimation();
-
-  useEffect(() => {
-    if (!products.length) return;
-
-    if (!isPartyShopAutoPlaying) {
-      availableProductsControls.stop();
-      return;
-    }
-
-    const itemWidth =
-      window.innerWidth < 768
-        ? 240 + 16 // mobile
-        : window.innerWidth < 1024
-          ? 280 + 24 // tablet
-          : 320 + 24; // desktop
-
-    const totalWidth = products.slice(0, 6).length * itemWidth;
-
-    availableProductsControls.set({ x: 0 });
-
-    availableProductsControls.start({
-      x: [0, -totalWidth],
-      transition: {
-        duration: 20,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "loop",
-      },
-    });
-  }, [products, isPartyShopAutoPlaying, availableProductsControls]);
-
-
-  const partyShopControls = useAnimation();
-
-  // Products slider animation
-  const visibleProductsCount = useMemo(
-    () => Math.min(filteredProducts.length, 6),
-    [filteredProducts.length]
-  );
-
-  useEffect(() => {
-    if (!isProductsAutoPlaying) {
-      productsControls.stop();
-      return;
-    }
-
-    const itemWidth = 320 + 24;
-    const totalWidth = visibleProductsCount * itemWidth;
-
-    productsControls.start({
-      x: [0, -totalWidth],
-      transition: {
-        duration: 30,
-        repeat: Infinity,
-        ease: "linear",
-        repeatType: "loop"
-      }
-    });
-  }, [isProductsAutoPlaying, visibleProductsCount, productsControls]);
-
-  // PartyShop slider animation
-  useEffect(() => {
-    if (!products.length) return;
-
-    if (!isPartyShopAutoPlaying) {
-      partyShopControls.stop();
-      return;
-    }
-
-    const itemWidth =
-      window.innerWidth < 768
-        ? 240 + 16 // mobile
-        : window.innerWidth < 1024
-          ? 280 + 24 // tablet
-          : 320 + 24; // desktop
-
-    const totalWidth = products.slice(0, 6).length * itemWidth;
-
-    partyShopControls.set({ x: 0 });
-
-    partyShopControls.start({
-      x: [0, -totalWidth],
-      transition: {
-        duration: 20,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "loop",
-      },
-    });
-  }, [products, isPartyShopAutoPlaying, partyShopControls]);
-
-  // Get current slide's image (desktop or mobile)
-  const currentSlideData = heroSlides[currentSlide];
-  const currentBgImage = isMobile ? currentSlideData?.imageMobile : currentSlideData?.imageDesktop;
-
-  const getWorkingImageUrl = (url: string) => {
-    if (!url) return PLACEHOLDER_IMAGE;
-
-    if (url.includes('drive.google.com') ||
-      url.includes('drive.usercontent.google.com') ||
-      url.includes('googleusercontent.com')) {
-      return `/api/image?url=${encodeURIComponent(url)}`;
-    }
-
-    return url;
-  };
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-  
-        const [partyRes, productsRes, availableCakesRes] = await Promise.all([
-          fetch(
-            "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
-          ),
-  
-          fetch(
-            "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
-          ),
-  
-          fetch(
-          "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
-          ),
-        ]);
-  
-        if (!partyRes.ok) {
-          throw new Error(`Party HTTP Error: ${partyRes.status}`);
-        }
-  
-        if (!productsRes.ok) {
-          throw new Error(`Products HTTP Error: ${productsRes.status}`);
-        }
-  
-        if (!availableCakesRes.ok) {
-          throw new Error(
-            `Available Cakes HTTP Error: ${availableCakesRes.status}`
-          );
-        }
-  
-        const [partyData, productsData, availableCakesData] =
-          await Promise.all([
-            partyRes.json(),
-            productsRes.json(),
-            availableCakesRes.json(),
-          ]);
-  
-        // =========================
-        // PARTY PRODUCTS
-        // =========================
-  
-        const partyFormatted = partyData.map((item: any, index: number) => {
-          const imageUrl = item["նկար"] || item["Image"] || "";
-  
-          return {
-            id: index + 1,
-            name: item["Անուն"] || item["Name"] || "Unnamed Product",
-            price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
-            stock: Number(item["քանակ"] || item["Stock"] || 0),
-            notes: item["notes"] || item["Notes"] || "",
-            image: [getWorkingImageUrl(imageUrl)],
-            set: false,
-          };
-        });
-  
-        // =========================
-        // CHUPABOO PRODUCTS
-        // =========================
-  
-        const productsFormatted = productsData.map(
-          (item: any, index: number) => {
-            let image = item["նկար"] || item.image || "";
-  
-            const match = image.match(/\/d\/([^/]+)/);
-  
-            if (match) {
-              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-  
-            return {
-              id: item.id || index + 1,
-              name: item.name,
-              price: Number(item.price),
-              category: item.category || item.size,
-              image,
-              cream: String(item.cream).toLowerCase() === "true",
-              stock: Number(item.stock || 999),
-              available: item.available === "1",
-            };
-          }
-        );
-  
-        // =========================
-        // AVAILABLE CAKES
-        // Միայն available = 1
-        // =========================
-  
-        const availableCakesFormatted = availableCakesData
-          .filter((item: any) => String(item.available).trim() === "1")
-          .map((item: any, index: number) => {
-            let image = item["նկար"] || item.image || "";
-  
-            const match = image.match(/\/d\/([^/]+)/);
-  
-            if (match) {
-              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-  
-            return {
-              id: item.id || `available-${index + 1}`,
-              name: item.name,
-              price: Number(item.price),
-              category: item.category || item.size,
-              image,
-              cream: String(item.cream).toLowerCase() === "true",
-              stock: Number(item.stock || 999),
-              available: true,
-            };
-          });
-  
-  
-        setProductParty(partyFormatted);
-  
-        // Երկրորդ Sheet + Available cakes
-        setProducts([
-          ...productsFormatted,
-        ]);
-
-        setAvailable([
-          
-          ...availableCakesFormatted,
-        ]);
-  
-      } catch (err) {
-        console.error("Load products error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  
-    loadData();
-  }, []);
-
-  const isProductInCart = (productId: string) => {
-    return cart.some((item: { id: string }) => item.id === productId);
-  };
-
-  const getProductQuantity = (productId: string) => {
-    const item = cart.find((item: { id: string }) => item.id === productId);
-    return item ? item.quantity : 0;
-  };
-
-  if (loading) {
+/* =========================================================
+   AVAILABLE NORMALIZATION
+   ========================================================= */
+
+const normalizeAvailable = (value: any): boolean => {
     return (
-      <div className="flex flex-col">
-        <section>
-          <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
-        </section>
-        <section className="bg-white py-10">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <ProductSkeleton key={index} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
+        String(value ?? "")
+            .trim()
+            .toLowerCase() === "1"
+    )
+}
 
+export default function Available() {
+    const { locale } = useParams()
 
-  
-  return (
-    <>
-      <div className="flex flex-col">
-        {/* Floating Cart Button */}
-        {getItemCount() > 0 && (
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center"
-            style={{ backgroundColor: "#69429a" }}
-          >
-            <ShoppingCart className="h-6 w-6" />
-            {getItemCount() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {getItemCount()}
-              </span>
-            )}
-          </button>
-        )}
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
 
-        {/* Cart Drawer */}
-        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} orderInfo={orderInfo} />
+    const { t } = useLanguage()
 
-        {/* ========== HERO SLIDER ========== */}
-        <ScrollReveal direction="up" delay={0}>
-          <section
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            className="relative overflow-hidden"
-          >
-            <div className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] lg:h-[480px]">
-              {heroSlides.map((slide, idx) => (
-                <div
-                  key={slide.id}
-                  className={`absolute inset-0 transition-all duration-700 ease-out ${idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-                    }`}
-                >
-                  {/* Background Image - responsive */}
-                  <Image
-                    src={idx === currentSlide ? currentBgImage! : (isMobile ? slide.imageMobile : slide.imageDesktop)}
-                    alt={slide.title || "Hero background"}
-                    fill
-                    className="w-full h-full object-center"
-                    priority={idx === 0}
-                    sizes="(max-width: 768px) 100vw, 100vw"
-                    quality={90}
-                  />
+    const [filter, setFilter] =
+        useState<Filter>("all")
 
-                  {/* Floating Images - with CSS animations */}
-                  <div className="absolute inset-0 z-20 pointer-events-none">
-                    {/* Կենտրոնական նկար */}
-                    <div
-                      className="absolute animate-float-center"
-                      style={{
-                        top: isMobile ? "35%" : "50%",
-                        left: isMobile ? "60%" : "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: isMobile ? "min(150px, 35vw)" : "min(260px, 24vw)",
-                        height: isMobile ? "min(150px, 35vw)" : "min(268px, 25vw)",
-                      }}
-                    >
-                      <Image
-                        src={isMobile ? floatingImages.centerMobile : floatingImages.centerDesktop}
-                        alt="floating center image"
-                        width={367}
-                        height={379}
-                        className="w-full h-full object-contain drop-shadow-2xl"
-                        priority
-                      />
-                    </div>
+    const [selectedImage, setSelectedImage] =
+        useState<string | null>(null)
 
-                    {/* Ձախ կողմի նկար - hidden on mobile */}
-                    <div
-                      className={`absolute animate-float-left `}
-                      style={{
-                        top: isMobile ? "57%" : "50%",
-                        left: isMobile ? "65%" : "67%",
-                        width: isMobile ? "min(150px, 35vw)" : "min(300px, 30vw)",
-                        height: isMobile ? "min(150px, 35vw)" : "min(300px, 30vw)",
-                      }}
-                    >
-                      <Image
-                        src={isMobile ? floatingImages.leftMobile : floatingImages.leftDesktop}
-                        alt="floating left image"
-                        width={401}
-                        height={402}
-                        className="w-full h-full object-contain drop-shadow-2xl"
-                        priority
-                      />
-                    </div>
+    const [type, setType] =
+        useState<string>("")
 
-                    {/* Աջ կողմի նկար - hidden on mobile */}
-                    <div
-                      className={`absolute animate-float-right `}
-                      style={{
-                        top: isMobile ? "78%" : "55%",
-                        left: isMobile ? "39%" : "33%",
-                        width: isMobile ? "min(110px, 35vw)" : "min(290px, 29vw)",
-                        height: isMobile ? "min(110px, 35vw)" : "min(285px, 28vw)",
-                      }}
-                    >
-                      <Image
-                        src={isMobile ? floatingImages.rightMobile : floatingImages.rightDesktop}
-                        alt="floating right image"
-                        width={407}
-                        height={399}
-                        className="w-full h-full object-contain drop-shadow-2xl"
-                        priority
-                      />
-                    </div>
-                  </div>
+    const [creamType, setCreamType] =
+        useState<string>("")
+
+    const [products, setProducts] =
+        useState<any[]>([])
+
+    const [loading, setLoading] =
+        useState<boolean>(false)
+
+    /* =========================================================
+       MOBILE SCROLL
+       ========================================================= */
+
+    const [visibleProductId, setVisibleProductId] =
+        useState<string | null>(null)
+
+    const cardRefs =
+        useRef<{
+            [key: string]: HTMLAnchorElement | null
+        }>({})
+
+    const timeoutRef =
+        useRef<NodeJS.Timeout | null>(null)
+
+    /* =========================================================
+       STEP 1
+       FIRST GET ONLY AVAILABLE PRODUCTS
+       ========================================================= */
+
+    const availableProducts =
+        products.filter(
+            (product) =>
+                product.available === true
+        )
+
+    /* =========================================================
+       STEP 2
+       FILTER AVAILABLE PRODUCTS
+       ========================================================= */
+
+    const filteredProducts =
+        filter === "all"
+            ? availableProducts
+            : availableProducts.filter(
+                (product) =>
+                    product.category === filter
+            )
+
+    /* =========================================================
+       DEBUG
+       ========================================================= */
+
+    console.log(
+        "ALL PRODUCTS:",
+        products
+    )
+
+    console.log(
+        "AVAILABLE PRODUCTS:",
+        availableProducts
+    )
+
+    console.log(
+        "CURRENT FILTER:",
+        filter
+    )
+
+    console.log(
+        "FILTERED PRODUCTS:",
+        filteredProducts
+    )
+
+    /* =========================================================
+       FILTER CHANGE
+       ========================================================= */
+
+    const handleFilterChange = (
+        newFilter: Filter
+    ) => {
+        setFilter(newFilter)
+
+        const params =
+            new URLSearchParams(
+                searchParams.toString()
+            )
+
+        if (newFilter === "all") {
+            params.delete("filter")
+        } else {
+            params.set(
+                "filter",
+                newFilter
+            )
+        }
+
+        const query =
+            params.toString()
+
+        router.push(
+            query
+                ? `${pathname}?${query}`
+                : pathname,
+            {
+                scroll: false,
+            }
+        )
+    }
+
+    /* =========================================================
+       READ FILTER FROM URL
+       ========================================================= */
+
+    useEffect(() => {
+        const currentFilter =
+            searchParams.get("filter")
+
+        if (
+            currentFilter === "all" ||
+            currentFilter === "small" ||
+            currentFilter === "midi" ||
+            currentFilter === "standart"
+        ) {
+            setFilter(
+                currentFilter as Filter
+            )
+        } else {
+            setFilter("all")
+        }
+    }, [searchParams])
+
+    /* =========================================================
+       SKELETON
+       ========================================================= */
+
+    const ProductSkeleton = () => (
+        <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
+
+            <div className="aspect-square bg-gray-200"></div>
+
+            <div className="p-4 space-y-3">
+
+                <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+
+                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+
+                <div className="mt-3">
+                    <div className="h-10 bg-gray-200 rounded-full w-full"></div>
                 </div>
-              ))}
-            </div>
 
-            {/* Navigation Buttons */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
-            >
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
-            >
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            </button>
-          </section>
-        </ScrollReveal>
-
-        {/* PRODUCTS SECTION */}
-        <section className="bg-gray-50 py-8 md:py-12 overflow-hidden">
-          <div className="container mx-auto px-4">
-            <ScrollReveal direction="up">
-              <Link href={`/${locale}/cakes`}>
-                <div className="text-center mb-8 md:mb-12">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h2>
-                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
-                </div>
-              </Link>
-            </ScrollReveal>
-
-            <div
-              className="relative overflow-hidden w-full"
-              onMouseEnter={() => setIsProductsAutoPlaying(false)}
-              onMouseLeave={() => setIsProductsAutoPlaying(true)}
-            >
-              <motion.div
-                className="flex gap-4 md:gap-6 will-change-transform"
-                animate={partyShopControls}
-                style={{
-                  width: "fit-content",
-                  WebkitTransform: "translate3d(0,0,0)",
-                  transform: "translate3d(0,0,0)",
-                  WebkitBackfaceVisibility: "hidden",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => (
-                  <Link
-                    key={`${product.id}-${idx}`}
-                    href={`/${locale}/product/${product.id}`}
-                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group block flex-shrink-0"
-                  >
-                    <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white">
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-                          priority
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                      <div className="p-3 md:p-4 text-center bg-white">
-                        <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
-                          {product.name}
-                        </h3>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        <ScrollReveal direction="up" delay={0.2}>
-          <div className="flex justify-center mt-8 md:mt-12">
-            <Link href={`/${locale}/cakes`}>
-              <button
-                className="
-                  group relative px-6 md:px-8 py-2.5 md:py-3 
-                  rounded-full 
-                  bg-[#69429a] text-white 
-                  font-semibold text-base md:text-lg 
-                  transition-all duration-300 ease-out 
-                  hover:bg-[#7c4fb3] 
-                  hover:scale-105 hover:-translate-y-0.5 
-                  active:scale-95 active:translate-y-0
-                  shadow-lg hover:shadow-xl 
-                  active:shadow-md
-                  overflow-hidden
-                  cursor-pointer
-                  select-none
-                  touch-manipulation
-                  tap-highlight-transparent
-                  focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
-                  z-20 relative
-                "
-                style={{
-                  WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
-                }}
-              >
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <span className="relative flex items-center gap-2">
-                  <span>{t('seeMoreLabel')}</span>
-                  <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-0">
-                    →
-                  </span>
-                </span>
-              </button>
-            </Link>
-          </div>
-        </ScrollReveal>
-
-        {/* ========== AVAILABLE PRODUCTS SECTION ========== */}
-        <section className="bg-white py-12 md:py-20 overflow-hidden">
-          <div className="container mx-auto px-4">
-            <ScrollReveal direction="up">
-              <Link href={`/${locale}/available`}>
-                <div className="text-center mb-8 md:mb-12">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">
-                    Առկա տեսականի
-                  </h2>
-                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
-                </div>
-              </Link>
-            </ScrollReveal>
-
-            <div
-              className="relative overflow-hidden w-full"
-              onMouseEnter={() => setIsProductsAutoPlaying(false)}
-              onMouseLeave={() => setIsProductsAutoPlaying(true)}
-            >
-              <motion.div
-                className="flex gap-4 md:gap-6 will-change-transform"
-                animate={availableProductsControls}
-                style={{
-                  width: "fit-content",
-                  WebkitTransform: "translate3d(0,0,0)",
-                  transform: "translate3d(0,0,0)",
-                  WebkitBackfaceVisibility: "hidden",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                {[...available,
-                ...available
-                ].map((product, idx) => (
-
-                  <Link href={`/${locale}/available`}
-                    key={`${product.id}-${idx}`}
-
-                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group block flex-shrink-0"
-                  >
-                    <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white border border-gray-100">
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image
-                          src={product.image || PLACEHOLDER_IMAGE}
-                          alt={product.name || "Առկա ապրանք"}
-                          fill
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-                        />
-
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                        <div className="absolute top-3 left-3">
-                          <span className="inline-flex items-center gap-1 bg-[#aed137] text-white text-xs md:text-sm font-bold px-3 py-1.5 rounded-full shadow-md">
-                            ✓ Առկա է
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 md:p-4 text-center bg-white">
-                        <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors line-clamp-2">
-                          {product.name}
-                        </h3>
-
-                        {product.price > 0 && (
-                          <p className="text-sm md:text-base font-bold text-[#69429a] mt-2">
-                            {Number(product.price).toLocaleString()} AMD
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </motion.div>
             </div>
 
-            <ScrollReveal direction="up" delay={0.3}>
-              <div className="flex justify-center mt-8 md:mt-12">
-                <Link href={`/${locale}/available`}>
-                  <button
-                    className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg"
-                  >
-                    Տեսնել ամբողջ տեսականին →
-                  </button>
-                </Link>
-              </div>
-            </ScrollReveal>
-          </div>
-        </section>
-
-        {/* PARTY SHOP SECTION */}
-        <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">
-          <div className="container mx-auto px-4">
-            <ScrollReveal direction="up">
-              <Link href={`/${locale}/partyshop`}>
-                <div className="text-center mb-8 md:mb-12">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t("partyshop")}</h2>
-                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
-                </div>
-              </Link>
-            </ScrollReveal>
-
-            <div
-              className="relative overflow-hidden w-full"
-              onPointerEnter={() => setIsPartyShopAutoPlaying(false)}
-              onPointerLeave={() => setIsPartyShopAutoPlaying(true)}
-            >
-              <motion.div
-                className="flex gap-4 md:gap-6 will-change-transform"
-                animate={partyShopControls}
-                style={{
-                  width: "fit-content",
-                  WebkitTransform: "translate3d(0,0,0)",
-                  transform: "translate3d(0,0,0)",
-                  WebkitBackfaceVisibility: "hidden",
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                {[...productsParty.slice(0, 6), ...productsParty.slice(0, 6)].map((product, idx) => {
-                  const productId = String(product.id);
-                  const inCart = isProductInCart(productId);
-                  const cartQuantity = getProductQuantity(productId);
-                  const selectedQuantity = quantities[productId] || 1;
-                  const productImages = Array.isArray(product.image)
-                    ? product.image
-                    : [product.image || PLACEHOLDER_IMAGE];
-
-                  const currentImageIndex = currentImage[productId] || 0;
-                  const hasError = imageErrors[productId];
-
-                  return (
-                    <div
-                      key={`${product.id}-${idx}`}
-                      className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
-                    >
-                      <Link
-                        href={`/${locale}/partyshop`}
-                        className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
-                      >
-                        <div className="relative aspect-square overflow-hidden">
-                          <img
-                            src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
-                            alt={product.name || "Շան ծննդյան տորթ"}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                            sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
-
-                          {productImages.length > 1 && !hasError && (
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                              {productImages.map((_: any, index: number) => (
-                                <div
-                                  key={index}
-                                  className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
-                                    ? "bg-white"
-                                    : "bg-white/50"
-                                    }`}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {product.name && (
-                          <div className="p-3 md:p-4 text-center bg-white">
-                            <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
-                              {product.name}
-                            </h3>
-                            {product.price && (
-                              <p className="text-sm text-gray-500 mt-1">
-                                {product.price} AMD
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            </div>
-
-            <ScrollReveal direction="up" delay={0.3}>
-              <div className="flex justify-center mt-8 md:mt-12">
-                <Link href={`/${locale}/partyshop`}>
-                  <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg">
-                    {t('viewAllProductsLabel')} →
-                  </button>
-                </Link>
-              </div>
-            </ScrollReveal>
-          </div>
-        </section>
-
-        {/* FAQ SECTION */}
-        <section className="py-12 md:py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <ScrollReveal direction="up">
-              <div className="text-center mb-8 md:mb-12">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a]">{t('faqLabel')}</h2>
-                <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto mt-3 md:mt-4 rounded-full" />
-              </div>
-            </ScrollReveal>
-
-            <StaggerContainer className="flex flex-col gap-5 md:gap-8 max-w-5xl mx-auto">
-              {/* Վերևի շարքը - 2 հատ */}
-              <div className="grid md:grid-cols-2 gap-5 md:gap-8">
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🚚
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('freeDeliveryYerevanLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('freeDeliveryYerevanDesc')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        📅
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('cakeOrderAdvanceLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('orderLeadTimeDesc')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
-
-              {/* Մեջտեղի շարքը - 1 հատ (կենտրոնում) */}
-              <div className="flex justify-center">
-                <StaggerItem className="w-full max-w-2xl">
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🤝
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('collaborationLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('collaborationDescLabel')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
-
-              {/* Ներքևի շարքը - 2 հատ */}
-              <div className="grid md:grid-cols-2 gap-5 md:gap-8">
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🎨
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('ownDesignLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('customDesignResponseLabel')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🐾
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('onlyDogsCatsLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('allAnimalsDesc')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
-            </StaggerContainer>
-
-            <ScrollReveal direction="up" delay={0.4}>
-              <div className="text-center mt-8 md:mt-12">
-                <p className="text-sm md:text-base text-gray-500">
-                  {t('stillHaveQuestions')}
-                  <a href={`/${locale}/contact`} className="text-[#69429a] font-semibold hover:underline ml-1">
-                    {t('contactUs')}
-                  </a>
-                </p>
-              </div>
-            </ScrollReveal>
-          </div>
-        </section>
-
-        {/* FEATURES SECTION */}
-        <section className="bg-white py-12 md:py-20">
-          <div className="container mx-auto px-4">
-            <StaggerContainer className="grid gap-5 md:gap-8 grid-cols-1 md:grid-cols-3">
-              {features.map((feature, index) => (
-                <StaggerItem key={index}>
-                  <div className="group flex flex-col items-center gap-3 md:gap-5 rounded-xl md:rounded-2xl bg-gray-50 p-6 md:p-8 text-center shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                    <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#69429a] to-[#8b5fcf] shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="h-7 w-7 md:h-8 md:w-8 text-white" />
-                    </div>
-                    <h3 className="text-lg md:text-xl font-bold text-gray-800">{feature.title}</h3>
-                    <p className="text-sm md:text-base text-gray-600 leading-relaxed">{feature.description}</p>
-                  </div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
-        </section>
-      </div>
-
-      {/* AD SLIDER - using sessionStorage */}
-      {isAdVisible && currentAd && !isAdClosedInSession && (
-        <div
-          key={currentAd.id}
-          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out`}
-          style={{
-            transform: isClosing ? "translateY(100%)" : "translateY(0)",
-            opacity: isClosing ? 0 : 1,
-          }}
-        >
-          <div className="px-2 pb-2 sm:px-4 sm:pb-4">
-            <div
-              className={`relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-r ${currentAd.bgColor}`}
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseAd();
-                }}
-                className="absolute top-1 right-1 md:top-2 md:right-2 z-20 bg-black/50 hover:bg-black/70 rounded-full p-1 md:p-1.5 transition-all hover:scale-110"
-                aria-label="Close ad"
-              >
-                <X className="h-3 w-3 md:h-4 md:w-4 text-white" />
-              </button>
-              <div className="flex flex-col sm:flex-row items-center gap-2 p-3 pr-5 md:p-4 md:pr-6">
-                <div className="flex-shrink-0 w-10 h-10 md:w-14 md:h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-xl md:text-3xl">{currentAd.icon}</span>
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <p className="text-white text-xs md:text-sm lg:text-base font-semibold">{currentAd.title}</p>
-                  <p className="text-white/70 text-xs md:text-sm hidden sm:block">{currentAd.description}</p>
-                </div>
-                <button
-                  onClick={() => window.open(currentAd.ctaLink, "_blank")}
-                  className="bg-white text-[#69429a] px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap hover:bg-gray-100 transition-all hover:scale-105 shadow-md flex-shrink-0"
-                >
-                  {currentAd.ctaText}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-      )}
+    )
 
-      <style>{`
-        @media (prefers-reduced-motion: reduce) {
-          .animate-float-center,
-          .animate-float-left,
-          .animate-float-right {
-            animation: none !important;
-            transform: translate(-50%, -50%) !important;
-            transition: none !important;
-          }
+    /* =========================================================
+       WHATSAPP
+       ========================================================= */
+
+    const SITE_URL =
+        "https://www.chupaboo.com"
+
+    const whatsappMessage =
+        selectedImage
+            ? `Բարև, ուզում եմ պատվիրել այս տորթը լինի ${type} և ${creamType}։ Նկարը՝ ${SITE_URL}${selectedImage}`
+            : "Բարև, ուզում եմ պատվիրել տորթ"
+
+    const whatsappLink =
+        `https://wa.me/37433775750?text=${encodeURIComponent(
+            whatsappMessage
+        )}`
+
+    /* =========================================================
+       MOBILE SCROLL EFFECT
+       ========================================================= */
+
+    useEffect(() => {
+        const handleScroll = () => {
+
+            if (window.innerWidth >= 640) {
+                setVisibleProductId(null)
+                return
+            }
+
+            let closestId:
+                string | null = null
+
+            let closestDistance =
+                Infinity
+
+            const windowCenter =
+                window.innerHeight / 2
+
+            Object.keys(
+                cardRefs.current
+            ).forEach((id) => {
+
+                const element =
+                    cardRefs.current[id]
+
+                if (!element) {
+                    return
+                }
+
+                const rect =
+                    element.getBoundingClientRect()
+
+                const cardCenter =
+                    rect.top +
+                    rect.height / 2
+
+                const distance =
+                    Math.abs(
+                        cardCenter -
+                        windowCenter
+                    )
+
+                if (
+                    distance <
+                    closestDistance
+                ) {
+                    closestDistance =
+                        distance
+
+                    closestId = id
+                }
+            })
+
+            if (
+                closestId &&
+                closestDistance < 100
+            ) {
+
+                setVisibleProductId(
+                    closestId
+                )
+
+                if (
+                    timeoutRef.current
+                ) {
+                    clearTimeout(
+                        timeoutRef.current
+                    )
+                }
+
+                timeoutRef.current =
+                    setTimeout(() => {
+                        setVisibleProductId(
+                            null
+                        )
+                    }, 2500)
+
+            } else {
+
+                setVisibleProductId(null)
+
+                if (
+                    timeoutRef.current
+                ) {
+                    clearTimeout(
+                        timeoutRef.current
+                    )
+                }
+            }
         }
 
-        @media (min-width: 768px) {
-          @keyframes progress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-          }
+        let ticking = false
 
-          @keyframes floatCenter {
-            0%, 100% {
-              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
-            }
-            20% {
-              transform: translate(-50%, -50%) translateY(-30px) rotate(6deg) scale(1.03);
-            }
-            40% {
-              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
-            }
-            60% {
-              transform: translate(-50%, -50%) translateY(25px) rotate(-5deg) scale(0.97);
-            }
-            80% {
-              transform: translate(-50%, -50%) translateY(-15px) rotate(3deg) scale(1.01);
-            }
-          }
+        const throttledScroll = () => {
 
-          @keyframes floatLeft {
-            0%, 100% {
-              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
-            }
-            15% {
-              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-35px) translateY(-15px) rotate(-10deg) scale(0.96);
-            }
-            35% {
-              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(-25px) rotate(0deg) scale(1);
-            }
-            55% {
-              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(30px) translateY(15px) rotate(8deg) scale(1.04);
-            }
-            75% {
-              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-20px) translateY(20px) rotate(-6deg) scale(0.98);
-            }
-          }
+            if (!ticking) {
 
-          @keyframes floatRight {
-            0%, 100% {
-              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
-            }
-            18% {
-              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(30px) translateY(-20px) rotate(8deg) scale(1.03);
-            }
-            38% {
-              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-25px) translateY(15px) rotate(-7deg) scale(0.97);
-            }
-            58% {
-              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(20px) translateY(-30px) rotate(6deg) scale(1.02);
-            }
-            78% {
-              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-30px) translateY(-10px) rotate(-8deg) scale(0.96);
-            }
-          }
+                window.requestAnimationFrame(
+                    () => {
+                        handleScroll()
+                        ticking = false
+                    }
+                )
 
-          .animate-float-center {
-            animation: floatCenter 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-          }
-
-          .animate-float-left {
-            animation: floatLeft 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-          }
-
-          .animate-float-right {
-            animation: floatRight 11s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-          }
+                ticking = true
+            }
         }
 
-        @media (max-width: 767px) {
-          @keyframes floatCenterMobile {
-            0%, 100% {
-              transform: translate(-50%, -50%) translateY(10px) scale(1);
+        window.addEventListener(
+            "scroll",
+            throttledScroll,
+            {
+                passive: true,
             }
-            50% {
-              transform: translate(-50%, -50%) translateY(-10px) scale(1.03);
-            }
-          }
+        )
 
-          @keyframes floatLeftMobile {
-            0%, 100% {
-              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(10px) translateY(10px);
+        window.addEventListener(
+            "resize",
+            handleScroll,
+            {
+                passive: true,
             }
-            50% {
-              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(-10px) translateY(-6px);
+        )
+
+        setTimeout(
+            handleScroll,
+            100
+        )
+
+        return () => {
+
+            window.removeEventListener(
+                "scroll",
+                throttledScroll
+            )
+
+            window.removeEventListener(
+                "resize",
+                handleScroll
+            )
+
+            if (
+                timeoutRef.current
+            ) {
+                clearTimeout(
+                    timeoutRef.current
+                )
             }
-          }
-
-          @keyframes floatRightMobile {
-            0%, 100% {
-              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(17px) translateY(5px);
-            }
-            50% {
-              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(5px) translateY(-3px);
-            }
-          }
-
-          .animate-float-center {
-            animation: floatCenterMobile 6s ease-in-out infinite;
-          }
-
-          .animate-float-left {
-            animation: floatLeftMobile 7s ease-in-out infinite;
-          }
-
-          .animate-float-right {
-            animation: floatRightMobile 7s ease-in-out infinite;
-          }
         }
 
-        @keyframes scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+    }, [filteredProducts])
+
+    /* =========================================================
+       LOAD PRODUCTS
+       ========================================================= */
+
+    useEffect(() => {
+
+        async function loadProducts() {
+
+            try {
+
+                setLoading(true)
+
+                const res =
+                    await fetch(
+                        "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
+                    )
+
+                if (!res.ok) {
+                    throw new Error(
+                        `HTTP Error: ${res.status}`
+                    )
+                }
+
+                const data =
+                    await res.json()
+
+                console.log(
+                    "RAW GOOGLE SHEET DATA:",
+                    data
+                )
+
+                const formatted =
+                    data.map(
+                        (item: any) => {
+
+                            /* =========================
+                               IMAGE
+                               ========================= */
+
+                            let image =
+                                item["նկար"] ||
+                                ""
+
+                            const match =
+                                image.match(
+                                    /\/d\/([^/]+)/
+                                )
+
+                            if (match) {
+                                image =
+                                    `https://drive.google.com/uc?export=view&id=${match[1]}`
+                            }
+
+                            /* =========================
+                               AVAILABLE
+                               ========================= */
+
+                            const available =
+                                normalizeAvailable(
+                                    item.available
+                                )
+
+                            /* =========================
+                               CATEGORY
+                               ========================= */
+
+                            const category =
+                                normalizeCategory(
+                                    item.size
+                                )
+
+                            /* =========================
+                               PRODUCT
+                               ========================= */
+
+                            return {
+                                id:
+                                    item.id,
+
+                                name:
+                                    item.name,
+
+                                price:
+                                    Number(
+                                        item.price
+                                    ),
+
+                                category,
+
+                                image,
+
+                                cream:
+                                    String(
+                                        item.cream ??
+                                        ""
+                                    )
+                                        .trim()
+                                        .toLowerCase() ===
+                                    "true",
+
+                                stock: 999,
+
+                                available,
+
+                                ingredients:
+                                    item.ingredients,
+                            }
+                        }
+                    )
+
+                setProducts(
+                    formatted
+                )
+
+            } catch (err) {
+
+                console.error(
+                    "Load products error:",
+                    err
+                )
+
+            } finally {
+
+                setLoading(false)
+            }
         }
-        .carousel-track {
-          animation: scroll 20s linear infinite;
-        }
-      `}</style>
-    </>
-  );
+
+        loadProducts()
+
+    }, [])
+
+    /* =========================================================
+       LOADING
+       ========================================================= */
+
+    if (loading) {
+
+        return (
+            <div className="flex flex-col">
+
+                <section>
+                    <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
+                </section>
+
+                <section className="bg-white py-10">
+
+                    <div className="container mx-auto px-4">
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+                            {Array.from({
+                                length: 8
+                            }).map(
+                                (_, index) => (
+                                    <ProductSkeleton
+                                        key={
+                                            index
+                                        }
+                                    />
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+        )
+    }
+
+    /* =========================================================
+       PAGE
+       ========================================================= */
+
+    return (
+        <>
+
+            <div className="flex flex-col">
+
+                {/* =================================================
+                    HERO
+                ================================================= */}
+
+                <section>
+
+                    <img
+                        src={
+                            partyShop.src
+                        }
+                        alt="Party Shop"
+                        className="w-full h-[auto] object-contain"
+                    />
+
+                </section>
+
+
+                {/* =================================================
+                    FILTER & PRODUCTS
+                ================================================= */}
+
+                <section>
+
+                    <div className="container mx-auto px-4">
+
+                        <section className="bg-white py-10">
+
+                            <div className="container mx-auto px-4">
+
+
+                                {/* =================================================
+                                    FILTER BUTTONS
+                                ================================================= */}
+
+                                <div
+                                    className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap"
+                                    style={{
+                                        paddingBottom:
+                                            "20px",
+                                    }}
+                                >
+
+                                    {/* ALL */}
+
+                                    <button
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                "all"
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "10px 15px",
+
+                                            background:
+                                                filter ===
+                                                "all"
+                                                    ? "#aed137"
+                                                    : "#69429a",
+
+                                            color:
+                                                "#fff",
+
+                                            borderRadius:
+                                                "20px",
+
+                                            fontSize:
+                                                "20px",
+
+                                            display:
+                                                "flex",
+
+                                            alignItems:
+                                                "center",
+
+                                            justifyContent:
+                                                "center",
+
+                                            cursor:
+                                                "pointer",
+
+                                            border:
+                                                "none",
+                                        }}
+                                    >
+                                        {t("all")}
+                                    </button>
+
+
+                                    {/* MINI */}
+
+                                    <button
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                "small"
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "10px 15px",
+
+                                            background:
+                                                filter ===
+                                                "small"
+                                                    ? "#aed137"
+                                                    : "#69429a",
+
+                                            color:
+                                                "#fff",
+
+                                            borderRadius:
+                                                "20px",
+
+                                            fontSize:
+                                                "20px",
+
+                                            display:
+                                                "flex",
+
+                                            alignItems:
+                                                "center",
+
+                                            justifyContent:
+                                                "center",
+
+                                            cursor:
+                                                "pointer",
+
+                                            border:
+                                                "none",
+                                        }}
+                                    >
+                                        {t("mini")}
+                                    </button>
+
+
+                                    {/* MIDI */}
+
+                                    <button
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                "midi"
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "10px 15px",
+
+                                            background:
+                                                filter ===
+                                                "midi"
+                                                    ? "#aed137"
+                                                    : "#69429a",
+
+                                            color:
+                                                "#fff",
+
+                                            borderRadius:
+                                                "20px",
+
+                                            fontSize:
+                                                "20px",
+
+                                            display:
+                                                "flex",
+
+                                            alignItems:
+                                                "center",
+
+                                            justifyContent:
+                                                "center",
+
+                                            cursor:
+                                                "pointer",
+
+                                            border:
+                                                "none",
+                                        }}
+                                    >
+                                        {t("midi")}
+                                    </button>
+
+
+                                    {/* STANDARD */}
+
+                                    <button
+                                        onClick={() =>
+                                            handleFilterChange(
+                                                "standart"
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "10px 15px",
+
+                                            background:
+                                                filter ===
+                                                "standart"
+                                                    ? "#aed137"
+                                                    : "#69429a",
+
+                                            color:
+                                                "#fff",
+
+                                            borderRadius:
+                                                "20px",
+
+                                            fontSize:
+                                                "20px",
+
+                                            display:
+                                                "flex",
+
+                                            alignItems:
+                                                "center",
+
+                                            justifyContent:
+                                                "center",
+
+                                            cursor:
+                                                "pointer",
+
+                                            border:
+                                                "none",
+                                        }}
+                                    >
+                                        {t("standard")}
+                                    </button>
+
+                                </div>
+
+
+                                {/* =================================================
+                                    PRODUCTS
+                                ================================================= */}
+
+                                <div
+                                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                                    style={{
+                                        paddingTop:
+                                            "10px",
+                                    }}
+                                >
+
+                                    {filteredProducts.length >
+                                    0 ? (
+
+                                        filteredProducts.map(
+                                            (product) => {
+
+                                                const isVisible =
+                                                    visibleProductId ===
+                                                    product.id
+
+                                                return (
+
+                                                    <Link
+                                                        key={
+                                                            product.id
+                                                        }
+                                                        href={`/${locale}/product/available/${product.id}`}
+                                                        className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
+                                                        ref={(
+                                                            el
+                                                        ) => {
+                                                            cardRefs.current[
+                                                                product.id
+                                                            ] =
+                                                                el
+                                                        }}
+                                                    >
+
+                                                        <div className="relative aspect-square">
+
+                                                            {/* IMAGE */}
+
+                                                            <Image
+                                                                src={
+                                                                    product.image
+                                                                }
+                                                                alt={
+                                                                    "Շան ծննդյան տորթ"
+                                                                }
+                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                                height={
+                                                                    300
+                                                                }
+                                                                width={
+                                                                    300
+                                                                }
+                                                            />
+
+
+                                                            {/* DESKTOP HOVER */}
+
+                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
+
+                                                                <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
+
+                                                                    {locale ===
+                                                                    "hy"
+                                                                        ? "Տեսնել ավելին"
+                                                                        : "View details"}
+
+                                                                </span>
+
+                                                            </div>
+
+
+                                                            {/* MOBILE */}
+
+                                                            <div
+                                                                className={`
+                                                                    absolute inset-0 bg-black/40 flex items-center justify-center sm:hidden
+                                                                    transition-all duration-500 ease-out
+                                                                    ${
+                                                                        isVisible
+                                                                            ? "opacity-100 scale-100"
+                                                                            : "opacity-0 scale-90 pointer-events-none"
+                                                                    }
+                                                                `}
+                                                            >
+
+                                                                <div className="bg-black/80 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center gap-2 shadow-xl">
+
+                                                                    <span className="text-white font-medium text-base">
+
+                                                                        {locale ===
+                                                                        "hy"
+                                                                            ? "Տեսնել ավելին"
+                                                                            : "View details"}
+
+                                                                    </span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </Link>
+
+                                                )
+                                            }
+                                        )
+
+                                    ) : (
+
+                                        <div className="col-span-full text-center py-10">
+
+                                            <p className="text-gray-500 text-lg">
+
+                                                {t(
+                                                    "noProductsAvailable"
+                                                )}
+
+                                            </p>
+
+                                        </div>
+
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+                    </div>
+
+                </section>
+
+
+                {/* =================================================
+                    INFO SECTION
+                ================================================= */}
+
+                <section className="border-t border-border bg-muted/30 py-16">
+
+                    <div className="container mx-auto px-4">
+
+                        <div className="mx-auto max-w-3xl text-center">
+
+                            <Image
+                                src={Cake}
+                                alt="cake"
+                                width={40}
+                                height={40}
+                                className="mb-4 mx-auto"
+                                priority
+                            />
+
+                            <h2
+                                className="mb-4 text-2xl font-bold text-foreground"
+                                style={{
+                                    color:
+                                        "#69429a",
+                                }}
+                            >
+                                {t(
+                                    "customOrdersWelcome"
+                                )}
+                            </h2>
+
+                            <p
+                                className="mb-6 text-muted-foreground"
+                                style={{
+                                    color:
+                                        "#69429a",
+                                }}
+                            >
+                                {t(
+                                    "customOrdersDesc"
+                                )}
+                            </p>
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                style={{
+                                    backgroundColor:
+                                        "#69429a",
+                                    color:
+                                        "#fff",
+                                }}
+                            >
+
+                                <a
+                                    href="https://wa.me/37433775750"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {t(
+                                        "contactUs"
+                                    )}
+                                </a>
+
+                            </Button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <style jsx>{`
+
+                @media (max-width: 450px) {
+
+                    .responsive-text {
+                        font-size: 10.5px !important;
+                        line-height: 1.2;
+                        gap: 6px !important;
+                    }
+
+                }
+
+            `}</style>
+
+        </>
+    )
 }

@@ -165,6 +165,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             stock: 999,
             description: item.description || "No description available", // Add description
             priceInCents: Math.round(Number(item.price) * 100) || 0, // Add priceInCents
+            photo:item['photo']
+
           };
         });
 
@@ -611,8 +613,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <p className="text-lg font-semibold text-[#69429a] mb-3">{t("chooseDesign")}</p>
                   <div className="flex flex-wrap gap-3">
                     <button onClick={() => { setDesignType("STANDARD"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "STANDARD" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#f3e8ff]"}`}>🎂 {t("standardDesign")}</button>
-                    <button onClick={() => { setDesignType("CUSTOM_PHOTO"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_PHOTO" ? "bg-[#fb7185] text-white border-[#fb7185] shadow-md scale-105" : "bg-white text-[#fb7185] border-[#fb7185] hover:bg-[#ffe4e6]"}`}>📸 {t("customMyDogPhotoDesign")}</button>
-                    <button onClick={() => { setDesignType("NAME_TEXT"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "NAME_TEXT" ? "bg-[#4ade80] text-white border-[#4ade80] shadow-md scale-105" : "bg-white text-[#4ade80] border-[#4ade80] hover:bg-[#ecfdf5]"}`}>✏️ {t("petName")}</button>
+{product.photo &&                      <button onClick={() => { setDesignType("CUSTOM_PHOTO"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_PHOTO" ? "bg-[#fb7185] text-white border-[#fb7185] shadow-md scale-105" : "bg-white text-[#fb7185] border-[#fb7185] hover:bg-[#ffe4e6]"}`}>📸 {t("customMyDogPhotoDesign")}</button>
+}                    <button onClick={() => { setDesignType("NAME_TEXT"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "NAME_TEXT" ? "bg-[#4ade80] text-white border-[#4ade80] shadow-md scale-105" : "bg-white text-[#4ade80] border-[#4ade80] hover:bg-[#ecfdf5]"}`}>✏️ {t("petName")}</button>
                     <button onClick={() => { setDesignType("CUSTOM_TEXT"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_TEXT" ? "bg-[#facc15] text-white border-[#facc15] shadow-md scale-105" : "bg-white text-[#facc15] border-[#facc15] hover:bg-[#fff9db]"}`}>✏️ {t("customDesign")}</button>
                   </div>
                   {errors.designType && <p className="text-red-500 text-sm mt-2">{errors.designType}</p>}

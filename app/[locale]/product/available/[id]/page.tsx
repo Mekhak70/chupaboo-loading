@@ -39,6 +39,8 @@ export default function ProductPage() {
     return today.toISOString().split("T")[0];
   }
   const [product, setProduct] = useState<any>(null);
+
+  console.log(product, 'productproductproduct')
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -61,20 +63,25 @@ export default function ProductPage() {
     async function loadProduct() {
       try {
         const res = await fetch(
-          "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
+          "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
         );
 
         if (!res.ok) throw new Error(`Products HTTP Error: ${res.status}`);
 
-        const data = await res.json();
-        const item = data.find(
-          (item: any, index: number) => String(item.id || index + 1) === String(id)
+        let  data = await res.json();
+
+        data = data.filter((item: { available: boolean; }) => +item.available == 1);   
+
+        console.log(data, 'data 777') 
+            const item = data.find(
+          (item: any, index: number) => String(item.id ) === String(id)
         );
 
         if (!item) {
           setProduct(null);
           return;
         }
+
 
         let image = item["նկար"] || item.image || "";
         const match = image.match(/\/d\/([^/]+)/);
@@ -83,17 +90,11 @@ export default function ProductPage() {
         }
 
         setProduct({
-          id: item.id || id,
+          id: item.id,
           name: item.name || item["Անուն"] || "Ապրանք",
-          price: Number(item.price || item["վաճառքի արժեք"] || 0),
+          price: Number(item.avprice  || 0),
           image: image || PLACEHOLDER_IMAGE,
-          ingredients:
-            item["բաղադրություն"] ||
-            item["Բաղադրություն"] ||
-            item.ingredients ||
-            item.ingredient ||
-            item.notes ||
-            "Բաղադրությունը նշված չէ",
+          ingredients:item.ingredients || "Բաղադրությունը նշված չէ",
           stock: Number(item.stock || 999),
         });
       } catch (error) {
@@ -166,13 +167,13 @@ export default function ProductPage() {
     <main className="min-h-screen bg-gray-50 py-8 md:py-14">
       <div className="container mx-auto px-4">
 
-        <Link
-          href={`/${locale}`}
+        <div
+        onClick={() => window.history.back()}
           className="inline-flex items-center gap-2 text-[#69429a] font-semibold mb-6 hover:gap-3 transition-all"
         >
           <ArrowLeft className="w-5 h-5" />
           {t('backToShop')}
-        </Link>
+        </div>
 
         <div className="max-w-5xl mx-auto bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100">
           <div className="grid md:grid-cols-2">
