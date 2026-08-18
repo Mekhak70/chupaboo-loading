@@ -758,7 +758,7 @@ if(creamType === "PLANTBASEDMILK") {
             {/* DESIGN */}
             {/* ========================================== */}
 
-            {product.photo && (
+            { (
               <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5">
                 <p className="text-lg font-bold text-[#69429a] mb-4">
                   {t("chooseDesign") ||
@@ -801,7 +801,7 @@ if(creamType === "PLANTBASEDMILK") {
                   </button>
 
                   {/* Custom photo */}
-                  <button
+                 {product.photo && <button
                     type="button"
                     onClick={() =>
                       handleDesignChange(
@@ -832,7 +832,7 @@ if(creamType === "PLANTBASEDMILK") {
                       "customMyDogPhotoDesign"
                     ) ||
                       "Իմ նկարը"}
-                  </button>
+                  </button>}
 
                   {/* Pet name */}
                   <button

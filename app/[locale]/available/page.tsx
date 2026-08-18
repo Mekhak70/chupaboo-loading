@@ -28,7 +28,7 @@ const normalizeSize = (value: any): Filter | null => {
         .trim()
         .toLowerCase()
 
-    if ( size === "small") {
+    if (size === "small") {
         return "small"
     }
 
@@ -689,7 +689,7 @@ export default function Available() {
 
                                             background:
                                                 filter ===
-                                                "all"
+                                                    "all"
                                                     ? "#aed137"
                                                     : "#69429a",
 
@@ -738,7 +738,7 @@ export default function Available() {
 
                                             background:
                                                 filter ===
-                                                "small"
+                                                    "small"
                                                     ? "#aed137"
                                                     : "#69429a",
 
@@ -787,7 +787,7 @@ export default function Available() {
 
                                             background:
                                                 filter ===
-                                                "midi"
+                                                    "midi"
                                                     ? "#aed137"
                                                     : "#69429a",
 
@@ -836,7 +836,7 @@ export default function Available() {
 
                                             background:
                                                 filter ===
-                                                "standart"
+                                                    "standart"
                                                     ? "#aed137"
                                                     : "#69429a",
 
@@ -887,7 +887,7 @@ export default function Available() {
                                 >
 
                                     {filteredProducts.length >
-                                    0 ? (
+                                        0 ? (
 
                                         filteredProducts.map(
                                             (product) => {
@@ -952,7 +952,7 @@ export default function Available() {
                                                                 <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
 
                                                                     {locale ===
-                                                                    "hy"
+                                                                        "hy"
                                                                         ? "Տեսնել ավելին"
                                                                         : "View details"}
 
@@ -967,10 +967,9 @@ export default function Available() {
                                                                 className={`
                                                                     absolute inset-0 bg-black/40 flex items-center justify-center sm:hidden
                                                                     transition-all duration-500 ease-out
-                                                                    ${
-                                                                        isVisible
-                                                                            ? "opacity-100 scale-100"
-                                                                            : "opacity-0 scale-90 pointer-events-none"
+                                                                    ${isVisible
+                                                                        ? "opacity-100 scale-100"
+                                                                        : "opacity-0 scale-90 pointer-events-none"
                                                                     }
                                                                 `}
                                                             >
@@ -980,7 +979,7 @@ export default function Available() {
                                                                     <span className="text-white font-medium text-base">
 
                                                                         {locale ===
-                                                                        "hy"
+                                                                            "hy"
                                                                             ? "Տեսնել ավելին"
                                                                             : "View details"}
 
