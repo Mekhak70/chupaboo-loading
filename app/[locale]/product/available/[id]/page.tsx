@@ -941,25 +941,9 @@ if(creamType === "PLANTBASEDMILK") {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:border-[#69429a] focus:ring-2 focus:ring-[#69429a]/20"
                     />
 
-                    <div className="flex justify-between mt-1">
-                      <p className="text-xs text-gray-400">
-                        {t(
-                          "customTextHint"
-                        ) ||
-                          "Առավելագույնը 100 նիշ"}
-                      </p>
+                   
 
-                      <span className="text-xs text-gray-400">
-                        {
-                          customText.length
-                        }
-                        /100
-                      </span>
-                    </div>
-
-                    <p className="text-sm text-gray-500 mt-2">
-                      +2,000 AMD
-                    </p>
+                 
                   </div>
                 )}
 
