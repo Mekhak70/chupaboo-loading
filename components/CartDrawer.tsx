@@ -130,6 +130,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
+
+  console.log(cart, "cart");
   const cartScrollRef = useRef<HTMLDivElement>(null);
 
   // ========== AVAILABLE CHECK ==========
@@ -567,6 +569,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const buildOrderMessage = (platform: 'whatsapp' | 'telegram') => {
     let message = `${t('greeting')}\n\n`;
+    message +=available ? `*${t('available') || "Առկա"}*\n` : `*${t('products') || "Ապրանքներ"}*\n`;
 
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
@@ -643,8 +646,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
         if (item.options.petName) message += `   🐾 ${item.options.petName}\n`;
         if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
-      if (item?.ingredient) { const translatedIngredients = item.ingredient.split(",").map((ingredient: string) => t(ingredient.trim())).join(", "); message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n`; }
-
+      if (item?.ingredient) { const translatedIngredients = item.ingredient.split(",").map((ingredient: string) => t(ingredient.trim())).join(", "); const designLabels: Record<string, string> = { STANDARD: "standardDesign", CUSTOM_PHOTO: "customMyDogPhotoDesign", CUSTOM_TEXT: "customDesign", NAME_TEXT: "petName" }; message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n${item?.options?.creamType ? ` 🥛 ${t("choosecream") || "Կրեմի տեսակ"}: ${t(item.options.creamType) || item.options.creamType}\n` : ""}${item?.options?.designType ? ` 🎨 ${t("chooseDesign") || "Դիզայնի տեսակ"}: ${t(designLabels[item.options.designType] || item.options.designType) || item.options.designType}\n` : ""}`; }
     });
 
     message += buildProductImagesLinks();
@@ -1088,9 +1090,23 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                                             <span className="text-gray-600 ml-1">{detail.value}</span>
                                           </div>
                                         </div>
-                                      )) : item?.ingredient?.split(',')
-                                        .map((ingredient: string) => t(ingredient.trim()))
-                                        .join(', ')}
+                                      )) : <div className="space-y-1.5 text-sm">
+                                      {item?.ingredient && (
+                                        <div>
+                                          <span className="font-medium">{t("ingredients")}:</span>{" "}
+                                          {item.ingredient
+                                            .split(",")
+                                            .map((ingredient: string) => t(ingredient.trim()))
+                                            .join(", ")}
+                                        </div>
+                                      )}
+                                    
+                                      {item.options?.creamType
+                                          &&<div>
+                                        <span className="font-medium">{t("creamType")}:</span>{" "}
+                                        { t(item.options.creamType) }
+                                      </div>}
+                                    </div>}
                                     </div>
                                   </div>
                                 </motion.div>
