@@ -596,6 +596,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             notes: item["notes"] || item["Notes"] || "",
             image: [getWorkingImageUrl(imageUrl)],
             set: false,
+            photo:item['photo']
           };
         });
   

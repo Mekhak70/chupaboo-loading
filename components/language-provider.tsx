@@ -1350,7 +1350,7 @@ pieces: {
   },
   elderberry: {
     hy: "Հապալաս",
-    en: "Elderberry",
+    en: "Blueberry",
     ru: "Бузина",
     pl: "Bez czarny"
   },
