@@ -846,15 +846,6 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   // ========== GET AVAILABLE TIME SLOTS (կախված available-ից) ==========
   const getAvailableTimeSlots = () => {
-    // ✅ Եթե available-ը true է, ցույց տալ բոլոր 4 ժամային սլոտները (առանց սահմանափակումների)
-    if (available) {
-      return [
-        { value: "15:00-18:00", label: "15:00 - 18:00" },
-        { value: "18:00-21:00", label: "18:00 - 21:00" },
-        { value: "21:00-24:00", label: "21:00 - 24:00" }
-      ];
-    }
-
     const selectedDate = tempOrderInfo.deliveryDate;
     const today = new Date().toISOString().split('T')[0];
     const isToday = selectedDate === today;
