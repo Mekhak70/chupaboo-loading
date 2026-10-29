@@ -1,4 +1,4 @@
-import { getProducts, saveProducts } from '../../[locale]/admin/lib/db';
+ import { getProducts, saveProducts } from '../../[locale]/admin/lib/db';
 import { NextResponse } from 'next/server';
 
 // GET - Ստանալ բոլոր ապրանքները
