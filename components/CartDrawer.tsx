@@ -731,109 +731,28 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return true;
   };
 
-  const redirectToMessenger = async (
+  const redirectToMessenger = (
     platform: "whatsapp" | "telegram"
   ) => {
     try {
-      const orderId = `CH-${Date.now()}`;
-  
-      const orderItems = cart.map((item) => {
-        const isCake = !!item.options?.cakeType;
-  
-        let finalPrice = item.price;
-  
-        if (hasCakeInCart && !isCake && discountPercent > 0) {
-          const discountAmount =
-            finalPrice * (discountPercent / 100);
-  
-          finalPrice = Math.max(
-            0,
-            finalPrice - discountAmount
-          );
-        }
-  
-        return {
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: finalPrice,
-          original_price: item.price,
-          image: item.image || null,
-          ingredient: item.ingredient || null,
-          options: item.options || null,
-        };
-      });
-  
-      const deliveryFee =
-        tempOrderInfo.deliveryOption === "delivery"
-          ? tempOrderInfo.deliveryFee
-          : 0;
-  
-      const total = productsTotal + deliveryFee;
-  
-      const order = {
-        id: orderId,
-        name: "",
-        phone: tempOrderInfo.phoneNumber,
-        address:
-          tempOrderInfo.deliveryOption === "delivery"
-            ? tempOrderInfo.deliveryAddress
-            : PICKUP_ADDRESS,
-        delivery_date: tempOrderInfo.deliveryDate,
-        delivery_time: tempOrderInfo.deliveryTime,
-        payment_method: tempOrderInfo.paymentMethod,
-        items: orderItems,
-        subtotal: productsTotal,
-        delivery_fee: deliveryFee,
-        total,
-        notes: `Order sent via ${platform}`,
-        status: "pending",
-      };
-  
-      // Պահպանում ենք պատվերը Supabase-ում
-      const { error } = await supabase
-        .from("orders")
-        .insert(order)
-        .select()
-        .single();
-  
-      if (error) {
-        alert(
-          `Պատվերը չհաջողվեց պահպանել։\n${error.message}`
-        );
-        return;
-      }
-  
-      // Ստեղծում ենք հաղորդագրությունը
+      // Հաղորդագրությունը կազմում ենք մինչև զամբյուղը մաքրելը։
       const message = buildOrderMessage(platform);
       const encodedMessage = encodeURIComponent(message);
   
-      const phoneNumber = "37433775750";
+      const messengerUrl =
+        platform === "whatsapp"
+          ? `https://wa.me/37433775750?text=${encodedMessage}`
+          : `https://t.me/Chupaboo?text=${encodedMessage}`;
   
-      let messengerUrl = "";
+      window.location.href = messengerUrl;
   
-      if (platform === "whatsapp") {
-        messengerUrl =
-          `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-      } else {
-        messengerUrl =
-          `https://t.me/Chupaboo?text=${encodedMessage}`;
-      }
-  
-      // Փակում ենք modal-ը և մաքրում cart-ը
       setShowMessengerSelector(false);
       clearCart();
       onClose();
-  
-      // Բացում ենք messenger-ը
-      window.location.href = messengerUrl;
-  
     } catch (error) {
       console.error("Messenger redirect error:", error);
   
-      alert(
-        "Պատվերի պահպանման ժամանակ սխալ տեղի ունեցավ։"
-      );
+      alert("Չհաջողվեց բացել մեսսենջերը։ Փորձեք կրկին։");
     }
   };
   const deliveryInfo = formatDeliveryInfo();
