@@ -21,6 +21,7 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import { AdminProducts } from "@/components/admin-products";
+import { AdminHomepage } from "@/components/admin-homepage";
 
 const ADMIN_UID = "5d86c4c6-a328-47ae-8f8e-4fa97339de14";
 const BUCKET = "catalog-images";
@@ -118,6 +119,9 @@ export default function AdminPage() {
     const [auth, setAuth] = useState<
         "checking" | "allowed" | "error"
     >("checking");
+
+    const [view, setView] = useState<"catalog" | "homepage">("catalog");
+    const [homepageBusy, setHomepageBusy] = useState(false);
 
     const [section, setSection] = useState<Section | null>(null);
     const [form, setForm] = useState<ProductForm>(emptyForm);
@@ -251,7 +255,7 @@ export default function AdminPage() {
     }
 
     async function logout() {
-        if (logoutRef.current || savingRef.current) return;
+        if (logoutRef.current || savingRef.current || homepageBusy) return;
 
         logoutRef.current = true;
         setLoggingOut(true);
@@ -485,7 +489,7 @@ export default function AdminPage() {
                         </p>
 
                         <h1 className="mt-2 text-2xl font-bold text-gray-900">
-                            {selected
+                            {view === "homepage" ? "Գլխավոր էջի կառավարում" : selected
                                 ? `Ավելացնել · ${selected.title}`
                                 : "Կառավարման վահանակ"}
                         </h1>
@@ -494,7 +498,7 @@ export default function AdminPage() {
                     <button
                         type="button"
                         onClick={logout}
-                        disabled={loggingOut || saving}
+                        disabled={loggingOut || saving || homepageBusy}
                         className="flex items-center gap-2 rounded-xl border border-[#69429a]/20 bg-white px-4 py-3 text-sm font-semibold text-[#69429a] transition hover:bg-purple-50 disabled:opacity-50"
                     >
                         {loggingOut ? (
@@ -527,6 +531,25 @@ export default function AdminPage() {
                     </p>
                 )}
 
+                <nav aria-label="Ադմինի բաժիններ" className="mb-6 flex flex-wrap gap-3">
+                    <button type="button" disabled={saving || loggingOut || homepageBusy}
+                        onClick={() => { setView("catalog"); setError(""); setSuccess(""); }}
+                        className={`rounded-xl border px-5 py-3 text-sm font-semibold disabled:opacity-50 ${view === "catalog" ? "border-[#69429a] bg-[#69429a] text-white" : "border-purple-200 bg-white text-[#69429a]"}`}>
+                        Ապրանքների կառավարում
+                    </button>
+                    <button type="button" disabled={saving || loggingOut || homepageBusy}
+                        onClick={() => { setView("homepage"); setError(""); setSuccess(""); }}
+                        className={`rounded-xl border px-5 py-3 text-sm font-semibold disabled:opacity-50 ${view === "homepage" ? "border-[#69429a] bg-[#69429a] text-white" : "border-purple-200 bg-white text-[#69429a]"}`}>
+                        Գլխավոր էջ · Սլայդեր և հարցեր
+                    </button>
+                </nav>
+
+                {view === "homepage" ? (
+                    <fieldset disabled={loggingOut} className="min-w-0 border-0 p-0">
+                        <AdminHomepage initialLanguage={typeof locale === "string" ? locale : "hy"} onBusyChange={setHomepageBusy} />
+                    </fieldset>
+                ) : (
+                <>
                 {/* Add product */}
                 {!section ? (
                     <div className="grid gap-5 md:grid-cols-3">
@@ -868,6 +891,8 @@ export default function AdminPage() {
                 >
                     <AdminProducts refreshVersion={refreshVersion} />
                 </fieldset>
+                </>
+                )}
             </div>
         </main>
     );
