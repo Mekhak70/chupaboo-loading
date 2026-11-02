@@ -79,7 +79,7 @@ export const PartyShopDiscountPopup = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Տորթի գինը</p>
-                      <p className="text-xl font-bold text-gray-800">5,000 AMD-ից ավելի</p>
+                      <p className="text-xl font-bold text-gray-800">15,000 AMD-ից ավելի</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Զեղչ</p>
@@ -87,7 +87,7 @@ export const PartyShopDiscountPopup = () => {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    🎯 5,000 դրամը գերազանցող տորթ գնելիս
+                    🎯 15,000 դրամը գերազանցող տորթ գնելիս
                   </p>
                 </div>
 
@@ -96,15 +96,15 @@ export const PartyShopDiscountPopup = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Տորթի գինը</p>
-                      <p className="text-xl font-bold text-gray-800">10,000 AMD-ից ավելի</p>
+                      <p className="text-xl font-bold text-gray-800">20,000 AMD-ից ավելի</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Զեղչ</p>
-                      <p className="text-2xl font-black text-green-600">20%</p>
+                      <p className="text-2xl font-black text-green-600">15%</p>
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    🎯 10,000 դրամը գերազանցող տորթ գնելիս
+                    🎯 20,000 դրամը գերազանցող տորթ գնելիս
                   </p>
                 </div>
 

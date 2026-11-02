@@ -235,10 +235,10 @@ export const translations: Translations = {
     "pl": "Rabat na produkty PartyShop w zależności od ceny ciasta"
   },
   freeDeliveryForOrdersAbove: {
-    hy: "Անվճար առաքում Երևանում՝ 6000 դրամից սկսած",
-    en: "Free delivery in Yerevan for orders above 6000 AMD",
-    ru: "Бесплатная доставка в Ереване при заказе от 6000 драм",
-    pl: "Darmowa dostawa w Erywaniu przy zamówieniach powyżej 6000 AMD",
+    hy: "Անվճար առաքում Երևանում՝ 20000 դրամից սկսած",
+    en: "Free delivery in Yerevan for orders above 20000 AMD",
+    ru: "Бесплатная доставка в Ереване при заказе от 20000 драм",
+    pl: "Darmowa dostawa w Erywaniu przy zamówieniach powyżej 20000 AMD",
   },
   free: {
     hy: "Անվճար",

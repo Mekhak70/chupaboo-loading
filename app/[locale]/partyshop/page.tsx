@@ -12,10 +12,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { text } from "stream/consumers";
 
 // ========== DISCOUNT CONSTANTS ==========
-const DISCOUNT_THRESHOLD_1 = 5000;
-const DISCOUNT_THRESHOLD_2 = 10000;
+const DISCOUNT_THRESHOLD_1 = 15000;
+const DISCOUNT_THRESHOLD_2 = 20000;
 const DISCOUNT_PERCENT_1 = 10;
-const DISCOUNT_PERCENT_2 = 20;
+const DISCOUNT_PERCENT_2 = 15;
 
 // ========== GET DISCOUNT PERCENT ==========
 const getDiscountPercent = (cakePrice: number): number => {
@@ -93,28 +93,28 @@ const PartyShopDiscountPopup = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Տորթի գինը</p>
-                      <p className="text-xl font-bold text-gray-800">5,000 - 9,999 AMD</p>
+                      <p className="text-xl font-bold text-gray-800">15000 - 20000 AMD</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Զեղչ</p>
                       <p className="text-2xl font-black text-green-600">10%</p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">🎯 5,000 դրամը գերազանցող տորթ գնելիս</p>
+                  <p className="text-xs text-gray-500 mt-2">🎯 15,000 դրամը գերազանցող տորթ գնելիս</p>
                 </div>
 
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Տորթի գինը</p>
-                      <p className="text-xl font-bold text-gray-800">10,000+ AMD</p>
+                      <p className="text-xl font-bold text-gray-800">20,000+ AMD</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Զեղչ</p>
-                      <p className="text-2xl font-black text-green-600">20%</p>
+                      <p className="text-2xl font-black text-green-600">15%</p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">🎯 10,000 դրամը գերազանցող տորթ գնելիս</p>
+                  <p className="text-xs text-gray-500 mt-2">🎯 20,000 դրամը գերազանցող տորթ գնելիս</p>
                 </div>
 
                 <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
@@ -608,18 +608,18 @@ export default function ShopPage() {
                     🎉 Party Shop Հատուկ Զեղչեր
                   </p>
                   <p className="text-xs text-gray-600">
-                    Տորթի գնից կախված՝ <span className="font-bold text-green-600">10%</span> կամ <span className="font-bold text-green-600">20%</span> զեղչ
+                    Տորթի գնից կախված՝ <span className="font-bold text-green-600">10%</span> կամ <span className="font-bold text-green-600">15%</span> զեղչ
                   </p>
                 </div>
               </div>
               <div className="flex gap-2">
                 <div className="bg-white rounded-lg px-3 py-1.5 text-center shadow-sm border border-green-200">
-                  <p className="text-[10px] text-gray-500">5,000-9,999 AMD</p>
+                  <p className="text-[10px] text-gray-500">15,000-20000 AMD</p>
                   <p className="text-lg font-black text-green-600">10%</p>
                 </div>
                 <div className="bg-white rounded-lg px-3 py-1.5 text-center shadow-sm border border-green-200">
-                  <p className="text-[10px] text-gray-500">10,000+ AMD</p>
-                  <p className="text-lg font-black text-green-600">20%</p>
+                  <p className="text-[10px] text-gray-500">20,000+ AMD</p>
+                  <p className="text-lg font-black text-green-600">15%</p>
                 </div>
               </div>
             </div>

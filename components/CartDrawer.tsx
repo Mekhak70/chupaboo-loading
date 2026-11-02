@@ -56,17 +56,17 @@ interface OrderInfo {
 const PICKUP_ADDRESS = "Yerevan, Kievan 15";
 const PICKUP_LAT = 40.195059;
 const PICKUP_LON = 44.488427;
-const FREE_DELIVERY_THRESHOLD = 6000;
+const FREE_DELIVERY_THRESHOLD = 20000;
 const FREE_DELIVERY_MAX_DISTANCE = 10;
 const BASE_DELIVERY_FEE = 1000;
 const EXTRA_DISTANCE_FEE = 500;
 const EXTRA_DISTANCE_THRESHOLD = 7;
 
 // ========== DISCOUNT CONSTANTS ==========
-const DISCOUNT_THRESHOLD_1 = 5000;
-const DISCOUNT_THRESHOLD_2 = 10000;
+const DISCOUNT_THRESHOLD_1 = 15000;
+const DISCOUNT_THRESHOLD_2 = 20000;
 const DISCOUNT_PERCENT_1 = 10;
-const DISCOUNT_PERCENT_2 = 20;
+const DISCOUNT_PERCENT_2 = 15;
 
 // ========== PLACEHOLDER IMAGE ==========
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
@@ -1293,8 +1293,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                     <p className="text-xs text-green-700">
                       🎉 {discountInfo.discountPercent}% {t('discountOnPartyShop') || 'զեղչ PartyShop-ի համար'}
                       {discountInfo.discountPercent === 10
-                        ? ` (5000-10000 ${t('currency')})`
-                        : ` (10000+ ${t('currency')})`}
+                        ? ` (15000-20000 ${t('currency')})`
+                        : ` (20000+ ${t('currency')})`}
                     </p>
                   </div>
                 )}

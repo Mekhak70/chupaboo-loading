@@ -64,7 +64,7 @@ interface ValidationErrors {
 
 // ========== CONSTANTS ==========
 const PICKUP_ADDRESS = "Yerevan, Kievan 15";
-const FREE_DELIVERY_THRESHOLD = 6000;
+const FREE_DELIVERY_THRESHOLD = 20000;
 const FREE_DELIVERY_MAX_DISTANCE = 10;
 const BASE_DELIVERY_FEE = 1000;
 const EXTRA_DISTANCE_FEE = 500;
