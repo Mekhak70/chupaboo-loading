@@ -40,6 +40,7 @@ type Product = {
   section: Section;
   name: string;
   price: number;
+  unit_cost: number | null;
   image_path: string;
   cake_size: "MINI" | "MIDI" | "STANDARD" | null;
   has_cream: boolean;
@@ -202,7 +203,26 @@ export function AdminProducts({
       }
 
       if (version === loadVersion.current) {
-        setProducts(collected);
+        const costsById = new Map<string, number>();
+        for (let offset = 0; ; offset += pageSize) {
+          const { data: costs, error: costsError } = await supabase
+            .from("finance_product_costs")
+            .select("product_id, unit_cost")
+            .order("product_id")
+            .range(offset, offset + pageSize - 1);
+
+          if (costsError) throw costsError;
+          if (version !== loadVersion.current) return;
+          for (const cost of costs ?? []) {
+            costsById.set(String(cost.product_id), Number(cost.unit_cost));
+          }
+          if (!costs || costs.length < pageSize) break;
+        }
+
+        setProducts(collected.map((product) => ({
+          ...product,
+          unit_cost: costsById.get(String(product.id)) ?? null,
+        })));
       }
     } catch (cause) {
       if (version === loadVersion.current) {
@@ -361,6 +381,15 @@ export function AdminProducts({
       }
 
       if (
+        product.section === "party" &&
+        product.unit_cost !== null &&
+        (!Number.isFinite(product.unit_cost) ||
+          product.unit_cost < 0 || product.unit_cost > 9999999999.99)
+      ) {
+        throw new Error("Մուտքագրիր ճիշտ ինքնարժեք։");
+      }
+
+      if (
         product.section !== "cake" &&
         (product.stock_quantity === null ||
           !Number.isSafeInteger(product.stock_quantity) ||
@@ -418,9 +447,7 @@ export function AdminProducts({
           uploadedPath = path;
         }
 
-        const { data, error } = await supabase
-          .from("catalog_products")
-          .update({
+        const productPayload = {
             name: product.name.trim(),
             price: product.price,
             image_path: path,
@@ -444,10 +471,21 @@ export function AdminProducts({
                 ? null
                 : product.stock_quantity,
             is_active: product.is_active,
-          })
-          .eq("id", product.id)
-          .select("id")
-          .single();
+          };
+        // Save PartyShop and its private cost atomically using the installed RPC.
+        const result = product.section === "party"
+          ? await supabase.rpc("save_party_catalog_product", {
+              p_product: { ...productPayload, id: product.id },
+              p_cost: product.unit_cost,
+              p_create: false,
+            })
+          : await supabase
+              .from("catalog_products")
+              .update(productPayload)
+              .eq("id", product.id)
+              .select("id")
+              .single();
+        const { data, error } = result;
 
         if (error) throw error;
         if (!data) throw new Error("Ապրանքը չի փոփոխվել։");
@@ -655,6 +693,28 @@ export function AdminProducts({
                 </label>
               )}
             </div>
+
+            {editing.section === "party" && (
+              <label className="block text-sm text-gray-700">
+                Ինքնարժեք · ֏ / մեկ հատ · ոչ պարտադիր
+                <input
+                  type="number"
+                  min="0"
+                  max="9999999999.99"
+                  step="0.01"
+                  value={editing.unit_cost === null || !Number.isFinite(editing.unit_cost) ? "" : editing.unit_cost}
+                  onChange={(event) => patch(
+                    "unit_cost",
+                    event.target.value === "" ? null : event.target.valueAsNumber
+                  )}
+                  className={inputClass}
+                  placeholder="Օրինակ՝ 500"
+                />
+                <span className="mt-1 block text-xs text-gray-500">
+                  Դատարկը՝ ինքնարժեքը նշված չէ, 0-ը՝ զրոյական ինքնարժեք։
+                </span>
+              </label>
+            )}
 
             {editing.section === "available" && (
               <label className="block text-sm text-gray-700">

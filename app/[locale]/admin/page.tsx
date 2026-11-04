@@ -21,6 +21,7 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import { AdminProducts } from "@/components/admin-products";
+import Link from "next/link";
 import { AdminHomepage } from "@/components/admin-homepage";
 
 const ADMIN_UID = "5d86c4c6-a328-47ae-8f8e-4fa97339de14";
@@ -39,6 +40,7 @@ type Design =
 type ProductForm = {
     name: string;
     price: string;
+    unitCost: string;
     cakeSize: CakeSize;
     hasCream: boolean;
     designs: Design[];
@@ -89,6 +91,7 @@ function emptyForm(): ProductForm {
     return {
         name: "",
         price: "",
+        unitCost: "",
         cakeSize: "MINI",
         hasCream: false,
         designs: ["STANDARD"],
@@ -288,6 +291,7 @@ export default function AdminPage() {
 
         const price = Number(form.price);
         const quantity = Number(form.quantity);
+        const unitCost = form.unitCost.trim() === "" ? null : Number(form.unitCost);
 
         if (!form.name.trim() || !image) {
             setError("Լրացրու անունը և ընտրիր ապրանքի նկարը։");
@@ -301,6 +305,12 @@ export default function AdminPage() {
             price > 9999999999.99
         ) {
             setError("Մուտքագրիր ճիշտ գին։");
+            return;
+        }
+
+        if (section === "party" && unitCost !== null &&
+            (!Number.isFinite(unitCost) || unitCost < 0 || unitCost > 9999999999.99)) {
+            setError("Մուտքագրիր ճիշտ ինքնարժեք։");
             return;
         }
 
@@ -368,9 +378,7 @@ export default function AdminPage() {
 
             uploadedPath = imagePath;
 
-            const { error: insertError } = await supabase
-                .from("catalog_products")
-                .insert({
+            const productPayload = {
                     id,
                     section,
                     name: form.name.trim(),
@@ -397,7 +405,12 @@ export default function AdminPage() {
                             : "",
                     stock_quantity: section === "cake" ? null : quantity,
                     is_active: form.isActive,
-                });
+                };
+            const { error: insertError } = section === "party"
+                ? await supabase.rpc("save_party_catalog_product", {
+                    p_product: productPayload, p_cost: unitCost, p_create: true,
+                })
+                : await supabase.from("catalog_products").insert(productPayload);
 
             if (insertError) throw insertError;
 
@@ -530,6 +543,11 @@ export default function AdminPage() {
                         {success}
                     </p>
                 )}
+
+                <div className="mb-5 flex flex-wrap gap-3">
+                    <Link href={`${typeof locale === "string" ? `/${locale}` : ""}/admin/expenses`} className="rounded-xl bg-white px-5 py-3 font-semibold text-[#69429a]">Ծախսեր</Link>
+                    <Link href={`${typeof locale === "string" ? `/${locale}` : ""}/admin/sales`} className="rounded-xl bg-[#69429a] px-5 py-3 font-semibold text-white">Վաճառք և արդյունք</Link>
+                </div>
 
                 <nav aria-label="Ադմինի բաժիններ" className="mb-6 flex flex-wrap gap-3">
                     <button type="button" disabled={saving || loggingOut || homepageBusy}
@@ -687,6 +705,19 @@ export default function AdminPage() {
                                                 </label>
                                             )}
                                         </div>
+
+                                        {section === "party" && (
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Ինքնարժեք · ֏ / մեկ հատ · ոչ պարտադիր
+                                                <input type="number" min="0" max="9999999999.99" step="0.01"
+                                                    value={form.unitCost}
+                                                    onChange={(event) => change("unitCost", event.target.value)}
+                                                    className={inputClass} placeholder="Օրինակ՝ 500" />
+                                                <span className="mt-1 block text-xs text-gray-500">
+                                                    Դատարկը նշանակում է՝ ինքնարժեքը դեռ նշված չէ։
+                                                </span>
+                                            </label>
+                                        )}
 
                                         {section === "available" && (
                                             <label className="block text-sm font-medium text-gray-700">
