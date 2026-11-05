@@ -131,6 +131,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }:
       className={className}
     >
       {children}
+      
     </motion.div>
   );
 };
