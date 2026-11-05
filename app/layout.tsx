@@ -3,7 +3,14 @@ import "./globals.css"
 import type { ReactNode } from "react"
 import { Nunito } from "next/font/google"
 import { LanguageProvider } from "@/components/language-provider"
-import { CartProvider } from "@/components/cart-context"
+
+import {
+  CartProvider as StoreCartProvider,
+} from "@/components/cart-context"
+
+import {
+  CartProvider as CheckoutCartProvider,
+} from "@/components/cart-provider"
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -19,7 +26,11 @@ export default function RootLayout({
     <html lang="hy" className={nunito.className}>
       <body className="font-sans antialiased">
         <LanguageProvider>
-          <CartProvider>{children}</CartProvider>
+          <StoreCartProvider>
+            <CheckoutCartProvider>
+              {children}
+            </CheckoutCartProvider>
+          </StoreCartProvider>
         </LanguageProvider>
       </body>
     </html>
