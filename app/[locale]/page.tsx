@@ -432,12 +432,17 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   }, [heroSlides.length]);
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, nextSlide]);
+    if (!isAutoPlaying || heroSlides.length <= 1) return;
+
+    // Start a fresh five-second delay after every slide change.
+    const timeout = setTimeout(nextSlide, 5000);
+    autoPlayRef.current = timeout;
+
+    return () => {
+      clearTimeout(timeout);
+      autoPlayRef.current = null;
+    };
+  }, [currentSlide, isAutoPlaying, nextSlide, heroSlides.length]);
 
   // Products slider state
   const [isProductsAutoPlaying, setIsProductsAutoPlaying] = useState(true);
