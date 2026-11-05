@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+import { HelpCircle, CakeSlice, CreditCard, Clock } from "lucide-react";
 import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
@@ -22,7 +24,7 @@ import homepageMobile from "@/public/fon-mobile.png";
 import main1Mobile from "@/public/main-mobile1.png";
 import main2Mobile from "@/public/main-mobile2.png";
 import main3Mobile from "@/public/main-mobile3.png";
-import Available from "./available/page";
+const faqIcons = { HelpCircle, Heart, Truck, Shield, CakeSlice, PawPrint, CreditCard, Clock };
 
 const ProductSkeleton = () => (
   <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
@@ -232,6 +234,9 @@ export default function HomePage() {
   const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<any[]>([]);
   const [available, setAvailable] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [catalogError, setCatalogError] = useState("");
+  const [faqError, setFaqError] = useState("");
 
   // AD STATES - using sessionStorage
   const [currentAd, setCurrentAd] = useState<Ad | null>(null);
@@ -556,141 +561,72 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   };
 
   useEffect(() => {
+    let cancelled = false;
     async function loadData() {
+      setLoading(true);
+      setCatalogError("");
       try {
-        setLoading(true);
-  
-        const [partyRes, productsRes, availableCakesRes] = await Promise.all([
-          fetch(
-            "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
-          ),
-  
-          fetch(
-            "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
-          ),
-  
-          fetch(
-          "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
-          ),
-        ]);
-  
-        if (!partyRes.ok) {
-          throw new Error(`Party HTTP Error: ${partyRes.status}`);
+        const rows: any[] = [];
+        for (let offset = 0; ; offset += 500) {
+          const { data, error } = await supabase.from("catalog_products")
+            .select("*").eq("is_active", true).eq("is_featured", true)
+            .in("section", ["cake", "available", "party"])
+            .order("sort_order").order("created_at").order("id")
+            .range(offset, offset + 499);
+          if (error) throw error;
+          if (cancelled) return;
+          rows.push(...(data ?? []));
+          if (!data || data.length < 500) break;
         }
-  
-        if (!productsRes.ok) {
-          throw new Error(`Products HTTP Error: ${productsRes.status}`);
-        }
-  
-        if (!availableCakesRes.ok) {
-          throw new Error(
-            `Available Cakes HTTP Error: ${availableCakesRes.status}`
-          );
-        }
-  
-        const [partyData, productsData, availableCakesData] =
-          await Promise.all([
-            partyRes.json(),
-            productsRes.json(),
-            availableCakesRes.json(),
-          ]);
-  
-        // =========================
-        // PARTY PRODUCTS
-        // =========================
-  
-        const partyFormatted = partyData.map((item: any, index: number) => {
-          const imageUrl = item["նկար"] || item["Image"] || "";
-  
-          return {
-            id: index + 1,
-            name: item["Անուն"] || item["Name"] || "Unnamed Product",
-            price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
-            stock: Number(item["քանակ"] || item["Stock"] || 0),
-            notes: item["notes"] || item["Notes"] || "",
-            image: [getWorkingImageUrl(imageUrl)],
-            set: false,
-            photo:item['photo']
-          };
+        const formatted = rows.map((item) => {
+          const path = String(item.image_path ?? "");
+          const image = /^https?:\/\//i.test(path) ? path : path
+            ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
+            : PLACEHOLDER_IMAGE;
+          const size = String(item.cake_size ?? "").toLowerCase();
+          return { ...item, id: String(item.id), name: item.name,
+            price: Number(item.price ?? 0), stock: Number(item.stock_quantity ?? 0),
+            category: size === "mini" ? "small" : size === "standard" ? "standart" : size,
+            cream: Boolean(item.has_cream), image: item.section === "party" ? [image] : image };
         });
-  
-        // =========================
-        // CHUPABOO PRODUCTS
-        // =========================
-  
-        const productsFormatted = productsData.map(
-          (item: any, index: number) => {
-            let image = item["նկար"] || item.image || "";
-  
-            const match = image.match(/\/d\/([^/]+)/);
-  
-            if (match) {
-              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-  
-            return {
-              id: item.id || index + 1,
-              name: item.name,
-              price: Number(item.price),
-              category: item.category || item.size,
-              image,
-              cream: String(item.cream).toLowerCase() === "true",
-              stock: Number(item.stock || 999),
-              available: item.available === "1",
-            };
-          }
-        );
-  
-        // =========================
-        // AVAILABLE CAKES
-        // Միայն available = 1
-        // =========================
-  
-        const availableCakesFormatted = availableCakesData
-          .filter((item: any) => String(item.available).trim() === "1")
-          .map((item: any, index: number) => {
-            let image = item["նկար"] || item.image || "";
-  
-            const match = image.match(/\/d\/([^/]+)/);
-  
-            if (match) {
-              image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-  
-            return {
-              id: item.id || `available-${index + 1}`,
-              name: item.name,
-              price: Number(item.price),
-              category: item.category || item.size,
-              image,
-              cream: String(item.cream).toLowerCase() === "true",
-              stock: Number(item.stock || 999),
-              available: true,
-            };
-          });
-  
-  
-        setProductParty(partyFormatted);
-  
-        // Երկրորդ Sheet + Available cakes
-        setProducts([
-          ...productsFormatted,
-        ]);
+        setProducts(formatted.filter((item) => item.section === "cake"));
+        setAvailable(formatted.filter((item) => item.section === "available" && item.stock > 0));
+        setProductParty(formatted.filter((item) => item.section === "party" && item.stock > 0));
+      } catch (error) {
+        console.error("Load homepage catalog error:", error);
+        if (!cancelled) setCatalogError("Ապրանքները չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
+      } finally { if (!cancelled) setLoading(false); }
+    }
+    void loadData();
+    return () => { cancelled = true; };
+  }, []);
 
-        setAvailable([
-          
-          ...availableCakesFormatted,
-        ]);
-  
-      } catch (err) {
-        console.error("Load products error:", err);
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    let cancelled = false;
+    setFaqs([]);
+    setFaqError("");
+    async function loadFaqs() {
+      try {
+        const rows: any[] = [];
+        for (let offset = 0; ; offset += 500) {
+          const { data, error } = await supabase.from("homepage_content")
+            .select("id,title,answer,icon").eq("kind", "faq")
+            .eq("language", language).eq("is_active", true)
+            .order("sort_order").order("id").range(offset, offset + 499);
+          if (error) throw error;
+          if (cancelled) return;
+          rows.push(...(data ?? []));
+          if (!data || data.length < 500) break;
+        }
+        if (!cancelled) setFaqs(rows);
+      } catch (error) {
+        console.error("Load homepage FAQ error:", error);
+        if (!cancelled) setFaqError("Հարցերը չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
       }
     }
-  
-    loadData();
-  }, []);
+    void loadFaqs();
+    return () => { cancelled = true; };
+  }, [language]);
 
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
@@ -701,9 +637,30 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     return item ? item.quantity : 0;
   };
 
+  const renderFaqCard = (faq: any, centered = false) => {
+    const Icon = faqIcons[faq.icon as keyof typeof faqIcons] ?? HelpCircle;
+    return (
+                <StaggerItem key={faq.id} className={centered ? "w-full max-w-2xl" : ""}>
+                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
+                    <div className="flex items-start gap-3 md:gap-5">
+                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
+                        <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                      </div>
+                      <div className="min-w-0 break-words">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{faq.title}</h3>
+                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </StaggerItem>
+    );
+  };
+
   if (loading) {
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col w-full min-w-0 max-w-full overflow-x-hidden">
         <section>
           <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
         </section>
@@ -724,7 +681,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
   
   return (
     <>
-      <div className="flex flex-col">
+      <div className="flex flex-col w-full min-w-0 max-w-full overflow-x-hidden">
         {/* Floating Cart Button */}
         {getItemCount() > 0 && (
           <button
@@ -873,6 +830,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
           </section>
         </ScrollReveal>
 
+        {catalogError && <p role="alert">{catalogError}</p>}
         {/* PRODUCTS SECTION */}
         <section className="bg-gray-50 py-8 md:py-12 overflow-hidden">
           <div className="container mx-auto px-4">
@@ -886,7 +844,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </ScrollReveal>
 
             <div
-              className="relative overflow-hidden w-full"
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
               onMouseEnter={() => setIsProductsAutoPlaying(false)}
               onMouseLeave={() => setIsProductsAutoPlaying(true)}
             >
@@ -905,17 +863,17 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   <Link
                     key={`${product.id}-${idx}`}
                     href={`/${locale}/product/${product.id}`}
-                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group block flex-shrink-0"
+                    className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group block flex-shrink-0"
                   >
                     <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white">
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image
+                      <div className="relative w-full aspect-square overflow-hidden">
+                        <img
                           src={product.image}
                           alt={product.name}
-                          fill
+                          
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
-                          priority
+                          
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
@@ -987,7 +945,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </ScrollReveal>
 
             <div
-              className="relative overflow-hidden w-full"
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
               onMouseEnter={() => setIsProductsAutoPlaying(false)}
               onMouseLeave={() => setIsProductsAutoPlaying(true)}
             >
@@ -1006,17 +964,17 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                 ...available
                 ].map((product, idx) => (
 
-                  <Link href={`/${locale}/available`}
+                  <Link href={`/${locale}/product/available/${product.id}`}
                     key={`${product.id}-${idx}`}
 
-                    className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group block flex-shrink-0"
+                    className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group block flex-shrink-0"
                   >
                     <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white border border-gray-100">
-                      <div className="relative aspect-square overflow-hidden">
-                        <Image
+                      <div className="relative w-full aspect-square overflow-hidden">
+                        <img
                           src={product.image || PLACEHOLDER_IMAGE}
                           alt={product.name || "Առկա ապրանք"}
-                          fill
+                          
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
                         />
@@ -1074,7 +1032,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </ScrollReveal>
 
             <div
-              className="relative overflow-hidden w-full"
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
               onPointerEnter={() => setIsPartyShopAutoPlaying(false)}
               onPointerLeave={() => setIsPartyShopAutoPlaying(true)}
             >
@@ -1104,13 +1062,13 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   return (
                     <div
                       key={`${product.id}-${idx}`}
-                      className="min-w-[240px] md:min-w-[280px] lg:min-w-[320px] group flex-shrink-0"
+                      className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group flex-shrink-0"
                     >
                       <Link
                         href={`/${locale}/partyshop`}
                         className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
                       >
-                        <div className="relative aspect-square overflow-hidden">
+                        <div className="relative w-full aspect-square overflow-hidden">
                           <img
                             src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
                             alt={product.name || "Շան ծննդյան տորթ"}
@@ -1179,94 +1137,21 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             </ScrollReveal>
 
             <StaggerContainer className="flex flex-col gap-5 md:gap-8 max-w-5xl mx-auto">
-              {/* Վերևի շարքը - 2 հատ */}
-              <div className="grid md:grid-cols-2 gap-5 md:gap-8">
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🚚
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('freeDeliveryYerevanLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('freeDeliveryYerevanDesc')}
-                        </p>
-                      </div>
+              {faqError && <p role="alert">{faqError}</p>}
+              {Array.from({ length: Math.ceil(faqs.length / 5) }, (_, groupIndex) => {
+                const group = faqs.slice(groupIndex * 5, groupIndex * 5 + 5);
+                return (
+                  <div key={groupIndex} className="flex flex-col gap-5 md:gap-8">
+                    <div className="grid md:grid-cols-2 gap-5 md:gap-8">
+                      {group.slice(0, 2).map((faq) => renderFaqCard(faq))}
                     </div>
+                    {group[2] && <div className="flex justify-center">{renderFaqCard(group[2], true)}</div>}
+                    {group.length > 3 && <div className="grid md:grid-cols-2 gap-5 md:gap-8">
+                      {group.slice(3, 5).map((faq) => renderFaqCard(faq))}
+                    </div>}
                   </div>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        📅
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('cakeOrderAdvanceLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('orderLeadTimeDesc')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
-
-              {/* Մեջտեղի շարքը - 1 հատ (կենտրոնում) */}
-              <div className="flex justify-center">
-                <StaggerItem className="w-full max-w-2xl">
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🤝
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('collaborationLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('collaborationDescLabel')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
-
-              {/* Ներքևի շարքը - 2 հատ */}
-              <div className="grid md:grid-cols-2 gap-5 md:gap-8">
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🎨
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('ownDesignLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('customDesignResponseLabel')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
-                    <div className="flex items-start gap-3 md:gap-5">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
-                        🐾
-                      </div>
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{t('onlyDogsCatsLabel')}</h3>
-                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                          {t('allAnimalsDesc')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </StaggerItem>
-              </div>
+                );
+              })}
             </StaggerContainer>
 
             <ScrollReveal direction="up" delay={0.4}>
