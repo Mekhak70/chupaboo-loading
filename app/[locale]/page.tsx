@@ -65,7 +65,19 @@ const isMobileDevice = (): boolean => {
 // Hero slides with responsive images
 const getHeroSlides = () => [
   {
+    id: 2,
+    showFloatingImages: false,
+    imageDesktop: "/chupaboo-giveaway.jpg",
+    imageMobile: "/chupaboo-giveaway-mobile.jpg",
+    title: "Chupaboo Giveaway",
+    subtitle: "",
+    ctaText: "",
+    ctaLink: "https://www.instagram.com/p/De6wRuSCFj9/?img_index=1",
+    bgColor: "",
+  },
+  {
     id: 1,
+    showFloatingImages: true,
     imageDesktop: homepageDesktop,
     imageMobile: homepageMobile,
     title: "",
@@ -525,10 +537,6 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
     });
   }, [products, isPartyShopAutoPlaying, partyShopControls]);
 
-  // Get current slide's image (desktop or mobile)
-  const currentSlideData = heroSlides[currentSlide];
-  const currentBgImage = isMobile ? currentSlideData?.imageMobile : currentSlideData?.imageDesktop;
-
   const getWorkingImageUrl = (url: string) => {
     if (!url) return PLACEHOLDER_IMAGE;
 
@@ -744,18 +752,38 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                   className={`absolute inset-0 transition-all duration-700 ease-out ${idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
                     }`}
                 >
-                  {/* Background Image - responsive */}
+                  {slide.ctaLink && (
+                    <a
+                      href={slide.ctaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Chupaboo giveaway on Instagram"
+                      tabIndex={idx === currentSlide ? 0 : -1}
+                      className={`absolute inset-0 z-30 ${idx === currentSlide ? "" : "pointer-events-none"}`}
+                    />
+                  )}
+                  {/* Desktop and mobile banner images; switch at 768px. */}
                   <Image
-                    src={idx === currentSlide ? currentBgImage! : (isMobile ? slide.imageMobile : slide.imageDesktop)}
-                    alt={slide.title || "Hero background"}
+                    src={slide.imageDesktop}
+                    alt={slide.title || "Chupaboo banner"}
                     fill
-                    className="w-full h-full object-center"
+                    className="hidden md:block object-fill object-center"
                     priority={idx === 0}
-                    sizes="(max-width: 768px) 100vw, 100vw"
+                    sizes="100vw"
+                    quality={90}
+                  />
+                  <Image
+                    src={slide.imageMobile}
+                    alt={slide.title || "Chupaboo banner"}
+                    fill
+                    className="block md:hidden object-fill object-center"
+                    priority={idx === 0}
+                    sizes="100vw"
                     quality={90}
                   />
 
                   {/* Floating Images - with CSS animations */}
+                  {slide.showFloatingImages && (
                   <div className="absolute inset-0 z-20 pointer-events-none">
                     {/* Կենտրոնական նկար */}
                     <div
@@ -818,6 +846,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
                       />
                     </div>
                   </div>
+                  )}
                 </div>
               ))}
             </div>
