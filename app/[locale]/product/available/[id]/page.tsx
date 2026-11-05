@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -96,6 +97,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [added, setAdded] = useState(false);
 
@@ -141,124 +143,65 @@ export default function ProductPage() {
   // ======================================================
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProduct() {
+      setLoading(true);
+      setLoadError("");
+      setProduct(null);
+      setAdded(false);
+      setQuantity(1);
+      setCustomImage(null);
+      setCustomImageFile(null);
+      setCustomText("");
+      setPetName("");
+      setDesignType("STANDARD");
       try {
-        setLoading(true);
+        const { data: item, error } = await supabase
+          .from("catalog_products")
+          .select("*")
+          .eq("id", id)
+          .eq("section", "available")
+          .eq("is_active", true)
+          .gt("stock_quantity", 0)
+          .maybeSingle();
 
-        const res = await fetch(
-          "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
-        );
+        if (error) throw error;
+        if (cancelled || !item) return;
 
-        if (!res.ok) {
-          throw new Error(
-            `Products HTTP Error: ${res.status}`
-          );
-        }
-
-        let data = await res.json();
-
-        // Only available products
-        data = data.filter(
-          (item: { available: boolean | string }) =>
-            +item.available === 1
-        );
-
-        const item = data.find(
-          (item: any) =>
-            String(item.id) === String(id)
-        );
-
-        if (!item) {
-          setProduct(null);
-          return;
-        }
-
-        // ==================================================
-        // IMAGE
-        // ==================================================
-
-        let image =
-          item["նկար"] ||
-          item.image ||
-          "";
-
-        const match = image.match(
-          /\/d\/([^/]+)/
-        );
-
-        if (match) {
-          image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-        }
-
-        // ==================================================
-        // PRODUCT
-        // ==================================================
-
+        const path = String(item.image_path ?? "");
+        const image = /^https?:\/\//i.test(path)
+          ? path
+          : path
+            ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
+            : PLACEHOLDER_IMAGE;
+        const size = String(item.cake_size ?? "").trim().toLowerCase();
         const formattedProduct: Product = {
           id: String(item.id),
-
-          name:
-            item.name ||
-            item["Անուն"] ||
-            "Ապրանք",
-
-          price: Number(
-            item.avprice ||
-            item.price ||
-            0
-          ),
-
-          image:
-            image ||
-            PLACEHOLDER_IMAGE,
-
-          ingredients:
-            item.ingredients ||
-            "Բաղադրությունը նշված չէ",
-
-          stock: Number(
-            item.stock || 999
-          ),
-
-          // Sheet-ում կարող ես ունենալ cream = 1
-          cream:
-            Number(item.cream) === 1 ||
-            item.cream === true ||
-            item.cream === "true",
-
-          // Sheet-ում photo = 1
-          photo:
-            Number(item.photo) === 1 ||
-            item.photo === true ||
-            item.photo === "true",
-            size: item.size,
+          name: item.name || "Ապրանք",
+          price: Number(item.price ?? 0),
+          image,
+          ingredients: item.ingredients || "Բաղադրությունը նշված չէ",
+          stock: Math.max(0, Number(item.stock_quantity ?? 0)),
+          cream: Boolean(item.has_cream),
+          photo: Array.isArray(item.design_types) && item.design_types.includes("CUSTOM_PHOTO"),
+          size: size === "mini" ? "small" : size,
         };
-        
-
         setProduct(formattedProduct);
-
-        // Եթե cream չկա, cream-ը պետք չէ
-        if (!formattedProduct.cream) {
-          setCreamType("");
-        }
-
-        // Եթե photo չկա, custom design-ը պետք չէ
-        if (!formattedProduct.photo) {
-          setDesignType("STANDARD");
-        }
+        setCreamType(formattedProduct.cream ? "DAIRY" : "");
       } catch (error) {
-        console.error(
-          "Load product error:",
-          error
-        );
-
-        setProduct(null);
+        console.error("Load catalog product error:", error);
+        if (!cancelled) {
+          setProduct(null);
+          setLoadError("Ապրանքը չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    loadProduct();
+    void loadProduct();
+    return () => { cancelled = true; };
   }, [id]);
 
   // ======================================================
@@ -499,6 +442,14 @@ if(creamType === "PLANTBASEDMILK") {
   // LOADING
   // ======================================================
 
+  if (loadError) {
+    return (
+      <div role="alert" className="container mx-auto px-4 py-12 text-center text-red-600">
+        {loadError}
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -578,11 +529,9 @@ if(creamType === "PLANTBASEDMILK") {
 
           <div className="lg:sticky lg:top-6 h-fit">
             <div className="relative aspect-square bg-gray-50 rounded-3xl overflow-hidden shadow-xl border border-gray-100">
-              <Image
+              <img
                 src={product.image}
                 alt={product.name}
-                fill
-                priority
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />

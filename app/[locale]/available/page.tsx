@@ -1,5 +1,7 @@
 "use client"
 
+import { supabase } from "@/lib/supabase";
+
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,7 +16,7 @@ type Filter = "all" | "small" | "midi" | "standart"
 /**
  * Նորմալացնում ենք size-ը
  *
- * Sheet-ում կարող է լինել՝
+ * Ադմինում կարող է լինել՝
  * mini
  * Mini
  * MINI
@@ -28,7 +30,7 @@ const normalizeSize = (value: any): Filter | null => {
         .trim()
         .toLowerCase()
 
-    if (size === "small") {
+    if (size === "small" || size === "mini") {
         return "small"
     }
 
@@ -41,33 +43,6 @@ const normalizeSize = (value: any): Filter | null => {
     }
 
     return null
-}
-
-/**
- * available-ի ճիշտ ստուգում
- *
- * ընդունում է՝
- * 1
- * "1"
- * true
- * "true"
- * TRUE
- * yes
- */
-const isProductAvailable = (value: any): boolean => {
-    return (
-        String(value ?? "")
-            .trim()
-            .toLowerCase() === "1"
-        ||
-        String(value ?? "")
-            .trim()
-            .toLowerCase() === "true"
-        ||
-        String(value ?? "")
-            .trim()
-            .toLowerCase() === "yes"
-    )
 }
 
 export default function Available() {
@@ -91,13 +66,14 @@ export default function Available() {
 
     /**
      * Այստեղ պահում ենք ԲՈԼՈՐ ապրանքները,
-     * որոնք գալիս են Sheet-ից
+     * որոնք գալիս են Supabase-ից
      */
+  const [loadError, setLoadError] = useState("");
     const [products, setProducts] =
         useState<any[]>([])
 
     const [loading, setLoading] =
-        useState<boolean>(false)
+        useState<boolean>(true)
 
     /**
      * Mobile scroll effect
@@ -429,153 +405,71 @@ export default function Available() {
     // LOAD PRODUCTS
     // =========================================================
 
-    useEffect(() => {
+  useEffect(() => {
+    let cancelled = false;
 
-        async function loadProducts() {
-
-            try {
-
-                setLoading(true)
-
-
-                const res =
-                    await fetch(
-                        "https://opensheet.elk.sh/1f-tS40p_iKXLckAwjua5HMX-fIcN97fj54V9BNzOetE/1"
-                    )
-
-
-                if (!res.ok) {
-
-                    throw new Error(
-                        `HTTP Error: ${res.status}`
-                    )
-                }
-
-
-                const data =
-                    await res.json()
-
-
-                console.log(
-                    "GOOGLE SHEET DATA:",
-                    data
-                )
-
-
-                const formatted =
-                    data.map(
-                        (item: any) => {
-
-                            // =================================
-                            // IMAGE
-                            // =================================
-
-                            let image =
-                                item["նկար"] ||
-                                ""
-
-
-                            const match =
-                                image.match(
-                                    /\/d\/([^/]+)/
-                                )
-
-
-                            if (match) {
-
-                                image =
-                                    `https://drive.google.com/uc?export=view&id=${match[1]}`
-                            }
-
-
-                            // =================================
-                            // AVAILABLE
-                            // =================================
-
-                            const available =
-                                isProductAvailable(
-                                    item.available
-                                )
-
-
-                            // =================================
-                            // SIZE / CATEGORY
-                            // =================================
-
-                            const category =
-                                normalizeSize(
-                                    item.size
-                                )
-
-
-                            // =================================
-                            // PRODUCT
-                            // =================================
-
-                            return {
-
-                                id:
-                                    item.id,
-
-                                name:
-                                    item.name,
-
-                                price:
-                                    Number(
-                                        item.price
-                                    ),
-
-                                category,
-
-                                image,
-
-                                cream:
-                                    String(
-                                        item.cream ??
-                                        ""
-                                    )
-                                        .trim()
-                                        .toLowerCase() ===
-                                    "true",
-
-                                stock: 999,
-
-                                available,
-
-                                ingredients:
-                                    item.ingredients,
-                            }
-                        }
-                    )
-
-
-                setProducts(
-                    formatted
-                )
-
-
-            } catch (err) {
-
-                console.error(
-                    "Load products error:",
-                    err
-                )
-
-            } finally {
-
-                setLoading(false)
-            }
+    async function loadProducts() {
+      setLoading(true);
+      setLoadError("");
+      try {
+        const rows: any[] = [];
+        const pageSize = 500;
+        for (let offset = 0; ; offset += pageSize) {
+          const { data, error } = await supabase
+            .from("catalog_products")
+            .select("*")
+            .eq("section", "available")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true })
+            .order("id")
+            .range(offset, offset + pageSize - 1);
+          if (error) throw error;
+          if (cancelled) return;
+          rows.push(...(data ?? []));
+          if (!data || data.length < pageSize) break;
         }
 
+        const formatted = rows.map((item) => {
+          const path = String(item.image_path ?? "");
+          const imageUrl = /^https?:\/\//i.test(path)
+            ? path
+            : path
+              ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
+              : "";
+          return {
+          id: item.id,
+          name: item.name,
+          price: Number(item.price ?? 0),
+          stock: Math.max(0, Number(item.stock_quantity ?? 0)),
+          image: imageUrl || Cake.src,
+          category: normalizeSize(item.cake_size),
+          cream: Boolean(item.has_cream),
+          available: Number(item.stock_quantity ?? 0) > 0,
+          ingredients: item.ingredients ?? "",
+          };
+        });
+        if (!cancelled) setProducts(formatted);
+      } catch (error) {
+        console.error("Load catalog products error:", error);
+        if (!cancelled) setLoadError("Ապրանքները չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
 
-        loadProducts()
-
-    }, [])
+    void loadProducts();
+    return () => { cancelled = true; };
+  }, []);
 
 
     // =========================================================
     // LOADING
     // =========================================================
+
+  if (loadError) {
+    return <div role="alert" className="container mx-auto px-4 py-12 text-center text-red-600">{loadError}</div>;
+  }
 
     if (loading) {
 
@@ -924,7 +818,7 @@ export default function Available() {
 
                                                             {/* IMAGE */}
 
-                                                            <Image
+                                                            <img
                                                                 src={
                                                                     product.image
                                                                 }

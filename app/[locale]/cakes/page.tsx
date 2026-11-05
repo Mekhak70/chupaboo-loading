@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { Suspense, useMemo, useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
@@ -10,9 +10,15 @@ import { useParams } from "next/navigation"
 import partyShop from "@/public/banner-our-cakes.png";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { getCatalogCakes, type CatalogCake } from "@/lib/catalog-cakes";
+
 type Filter = "all" | "small" | 'midi' | "standart"
 
 export default function ShopPage() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Բեռնվում է…</div>}><ShopContent /></Suspense>;
+}
+
+function ShopContent() {
   const { locale } = useParams()
   const router = useRouter();
   const pathname = usePathname();
@@ -25,18 +31,20 @@ export default function ShopPage() {
   const [creamType, setCreamType] = useState<string>("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pendingImage, setPendingImage] = useState<string | null>(null)
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [products, setProducts] = useState<CatalogCake[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   // State for mobile scroll effect
   const [visibleProductId, setVisibleProductId] = useState<string | null>(null);
   const cardRefs = useRef<{ [key: string]: HTMLAnchorElement | null }>({});
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filteredProducts = products.filter((p) => {
-    console.log(p.category, filter);
-    return filter === "all" || p.category === filter;
-  });
+  const filteredProducts = useMemo(
+    () => products.filter(p => filter === "all" || p.category === filter),
+    [products, filter]
+  );
   const handleFilterChange = (newFilter: string) => {
     setFilter(newFilter as Filter);
 
@@ -161,51 +169,24 @@ export default function ShopPage() {
   }, [filteredProducts]); // Re-run when products change
 
   useEffect(() => {
+    const controller = new AbortController();
     async function loadProducts() {
+      setLoading(true);
+      setLoadError(null);
       try {
-        setLoading(true);
-        const res = await fetch(
-          "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP Error: ${res.status}`);
+        const cakes = await getCatalogCakes(controller.signal);
+        if (!controller.signal.aborted) setProducts(cakes);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setLoadError(error instanceof Error ? error.message : "Չհաջողվեց բեռնել տորթերը");
         }
-
-        const data = await res.json();
-
-        console.log("Products:", data);
-
-        const formatted = data.map((item: any) => {
-          let image = item["նկար"] || "";
-
-          // Google Drive link → direct image
-          const match = image.match(/\/d\/([^/]+)/);
-          if (match) {
-            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-          }
-
-          return {
-            id: item.id,
-            name: item.name,
-            price: Number(item.price),
-            category: item.size, // small | standart
-            image,
-            cream: item.cream === "true",
-            stock: 999,
-          };
-        });
-
-        setProducts(formatted);
-      } catch (err) {
-        console.error("Load products error:", err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
-
-    loadProducts();
-  }, []);
+    void loadProducts();
+    return () => controller.abort();
+  }, [retryKey]);
 
   if (loading) {
     return (
@@ -224,6 +205,13 @@ export default function ShopPage() {
         </section>
       </div>
     );
+  }
+
+  if (loadError) {
+    return <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 px-4">
+      <p role="alert" className="text-red-600">{loadError}</p>
+      <button type="button" onClick={() => setRetryKey(value => value + 1)} className="rounded-lg bg-[#69429a] px-5 py-3 text-white">Կրկին փորձել</button>
+    </div>;
   }
 
   return (
@@ -328,7 +316,7 @@ export default function ShopPage() {
                       return (
                         <Link
                           key={product.id}
-                          href={`/${locale}/product/${product.id}`}
+                          href={`/${locale}/product/${encodeURIComponent(product.id)}`}
                           className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
                           ref={(el) => {
                             cardRefs.current[product.id] = el;
@@ -337,7 +325,8 @@ export default function ShopPage() {
                           <div className="relative aspect-square">
                             <Image
                               src={product.image}
-                              alt={"Շան ծննդյան տորթ"}
+                              unoptimized
+                              alt={product.name}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                               height={300}
                               width={300}

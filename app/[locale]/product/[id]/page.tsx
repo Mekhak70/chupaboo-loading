@@ -1,510 +1,151 @@
 "use client";
-
-import { use, useEffect, useState, useRef, useCallback } from "react";
+import { use, useEffect, useRef, useState, type ChangeEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, } from "next/navigation";
-
-import {
-  ArrowLeft,
-  ShoppingCart,
-} from "lucide-react";
+import { notFound, useParams } from "next/navigation";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { type Product } from "@/lib/products";
-import { notFound } from "next/navigation";
 import { useCart } from "@/components/cart-context";
 import { CartDrawer } from "@/components/CartDrawer";
+import { getCatalogCake, type CatalogCake } from "@/lib/catalog-cakes";
+import { CATALOG_CAKE_PLACEHOLDER, calculateCatalogCakePrice, toggleCakeIngredient,
+  type CakeConfiguration, type CakeDesign } from "@/lib/cake-config";
 
+type CakeType = CakeConfiguration["cakeType"];
+type CreamType = CakeConfiguration["creamType"];
+type ValidationErrors = Partial<Record<"cakeType"|"creamType"|"selectedVegetables"|"selectedAnimal"|"designType"|"petName"|"customImage"|"customText",string>>;
+const formatMoney = (amount:number) => new Intl.NumberFormat("hy-AM",{style:"currency",currency:"AMD",maximumFractionDigits:2}).format(amount);
 
-// ========== TYPES ==========
-type CakeType = "MEAT" | "FRUIT" | "VEGETABLES" | "";
-type CreamType = "DAIRY" | "PLANTBASEDMILK" | "PLANTBASED" | "";
-type DesignType = "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | "NAME_TEXT" | "";
-type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
-type DeliveryOption = "delivery" | "pickup";
-
-interface ProductOptions {
-  cakeType: CakeType;
-  creamType: CreamType;
-  selectedVegetables: string[];
-  selectedAnimal?: string;
-  designType: DesignType;
-  customImage?: string | null;
-  customText?: string;
-  petName?: string;
-}
-
-interface OrderInfo {
-  deliveryOption: DeliveryOption;
-  deliveryAddress: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  paymentMethod: PaymentMethod;
-  phoneNumber: string;
-  deliveryFee: number;
-  distance: number | null;
-  isYerevanAddress: boolean | null;
-}
-
-interface ValidationErrors {
-  cakeType?: string;
-  creamType?: string;
-  selectedVegetables?: string;
-  selectedAnimal?: string;
-  designType?: string;
-  phoneNumber?: string;
-  deliveryDate?: string;
-  deliveryAddress?: string;
-  deliveryTime?: string;
-  paymentMethod?: string;
-  petName?: string;
-  customImage?: string;
-  customText?: string;
-}
-
-// ========== CONSTANTS ==========
-const PICKUP_ADDRESS = "Yerevan, Kievan 15";
-const FREE_DELIVERY_THRESHOLD = 20000;
-const FREE_DELIVERY_MAX_DISTANCE = 10;
-const BASE_DELIVERY_FEE = 1000;
-const EXTRA_DISTANCE_FEE = 500;
-const EXTRA_DISTANCE_THRESHOLD = 7;
-const PICKUP_LAT = 40.195059;
-const PICKUP_LON = 44.488427;
-const TELEGRAM_BOT_TOKEN = "8774226645:AAHnDf9dmeQg_XZkBYEAfL41xsfhsTpiBDk";
-const TELEGRAM_CHAT_ID = "8072053329";
-
-// ========== COMPONENT ==========
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProductPage({ params }: { params: Promise<{ id:string }> }) {
+  const {id} = use(params);
+  const route = useParams();
+  const locale = typeof route.locale === "string" ? route.locale : "hy";
   const { t, language } = useLanguage();
-  const router = useRouter();
-
-
-  // --- Global cart ---
   const { addToCart, getItemCount } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // --- States ---
-  const [product, setProduct] = useState<Product | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Product customization
-  const [cakeType, setCakeType] = useState<CakeType>("MEAT");
-  const [creamType, setCreamType] = useState<CreamType>("DAIRY");
-  const [quantity, setQuantity] = useState(1);
-  const [selectedVegetables, setSelectedVegetables] = useState<string[]>(["POTATO", "CARROT"]);
-  const [selectedAnimal, setSelectedAnimal] = useState<string>("CHICKEN");
-  const [designType, setDesignType] = useState<DesignType>("STANDARD");
-  const [customImage, setCustomImage] = useState<string | null>(null);
-  const [customImageFile, setCustomImageFile] = useState<File | null>(null);
-  const [customText, setCustomText] = useState("");
-  const [petName, setPetName] = useState("");
-  const [price, setPrice] = useState<number>(0);
-
-
-  // Order info
-  const [orderInfo, setOrderInfo] = useState<OrderInfo>({
-    deliveryOption: "delivery",
-    deliveryAddress: "",
-    deliveryDate: getTodayDate(),
-    deliveryTime: "",
-    paymentMethod: "cash",
-    phoneNumber: "",
-    deliveryFee: 0,
-    distance: null,
-    isYerevanAddress: null,
-  });
-
-  const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [product,setProduct] = useState<CatalogCake|null>(null);
+  const [loadedId,setLoadedId] = useState<string|null>(null);
+  const [loading,setLoading] = useState(true);
+  const [error,setError] = useState<string|null>(null);
+  const [isCartOpen,setIsCartOpen] = useState(false);
+  const [cakeType,setCakeType] = useState<CakeType>("MEAT");
+  const [creamType,setCreamType] = useState<CreamType>("DAIRY");
+  const [quantity,setQuantity] = useState(1);
+  const [selectedVegetables,setSelectedVegetables] = useState<string[]>(["POTATO","CARROT"]);
+  const [selectedAnimal,setSelectedAnimal] = useState("CHICKEN");
+  const [designType,setDesignType] = useState<CakeDesign|"">("");
+  const [customImage,setCustomImage] = useState<string|null>(null);
+  const [customText,setCustomText] = useState("");
+  const [petName,setPetName] = useState("");
+  const [errors,setErrors] = useState<ValidationErrors>({});
+  const [adding,setAdding] = useState(false);
+  const [failedImage,setFailedImage] = useState<string|null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasSent = useRef(false);
-  const prevOrderInfoRef = useRef(orderInfo);
+  const initializedId = useRef<string|null>(null);
+  const lastTrackedId = useRef<string|null>(null);
+  const addLock = useRef(false);
+  const fileVersion = useRef(0);
 
-  // Helper function
-
-
-  // ✅ Load products
-  useEffect(() => {
-    async function loadProducts() {
+  useEffect(()=>{
+    let controller:AbortController|null=null;
+    async function loadProduct(){
+      controller?.abort(); const current = new AbortController();controller=current;
+      setLoading(true);setError(null);
       try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(
-          "https://opensheet.elk.sh/1JuaojKVSs8Fe6_4e2nPdHg0WgFJxNkL-uQbbcyPP1b0/Sheet1"
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP Error: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        if (!data || !Array.isArray(data)) {
-          throw new Error("Invalid data format");
-        }
-
-        const formatted = data.map((item: any) => {
-          let image = item["նկար"] || "";
-          const match = image.match(/\/d\/([^/]+)/);
-          if (match) {
-            image = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+        const found=await getCatalogCake(id,current.signal);
+        if(current.signal.aborted)return;
+        setProduct(found);setLoadedId(id);
+        if(found){
+          if(initializedId.current!==id){
+            initializedId.current=id; fileVersion.current+=1;
+            setCakeType("MEAT");setSelectedAnimal("CHICKEN");setSelectedVegetables(["POTATO","CARROT"]);
+            setQuantity(1);setCustomText("");setPetName("");setCustomImage(null);setErrors({});
+            setDesignType(found.designs[0]);setCreamType(found.cream?"DAIRY":"");setFailedImage(null);
+          }else{
+            setDesignType(previous=>found.designs.includes(previous as CakeDesign)?previous:found.designs[0]);
+            setCreamType(previous=>found.cream?(previous||"DAIRY"):"");
           }
-
-          return {
-            id: String(item.id || ""),
-            name: item.name || "Unknown",
-            price: Number(item.price) || 0,
-            category: item.size || "standard",
-            image: image || "/placeholder-image.jpg", // ✅ Default image
-            cream: +item.cream ? true : false,
-            stock: 999,
-            description: item.description || "No description available", // Add description
-            priceInCents: Math.round(Number(item.price) * 100) || 0, // Add priceInCents
-            photo: +item['dogphoto']
-
-          };
-        });
-
-        setProducts(formatted);
-
-        // Find current product
-        const foundProduct = formatted.find((p: any) => String(p.id) === String(id));
-        setProduct(foundProduct || null);
-
-      } catch (err) {
-        console.error("Load products error:", err);
-        setError(err instanceof Error ? err.message : "Failed to load products");
-        setProduct(null);
-      } finally {
-        setLoading(false);
-      }
+        }
+      }catch(error){if(!current.signal.aborted){setProduct(null);setError(error instanceof Error?error.message:"Տորթը չհաջողվեց բեռնել։");setLoadedId(id);}}
+      finally{if(!current.signal.aborted)setLoading(false);}
     }
+    const refresh=()=>{void loadProduct();};refresh();window.addEventListener("focus",refresh);
+    return()=>{controller?.abort();fileVersion.current+=1;window.removeEventListener("focus",refresh);};
+  },[id]);
 
-    if (id) {
-      loadProducts();
-    }
-  }, [id]);
-  ;
+  useEffect(()=>{
+    if(!product||lastTrackedId.current===product.id)return;
+    lastTrackedId.current=product.id;
+    void fetch("/api/catalog-cake-view",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({productName:product.name,imageSrc:product.image})}).catch(()=>{});
+  },[product]);
 
-
-
-
-  const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
-    if (!address || address.trim().length < 5) return null;
-    try {
-      const encodedAddress = encodeURIComponent(address + ", Armenia");
-      const response = await fetch(`/api/geocode?q=${encodedAddress}`);
-      if (!response.ok) return null;
-      const data = await response.json();
-      if (data.error) return null;
-      if (data && Array.isArray(data) && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  };
-
-  const calculateStraightDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const calculateDrivingDistance = async (address: string): Promise<number | null> => {
-    if (!address || address.trim().length < 5) return null;
-    setIsCalculatingDistance(true);
-    try {
-      const deliveryCoords = await getCoordinatesFromAddress(address);
-      if (!deliveryCoords) return null;
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${PICKUP_LON},${PICKUP_LAT};${deliveryCoords.lon},${deliveryCoords.lat}?overview=false`;
-      const response = await fetch(osrmUrl);
-      if (!response.ok) {
-        return calculateStraightDistance(PICKUP_LAT, PICKUP_LON, deliveryCoords.lat, deliveryCoords.lon);
-      }
-      const data = await response.json();
-      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
-        return data.routes[0].distance / 1000;
-      }
-      return calculateStraightDistance(PICKUP_LAT, PICKUP_LON, deliveryCoords.lat, deliveryCoords.lon);
-    } catch {
-      return null;
-    } finally {
-      setIsCalculatingDistance(false);
-    }
-  };
-
-  const isAddressInYerevanByText = (address: string): boolean => {
-    const yerevanKeywords = ["yerevan", "erevan", "երևան", "երեւան", "Երևան", "Երեւան", "Yerevan", "Erevan"];
-    return yerevanKeywords.some((keyword) => address.toLowerCase().includes(keyword));
-  };
-
-
-
-
-
-  // Price calculation
-  useEffect(() => {
-    if (!product) return;
-
-    let basePrice = 0;
-    if (cakeType === "MEAT") {
-      if (selectedAnimal === "CHICKEN") basePrice = id === "cookieboo" ? 15000 : 12000;
-      else if (selectedAnimal === "BEEF") basePrice = id === "cookieboo" ? 16000 : 13000;
-      else if (selectedAnimal === "LAMB") basePrice = id === "cookieboo" ? 18000 : 15000;
-      else if (selectedAnimal === "TURKEY") basePrice = id === "cookieboo" ? 22000 : 19000;
-      else if (selectedAnimal === "SALMON") basePrice = id === "cookieboo" ? 24000 : 21000;
-
-    } else if (cakeType === "FRUIT") {
-      basePrice = id === "cookieboo" ? 13000 : 10000;
-    } else if (cakeType === "VEGETABLES") {
-      basePrice = id === "cookieboo" ? 14000 : 11000;
-    }
-    if (selectedVegetables.includes("SWEET_POTATO")) basePrice += 2000;
-    if (selectedVegetables.includes("MANGO")) basePrice += 2000;
-    if (selectedVegetables.includes("ELDERBERRY")) basePrice += 2000;
-
-    let extra = 0;
-    if (selectedVegetables.length === 3) {
-      extra = creamType === "PLANTBASEDMILK" ? 1000 + 3000 : 1000;
-    } else if (creamType === "PLANTBASEDMILK") {
-      extra = 3000;
-    }
-    if (id === "pawy-1") basePrice += 2000;
-    let finalPrice = basePrice + extra;
-    if (product.category === "small") {
-      finalPrice = Math.round(finalPrice / 3);
-    }
-    if (product.category === "midi") finalPrice = Math.round(finalPrice / 2);
-
-    if (product.category !== "small" && designType === "CUSTOM_PHOTO") finalPrice += 5000;
-    const roundingStep = 500;
-    finalPrice = Math.round(finalPrice / roundingStep) * roundingStep;
-    setPrice(finalPrice);
-  }, [cakeType, selectedAnimal, selectedVegetables, creamType, id, product, designType]);
-
-  // Product view tracking
-  const SITE_URL = "https://www.chupaboo.com";
-  const productName = product?.name || "";
-  const productImageSrc = product?.image || "/placeholder-image.jpg";
-
-  const sendToTelegramProductView = async (productName: string, imageSrc: string) => {
-    try {
-      const caption = `🛒 New User View:\n📦 ${productName}\n🕒 ${new Date().toLocaleString()}`;
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, photo: imageSrc, caption }),
-      });
-    } catch (err) {
-      console.error("Telegram error:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (product && !hasSent.current) {
-      hasSent.current = true;
-      const fullImageUrl = productImageSrc.startsWith("http") ? productImageSrc : `${SITE_URL}${productImageSrc}`;
-      sendToTelegramProductView(productName, fullImageUrl);
-    }
-  }, [product, productName, productImageSrc]);
-
-  // ✅ NOW we can do conditional returns - AFTER all hooks
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#69429a] mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t("loading") || "Loading..."}</p>
-        </div>
-      </div>
-    );
+  const price=product?calculateCatalogCakePrice(product,{cakeType,creamType,selectedVegetables,selectedAnimal,designType}):0;
+  const productName=product?.name||"";
+  const clearFieldError=(field:keyof ValidationErrors)=>setErrors(previous=>({...previous,[field]:undefined}));
+  function changeCakeType(type:CakeType){
+    setCakeType(type);setSelectedVegetables(type==="FRUIT"?["BANANA","APPLE"]:["POTATO","CARROT"]);
+    clearFieldError("cakeType");clearFieldError("selectedVegetables");
   }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#69429a] text-white rounded-lg hover:bg-[#5a3a85] transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+  function handleVegetableToggle(key:string){
+    setSelectedVegetables(previous=>toggleCakeIngredient(previous,key));clearFieldError("selectedVegetables");
   }
-
-  // 404 check - AFTER all hooks
-  if (!product) {
-    return notFound();
+  function handleImageUpload(event:ChangeEvent<HTMLInputElement>){
+    const file=event.target.files?.[0];if(!file)return;
+    if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size===0||file.size>10*1024*1024){
+      setErrors(previous=>({...previous,customImage:t("invalidFileType")||"Ընտրիր JPG, PNG կամ WebP նկար՝ մինչև 10 MB։"}));event.target.value="";return;
+    }
+    const version=++fileVersion.current;const reader=new FileReader();
+    reader.onload=()=>{if(version===fileVersion.current){setCustomImage(String(reader.result));clearFieldError("customImage");}};
+    reader.onerror=()=>{if(version===fileVersion.current)setErrors(previous=>({...previous,customImage:"Նկարը չհաջողվեց կարդալ։"}));};
+    reader.readAsDataURL(file);
   }
-
-  // ========== REST OF THE LOGIC ==========
-
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
-    let isValid = true;
-
-    if (!cakeType) { newErrors.cakeType = t("cakeTypeRequired") || "Please select cake type"; isValid = false; }
-    if (!creamType) { newErrors.creamType = t("creamTypeRequired") || "Please select cream type"; isValid = false; }
-    if (selectedVegetables.length === 0) { newErrors.selectedVegetables = t("ingredientsRequired") || "Please select at least one ingredient"; isValid = false; }
-    if (cakeType === "MEAT" && !selectedAnimal) { newErrors.selectedAnimal = t("meatTypeRequired") || "Please select meat type"; isValid = false; }
-    if (product.category !== "small" && !designType) { newErrors.designType = t("designTypeRequired") || "Please select design type"; isValid = false; }
-    if (designType === "CUSTOM_TEXT" && !customText.trim()) { newErrors.customText = t("customTextRequired") || "Please enter custom text"; isValid = false; }
-
-    return isValid;
-  };
-
-
-  const clearFieldError = (field: keyof ValidationErrors) => {
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
-
-  // Add to cart
-  const addToCartHandler = () => {
-    if (!validateForm()) {
-      const firstErrorField = Object.keys(errors)[0];
-      if (firstErrorField) {
-        const element = document.getElementById(`error-${firstErrorField}`);
-        if (element) element.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      return;
-    }
-
-    const productOptions: ProductOptions = {
-      cakeType,
-      creamType,
-      selectedVegetables,
-      selectedAnimal: cakeType === "MEAT" ? selectedAnimal : undefined,
-      designType,
-      customImage,
-      customText: designType === "CUSTOM_TEXT" ? customText : "",
-      petName: petName || "",
-    };
-    addToCart({
-      id: product.id,
-      name: product.name,
-      image: product.image,
-      price: price,
-      quantity: quantity,
-      options: productOptions,
-    });
-
-    setIsCartOpen(true);
-  };
-
-
-
-
-  const getMaxDate = () => {
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 30);
-    return maxDate.toISOString().split("T")[0];
-  };
-
-  const handleVegetableToggle = (vegKey: string) => {
-    const grainGroup = ["RICE", "WHEAT", "OATS"];
-    const isSelected = selectedVegetables.includes(vegKey);
-    if (isSelected) {
-      if (selectedVegetables.length === 1) return;
-      setSelectedVegetables(selectedVegetables.filter((v) => v !== vegKey));
-    } else {
-      let updated = selectedVegetables;
-      if (grainGroup.includes(vegKey)) {
-        updated = updated.filter((v) => !grainGroup.includes(v));
-      }
-      if (updated.length >= 3) {
-        updated = [...updated.slice(1), vegKey];
-      } else {
-        updated = [...updated, vegKey];
-      }
-      setSelectedVegetables(updated);
-    }
-    clearFieldError("selectedVegetables");
-  };
-  function getTodayDate() {
-    const today = new Date();
-    today.setDate(today.getDate() + 2);
-    return today.toISOString().split("T")[0];
+  function validateForm(){
+    const next:ValidationErrors={};
+    if(!cakeType)next.cakeType=t("cakeTypeRequired");
+    if(product?.cream&&!creamType)next.creamType=t("creamTypeRequired");
+    if(!selectedVegetables.length)next.selectedVegetables=t("ingredientsRequired");
+    if(cakeType==="MEAT"&&!selectedAnimal)next.selectedAnimal=t("meatTypeRequired");
+    if(!product?.designs.includes(designType as CakeDesign))next.designType=t("designTypeRequired");
+    if(designType==="NAME_TEXT"&&!petName.trim())next.petName=t("petNameLabel");
+    if(designType==="CUSTOM_TEXT"&&!customText.trim())next.customText=t("customTextRequired");
+    if(designType==="CUSTOM_PHOTO"&&!customImage)next.customImage=t("uploadPetPhoto");
+    setErrors(next);
+    const first=Object.keys(next)[0];
+    if(first){document.getElementById(`error-${first}`)?.scrollIntoView({behavior:"smooth",block:"center"});return false;}
+    return true;
   }
-
-  const formatDate = (date: any) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const getMinDate = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return formatDate(d);
-  };
-  const handleDateChange = (e: any) => {
-    const selectedDate = e.target.value;
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
-    const minDate = formatDate(today);
-
-    if (!selectedDate) {
-      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք ամսաթիվ" }));
-      return;
-    }
-
-    if (selectedDate < minDate) {
-      setErrors(prev => ({ ...prev, deliveryDate: "Ընտրեք վաղվա կամ ավելի ուշ օր" }));
-      setOrderInfo(prev => ({ ...prev, deliveryDate: "" }));
-      return;
-    }
-
-    setOrderInfo(prev => ({ ...prev, deliveryDate: selectedDate }));
-    clearFieldError("deliveryDate");
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert(t("fileTooLarge") || "File is too large. Maximum size is 10MB");
-        return;
+  async function addToCartHandler(){
+    if(!product||addLock.current||!validateForm())return;
+    if(!Number.isSafeInteger(quantity)||quantity<1||quantity>10000)return;
+    addLock.current=true;setAdding(true);
+    try{
+      const latest=await getCatalogCake(product.id);
+      if(!latest){setProduct(null);return;}
+      if(JSON.stringify(latest)!==JSON.stringify(product)){
+        setProduct(latest);setDesignType(previous=>latest.designs.includes(previous as CakeDesign)?previous:latest.designs[0]);
+        setCreamType(previous=>latest.cream?(previous||"DAIRY"):"");
+        alert("Տորթի տվյալները թարմացվել են։ Ստուգիր նոր գինն ու ընտրանքները և կրկին ավելացրու զամբյուղ։");return;
       }
-      if (!file.type.startsWith("image/")) {
-        alert(t("invalidFileType") || "Please upload an image file");
-        return;
-      }
-      setCustomImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setCustomImage(reader.result as string);
-      reader.readAsDataURL(file);
-      clearFieldError("customImage");
-    }
-  };
-
+      addToCart({id:product.id,name:product.name,image:product.image,price,quantity,options:{
+        cakeType,creamType:product.cream?creamType:"",selectedVegetables:[...selectedVegetables],
+        selectedAnimal:cakeType==="MEAT"?selectedAnimal:undefined,designType,
+        customImage:designType==="CUSTOM_PHOTO"?customImage:null,
+        customText:designType==="CUSTOM_TEXT"?customText.trim():designType==="STANDARD"?product.standardText:"",
+        petName:designType==="NAME_TEXT"?petName.trim():"",cakeSize:product.category,basePrice:product.price,
+      }});
+      setIsCartOpen(true);
+    }catch(error){alert(error instanceof Error?error.message:"Ապրանքը չհաջողվեց ավելացնել։");}
+    finally{addLock.current=false;setAdding(false);}
+  }
+  if(loading||loadedId!==id)return <div role="status" className="flex min-h-screen items-center justify-center text-[#69429a]">{t("loading")||"Բեռնվում է…"}</div>;
+  if(error)return <div role="alert" className="p-10 text-center"><p className="text-red-600">{error}</p><button onClick={()=>location.reload()} className="mt-4 rounded-xl bg-[#69429a] px-5 py-3 text-white">Կրկին փորձել</button></div>;
+  if(!product)return notFound();
 
   // ========== JSX ==========
   return (
     <div className="min-h-screen bg-gray-50">
-      <Link href="/" className="block w-full bg-[#69429a]">
-        <div className="bg-[#69429a] text-white py-4" onClick={() => router.back()}>
+      <Link href={`/${locale}`} className="block w-full bg-[#69429a]">
+        <div className="bg-[#69429a] text-white py-4">
           <div className="container mx-auto px-4 flex items-center gap-2">
             <ArrowLeft className="w-5 h-5" />
             <span>{t("mainPage")}</span>
@@ -517,7 +158,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           {/* Left column: Product image */}
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg">
             <Image
-              src={product.image}
+              src={failedImage === product.image ? CATALOG_CAKE_PLACEHOLDER : product.image}
+              unoptimized
+              sizes="(max-width:768px) 100vw, 50vw"
+              onError={()=>setFailedImage(product.image)}
               alt={productName}
               fill
               className="object-cover"
@@ -528,16 +172,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-[#69429a] mb-2">{productName}</h1>
-              <p className="text-gray-600 text-xs">{t("cakeDescription")}</p>
+              <p className="text-gray-600 text-xs">{product.description || t("cakeDescription")}</p>
+              <p className="mt-3 text-sm font-medium text-[#69429a]">{product.category === "small" ? t("mini") : product.category === "midi" ? t("midi") : t("standard")}</p>
             </div>
 
             {/* Cake Type */}
             <div id="error-cakeType">
               <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosemaincake")}</p>
               <div className="flex flex-wrap gap-3">
-                <button onClick={() => { setCakeType("MEAT"); clearFieldError("cakeType"); setSelectedVegetables(["POTATO", "CARROT"]); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "MEAT" ? "bg-[#ef4f27] text-white border-[#ef4f27] shadow-md scale-105" : "bg-white text-[#ef4f27] border-[#ef4f27] hover:bg-[#ffece7]"}`}>🍖 {t("MEAT")}</button>
-                <button onClick={() => { setSelectedVegetables(["BANANA", "APPLE"]); setCakeType("FRUIT"); clearFieldError("cakeType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "FRUIT" ? "bg-[#f4a2c6] text-white border-[#f4a2c6] shadow-md scale-105" : "bg-white text-[#f4a2c6] border-[#f4a2c6] hover:bg-[#fff0f6]"}`}>🍓 {t("FRUIT")}</button>
-                <button onClick={() => { setCakeType("VEGETABLES"); clearFieldError("cakeType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "VEGETABLES" ? "bg-[#aed137] text-white border-[#aed137] shadow-md scale-105" : "bg-white text-[#aed137] border-[#aed137] hover:bg-[#f0f8d0]"}`}>🥬 {t("VEGETABLES")}</button>
+                <button disabled={adding} onClick={() => { changeCakeType("MEAT"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "MEAT" ? "bg-[#ef4f27] text-white border-[#ef4f27] shadow-md scale-105" : "bg-white text-[#ef4f27] border-[#ef4f27] hover:bg-[#ffece7]"}`}>🍖 {t("MEAT")}</button>
+                <button disabled={adding} onClick={() => { changeCakeType("FRUIT"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "FRUIT" ? "bg-[#f4a2c6] text-white border-[#f4a2c6] shadow-md scale-105" : "bg-white text-[#f4a2c6] border-[#f4a2c6] hover:bg-[#fff0f6]"}`}>🍓 {t("FRUIT")}</button>
+                <button disabled={adding} onClick={() => { changeCakeType("VEGETABLES"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${cakeType === "VEGETABLES" ? "bg-[#aed137] text-white border-[#aed137] shadow-md scale-105" : "bg-white text-[#aed137] border-[#aed137] hover:bg-[#f0f8d0]"}`}>🥬 {t("VEGETABLES")}</button>
               </div>
               {errors.cakeType && <p className="text-red-500 text-sm mt-2">{errors.cakeType}</p>}
             </div>
@@ -554,7 +199,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     { key: "TURKEY", label: t("turkey"), emoji: "🦃", color: "#DAA520" },
                     { key: "SALMON", label: t("salmon"), emoji: "🐟", color: "#FF6F61" },
                   ].map((veg) => (
-                    <button key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError("selectedAnimal"); }} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: selectedAnimal === veg.key ? veg.color : "white", color: selectedAnimal === veg.key ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
+                    <button disabled={adding} key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError("selectedAnimal"); }} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: selectedAnimal === veg.key ? veg.color : "white", color: selectedAnimal === veg.key ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
                   ))}
                 </div>
                 {errors.selectedAnimal && <p className="text-red-500 text-sm mt-2">{errors.selectedAnimal}</p>}
@@ -589,7 +234,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   const showIngredient = (cakeType === "FRUIT" && veg.type === "FRUIT") || (cakeType !== "FRUIT" && veg.type !== "FRUIT");
                   if (!showIngredient) return null;
                   return (
-                    <button key={veg.key} onClick={() => handleVegetableToggle(veg.key)} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
+                    <button disabled={adding} key={veg.key} onClick={() => handleVegetableToggle(veg.key)} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
                   );
                 })}
               </div>
@@ -600,130 +245,68 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             {product.cream && <div id="error-creamType">
               <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosecream")}</p>
               <div className="flex flex-wrap gap-3">
-                <button onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
-                <button onClick={() => { setCreamType("PLANTBASEDMILK"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK" ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105" : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"}`}>🥥 {t("PLANTBASEDMILK")}</button>
-                <button onClick={() => { setCreamType("PLANTBASED"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("PLANTBASEDMILK"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK" ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105" : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"}`}>🥥 {t("PLANTBASEDMILK")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("PLANTBASED"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}</button>
               </div>
               {errors.creamType && <p className="text-red-500 text-sm mt-2">{errors.creamType}</p>}
             </div>}
 
-            {/* Design Type */}
-            {product.category !== "small" && (
-              <>
-                <div id="error-designType">
-                  <p className="text-lg font-semibold text-[#69429a] mb-3">{t("chooseDesign")}</p>
-                  <div className="flex flex-wrap gap-3">
-                    <button onClick={() => { setDesignType("STANDARD"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "STANDARD" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#f3e8ff]"}`}>🎂 {t("standardDesign")}</button>
-                    {!!product.photo && <button onClick={() => { setDesignType("CUSTOM_PHOTO"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_PHOTO" ? "bg-[#fb7185] text-white border-[#fb7185] shadow-md scale-105" : "bg-white text-[#fb7185] border-[#fb7185] hover:bg-[#ffe4e6]"}`}>📸 {t("customMyDogPhotoDesign")}</button>
-                    }                    <button onClick={() => { setDesignType("NAME_TEXT"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "NAME_TEXT" ? "bg-[#4ade80] text-white border-[#4ade80] shadow-md scale-105" : "bg-white text-[#4ade80] border-[#4ade80] hover:bg-[#ecfdf5]"}`}>✏️ {t("petName")}</button>
-                    <button onClick={() => { setDesignType("CUSTOM_TEXT"); clearFieldError("designType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${designType === "CUSTOM_TEXT" ? "bg-[#facc15] text-white border-[#facc15] shadow-md scale-105" : "bg-white text-[#facc15] border-[#facc15] hover:bg-[#fff9db]"}`}>✏️ {t("customDesign")}</button>
-                  </div>
-                  {errors.designType && <p className="text-red-500 text-sm mt-2">{errors.designType}</p>}
-                </div>
-                {designType === "NAME_TEXT" && (
-                  <div id="error-petName">
-                    <p className="text-lg font-semibold text-[#69429a] mb-3">{t("petNameLabel")}</p>
-                    <input type="text" value={petName} onChange={(e) => { setPetName(e.target.value); if (e.target.value.trim()) clearFieldError("petName"); }} placeholder={t("petNameLabel")} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300" />
-                    {errors.petName && <p className="text-red-500 text-sm mt-2">{errors.petName}</p>}
-                  </div>
-                )}
-                {designType === "CUSTOM_TEXT" && (
-                  <div id="error-customText">
-                    <p className="text-lg font-semibold text-[#69429a] mb-3">{t("enterCustomText")}</p>
-                    <textarea value={customText} onChange={(e) => { setCustomText(e.target.value); if (e.target.value.trim()) clearFieldError("customText"); }} placeholder={t("enterCustomText")} rows={3} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none border-gray-300" />
-                    {errors.customText && <p className="text-red-500 text-sm mt-2">{errors.customText}</p>}
-                  </div>
-                )}
-              </>
-            )}
-
-
-            {/* {orderInfo.deliveryOption === "delivery" && (
-              <div id="error-deliveryAddress">
-                <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><MapPin className="w-5 h-5" />{t("deliveryAddress")}</p>
-                <textarea value={orderInfo.deliveryAddress} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryAddress: e.target.value })); if (e.target.value.trim().length >= 5) clearFieldError("deliveryAddress"); }} placeholder={t("placeholder")} rows={3} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] resize-none border-gray-300" required />
-                {errors.deliveryAddress && <p className="text-red-500 text-sm mt-2">{errors.deliveryAddress}</p>}
-                {orderInfo.deliveryAddress && orderInfo.deliveryAddress.trim().length > 5 && !isCalculatingDistance && orderInfo.distance !== null && orderInfo.deliveryOption === "delivery" && (
-                  <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200"><p className="text-sm text-blue-800 font-semibold">🚚 {t("deliveryFee")}: {orderInfo.deliveryFee} {t("currency")}</p></div>
-                )}
-                {isCalculatingDistance && <div className="mt-2 p-3 bg-gray-50 rounded-lg"><p className="text-sm text-gray-600">⏳ {t("calculatingDistance")}...</p></div>}
-              </div>
-            )}
-
-            
-            {orderInfo.deliveryOption === "pickup" && (
-              <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200"><p className="text-sm text-green-800 flex items-center gap-2"><Home className="w-4 h-4" /><span className="font-semibold">{t("pickupAddress")}:</span> {PICKUP_ADDRESS}</p><p className="text-xs text-green-600 mt-1">ℹ️ {t("pickupInstructions")}</p></div>
-            )}
-
-           
-            <div id="error-phoneNumber">
-              <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Phone className="w-5 h-5" />{t("phoneNumber")}</p>
-              <input type="tel" value={orderInfo.phoneNumber} onChange={(e) => { setOrderInfo(prev => ({ ...prev, phoneNumber: e.target.value })); if (e.target.value.trim()) clearFieldError("phoneNumber"); }} placeholder={t("enterPhoneNumber")} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300" required />
-              {errors.phoneNumber && <p className="text-red-500 text-sm mt-2">{errors.phoneNumber}</p>}
-            </div>
-
-           
-            <div id="error-deliveryDate">
-              <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Calendar className="w-5 h-5" />{t("deliveryDate")}</p>
-              <input
-                type="date"
-                value={orderInfo.deliveryDate}
-                onChange={handleDateChange}
-                min={getMinDate()}   // ← փոխել սա
-                className="w-full h-10 px-3 pr-3 text-sm appearance-none bg-white border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300"
-                required
-              />              {errors.deliveryDate && <p className="text-red-500 text-sm mt-2">{errors.deliveryDate}</p>}
-            </div>
-
-            <div id="error-deliveryTime">
-              <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><Clock className="w-5 h-5" />{t("preferredDeliveryTime")}</p>
-              <select value={orderInfo.deliveryTime} onChange={(e) => { setOrderInfo(prev => ({ ...prev, deliveryTime: e.target.value })); if (e.target.value) clearFieldError("deliveryTime"); }} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-[#69429a] focus:ring-1 focus:ring-[#69429a] border-gray-300">
-                <option value="">{t("selectDeliveryTime")}</option>
-                {getAvailableTimeSlots().map((slot) => (
-                  <option key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </option>
-                ))}
-              </select>
-              {errors.deliveryTime && <p className="text-red-500 text-sm mt-2">{errors.deliveryTime}</p>}
-            </div>
-
-            <div id="error-paymentMethod">
-              <p className="text-lg font-semibold text-[#69429a] mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" />{t("paymentMethod")}</p>
+            {/* Only the designs enabled in the administrator are offered. */}
+            <div id="error-designType">
+              <p className="mb-3 text-lg font-semibold text-[#69429a]">{t("chooseDesign")}</p>
               <div className="flex flex-wrap gap-3">
-                <button onClick={() => { setOrderInfo(prev => ({ ...prev, paymentMethod: "cash" })); clearFieldError("paymentMethod"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.paymentMethod === "cash" ? "bg-[#10b981] text-white border-[#10b981] shadow-md scale-105" : "bg-white text-[#10b981] border-[#10b981] hover:bg-[#d1fae5]"}`}>💵 {t("cash")}</button>
-                <button onClick={() => { setOrderInfo(prev => ({ ...prev, paymentMethod: "bankTransfer" })); clearFieldError("paymentMethod"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${orderInfo.paymentMethod === "bankTransfer" ? "bg-[#8b5cf6] text-white border-[#8b5cf6] shadow-md scale-105" : "bg-white text-[#8b5cf6] border-[#8b5cf6] hover:bg-[#ede9fe]"}`}>🏦 {t("bankTransfer")}</button>
+                {product.designs.map(key => {
+                  const labels: Record<CakeDesign,string> = {STANDARD:t("standardDesign"), CUSTOM_PHOTO:t("customMyDogPhotoDesign"),NAME_TEXT:t("petName"),CUSTOM_TEXT:t("customDesign")};
+                  const emoji: Record<CakeDesign,string> = {STANDARD:"🎂",CUSTOM_PHOTO:"📸",NAME_TEXT:"✏️",CUSTOM_TEXT:"✏️"};
+                  const selected = designType === key;
+                  return <button disabled={adding} key={key} type="button" aria-pressed={selected} onClick={()=>{setDesignType(key);clearFieldError("designType");}}
+                    className={`flex cursor-pointer items-center gap-2 rounded-full border border-[#69429a] px-4 py-2 text-sm font-medium transition ${selected?"bg-[#69429a] text-white shadow-md":"bg-white text-[#69429a] hover:bg-purple-50"}`}>
+                    {emoji[key]} {labels[key]}
+                  </button>;
+                })}
               </div>
-              {errors.paymentMethod && <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>}
-            </div> */}
+              {errors.designType && <p className="mt-2 text-sm text-red-500">{errors.designType}</p>}
+            </div>
+            {designType === "STANDARD" && product.standardText && <p className="rounded-xl bg-purple-50 p-4 text-sm text-[#69429a]">{product.standardText}</p>}
+            {designType === "NAME_TEXT" && <div id="error-petName">
+              <label htmlFor="pet-name" className="mb-3 block text-lg font-semibold text-[#69429a]">{t("petNameLabel")}</label>
+              <input disabled={adding} id="pet-name" type="text" maxLength={100} value={petName} onChange={e=>{setPetName(e.target.value);clearFieldError("petName");}}
+                placeholder={t("petNameLabel")} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#69429a] focus:outline-none"/>
+              {errors.petName && <p className="mt-2 text-sm text-red-500">{errors.petName}</p>}
+            </div>}
+            {designType === "CUSTOM_TEXT" && <div id="error-customText">
+              <label htmlFor="custom-text" className="mb-3 block text-lg font-semibold text-[#69429a]">{t("enterCustomText")}</label>
+              <textarea disabled={adding} id="custom-text" maxLength={2000} rows={3} value={customText} onChange={e=>{setCustomText(e.target.value);clearFieldError("customText");}}
+                placeholder={t("enterCustomText")} className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 focus:border-[#69429a] focus:outline-none"/>
+              {errors.customText && <p className="mt-2 text-sm text-red-500">{errors.customText}</p>}
+            </div>}
+            {designType === "CUSTOM_PHOTO" && <div id="error-customImage">
+              <label htmlFor="pet-photo" className="mb-3 block text-lg font-semibold text-[#69429a]">{t("uploadPetPhoto")}</label>
+              <input disabled={adding} id="pet-photo" ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} className="block w-full text-sm"/>
+              {customImage && <img src={customImage} alt={t("uploadPetPhoto")} className="mt-3 h-32 w-32 rounded-xl object-cover"/>}
+              {errors.customImage && <p className="mt-2 text-sm text-red-500">{errors.customImage}</p>}
+            </div>}
 
             {/* Quantity */}
             <div>
               <p className="text-lg font-semibold text-[#69429a] mb-3">{language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}</p>
               <div className="flex items-center gap-4">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">-</button>
+                <button disabled={adding} onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">-</button>
                 <span className="text-2xl font-bold text-[#69429a] w-12 text-center">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">+</button>
+                <button disabled={adding} onClick={() => setQuantity(previous => Math.min(10000, previous + 1))} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">+</button>
               </div>
             </div>
 
-            {/* Price Summary */}
-            <div style={{ position: "sticky", bottom: "20px", zIndex: 50, marginTop: "auto", backgroundColor: "white", borderRadius: "1rem", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", padding: "1rem", border: "1px solid rgba(105,66,154,0.1)" }}>
-              <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {price * quantity} {t("currency")}</div>
-              {orderInfo.deliveryFee > 0 && <div className="text-sm text-gray-600 mt-1">{t("deliveryFee")}: {orderInfo.deliveryFee} {t("currency")}</div>}
-              {orderInfo.deliveryOption === "delivery" && orderInfo.deliveryFee === 0 && price * quantity >= FREE_DELIVERY_THRESHOLD && orderInfo.distance !== null && orderInfo.distance <= FREE_DELIVERY_MAX_DISTANCE && <div className="text-sm text-green-600 mt-1">✅ {t("freeDeliveryForOrdersAbove")}</div>}
-              <div className="text-3xl font-bold text-[#69429a] mt-2">{t("total")}: {price * quantity + orderInfo.deliveryFee} {t("currency")}<sup className="text-sm font-normal text-gray-400 ml-1">*</sup></div>
-              <div className="mt-3 pt-2 border-t border-dashed border-gray-200 flex items-start gap-1"><span className="text-[#69429a] text-sm font-bold">*</span><span className="text-xs text-gray-400">{t("priceDependsOnComponentsAndDesign")}</span></div>
+            {/* Price is based on the administrator's saved price for this size. */}
+            <div className="sticky bottom-5 z-30 mt-auto rounded-2xl border border-[#69429a]/10 bg-white p-4 shadow-lg">
+              <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {formatMoney(price * quantity)}</div>
+              <div className="mt-2 text-3xl font-bold text-[#69429a]">{t("total")}: {formatMoney(price * quantity)}<sup className="ml-1 text-sm font-normal text-gray-400">*</sup></div>
+              <div className="mt-3 border-t border-dashed border-gray-200 pt-2 text-xs text-gray-400">* {t("priceDependsOnComponentsAndDesign")}</div>
             </div>
-
-            {/* Add to Cart Button */}
-            <button onClick={addToCartHandler} className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#69429a] text-white font-semibold rounded-xl hover:bg-[#aed137] transition-colors text-lg cursor-pointer">🛒 {t("addToCart") || "Add to Cart"}</button>
-
-            <p className="mt-2 text-gray-700 italic text-sm">
-              {orderInfo.deliveryOption === "delivery"
-                ? orderInfo.isYerevanAddress === false ? "" : price * quantity >= FREE_DELIVERY_THRESHOLD ? orderInfo.distance !== null && orderInfo.distance > FREE_DELIVERY_MAX_DISTANCE ? `🚚 ${FREE_DELIVERY_MAX_DISTANCE} km ${t("freeDelivery")}, ${t("extraDistanceCharged")}` : `🚚 ${t("freeDeliveryForOrdersAbove")}` : `🚚 ${t("deliveryFeeInfo")}`
-                : `🏠 ${t("pickupHint")}`}
-            </p>
+            <button disabled={adding} onClick={()=>void addToCartHandler()} className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-xl bg-[#69429a] px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#aed137] disabled:cursor-wait disabled:opacity-60">
+              {adding ? t("loading") : `🛒 ${t("addToCart") || "Add to Cart"}`}
+            </button>
 
             {/* Product Info */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -739,7 +322,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       </div>
 
       {/* Floating Cart Button */}
-      <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center" style={{ backgroundColor: "#69429a" }}>
+      <button disabled={adding} onClick={() => setIsCartOpen(true)} className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center" style={{ backgroundColor: "#69429a" }}>
         <ShoppingCart className="h-6 w-6" />
         {getItemCount() > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{getItemCount()}</span>}
       </button>
@@ -748,7 +331,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        orderInfo={orderInfo}
       />
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingCart, CheckCircle, Minus, Plus, X, Percent, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,6 @@ import partyShop from "@/public/party-shop-main.jpg";
 import { useCart } from "@/components/cart-context";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { text } from "stream/consumers";
 
 // ========== DISCOUNT CONSTANTS ==========
 const DISCOUNT_THRESHOLD_1 = 15000;
@@ -358,6 +359,7 @@ const ImageModal = ({
 // ========== MAIN COMPONENT ==========
 export default function ShopPage() {
   const { t } = useLanguage();
+  const [loadError, setLoadError] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -512,45 +514,58 @@ export default function ShopPage() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProducts() {
+      setLoading(true);
+      setLoadError("");
       try {
-        setLoading(true);
-
-        const res = await fetch(
-          "https://opensheet.elk.sh/1F6YoFIrbrIbKgItyWZZnF60wWKImkq_g-fUFJ7vJ9a8/Sheet1"
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP Error: ${res.status}`);
+        const rows: any[] = [];
+        const pageSize = 500;
+        for (let offset = 0; ; offset += pageSize) {
+          const { data, error } = await supabase
+            .from("catalog_products")
+            .select("*")
+            .eq("section", "party")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true })
+            .order("id")
+            .range(offset, offset + pageSize - 1);
+          if (error) throw error;
+          if (cancelled) return;
+          rows.push(...(data ?? []));
+          if (!data || data.length < pageSize) break;
         }
 
-        const data = await res.json();
-
-        console.log("Raw sheet data:", data);
-
-        const formatted = data.map((item: any, index: number) => {
-          const imageUrl = item["նկար"] || item["Image"] || "";
-
+        const formatted = rows.map((item) => {
+          const path = String(item.image_path ?? "");
+          const imageUrl = /^https?:\/\//i.test(path)
+            ? path
+            : path
+              ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
+              : "";
           return {
-            id: index + 1,
-            name: item["Անուն"] || item["Name"] || "Unnamed Product",
-            price: Number(item["վաճառքի արժեք"] || item["Price"] || 0),
-            stock: Number(item["քանակ"] || item["Stock"] || 0),
-            notes: item["notes"] || item["Notes"] || "",
-            image: [getWorkingImageUrl(imageUrl)],
-            set: false,
+          id: item.id,
+          name: item.name,
+          price: Number(item.price ?? 0),
+          stock: Math.max(0, Number(item.stock_quantity ?? 0)),
+          notes: item.ingredients ?? "",
+          image: [getWorkingImageUrl(imageUrl)],
+          set: false,
           };
         });
-
-        setProducts(formatted);
-      } catch (err) {
-        console.error("Load products error:", err);
+        if (!cancelled) setProducts(formatted);
+      } catch (error) {
+        console.error("Load catalog products error:", error);
+        if (!cancelled) setLoadError("Ապրանքները չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    loadProducts();
+    void loadProducts();
+    return () => { cancelled = true; };
   }, []);
 
   const modalProduct = modalProductId
@@ -560,6 +575,10 @@ export default function ShopPage() {
   const modalImages = modalProduct
     ? (Array.isArray(modalProduct.image) ? modalProduct.image : [modalProduct.image || PLACEHOLDER_IMAGE])
     : [];
+
+  if (loadError) {
+    return <div role="alert" className="container mx-auto px-4 py-12 text-center text-red-600">{loadError}</div>;
+  }
 
   if (loading) {
     return (
