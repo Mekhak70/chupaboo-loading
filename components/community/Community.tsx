@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import "./community.css"
+import { useCommunitySession } from "./CommunitySession"
 import CommunityAccessGate from "./CommunityAccessGate"
 import { petAge, validBirthday, yerevanToday } from "./pet-details"
 import ReelVideo from "./ReelVideo"
@@ -66,8 +67,9 @@ function CommunityContent({ initialUsername, initialSection }: { initialUsername
   const router=useRouter()
   const pathname=usePathname()
   const communityBase="/"+pathname.split("/")[1]+"/community"
-  const [userId, setUserId] = useState<string | null>(null)
-  const [authReady, setAuthReady] = useState(false)
+  const communitySession=useCommunitySession()
+  const userId=communitySession.user?.id??null
+  const authReady=communitySession.status==="ready"
   const [pets, setPets] = useState<Record<string, Pet>>({})
   const [mine, setMine] = useState<Pet[]>([])
   const [posts, setPosts] = useState<Post[]>([])
@@ -107,16 +109,7 @@ function CommunityContent({ initialUsername, initialSection }: { initialUsername
     setPeer(peerId&&/^[0-9a-f-]{36}$/i.test(peerId)?peerId:null)
   },[initialUsername,initialSection,pathname])
 
-  useEffect(() => {
-    let mounted = true
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) { setUserId(session?.user.id ?? null); setAuthReady(true); if (_event === "PASSWORD_RECOVERY") setResetPassword(true) }
-    })
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (mounted) { if (error) setError(message(error)); setUserId(data.session?.user.id ?? null); setAuthReady(true) }
-    })
-    return () => { mounted = false; subscription.unsubscribe() }
-  }, [])
+
 
   useEffect(() => {
     let cancelled = false;
@@ -136,7 +129,7 @@ function CommunityContent({ initialUsername, initialSection }: { initialUsername
     void supabase.from("community_profiles").select("username").eq("user_id", userId).maybeSingle().then(({data,error}) => {
       if (cancelled) return;
       if (error) setError(message(error));
-      else if (!data) { setTab("profile"); setProfileUsername(undefined); }
+      else if (!data && !initialUsername) { setTab("profile"); setProfileUsername(undefined); }
     });
     return () => { cancelled = true; };
   }, [userId]);
