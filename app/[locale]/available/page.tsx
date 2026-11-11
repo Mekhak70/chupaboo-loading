@@ -1,419 +1,100 @@
 "use client"
 
-import { supabase } from "@/lib/supabase";
-
-import { useState, useEffect, useRef } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
-import Image from "next/image"
+import { supabase } from "@/lib/supabase"
 import Cake from "@/public/cake.png"
-import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation"
-import partyShop from "@/public/banner-our-cakes.png"
+import cakesBanner from "@/public/banner-our-cakes.png"
 
-type Filter = "all" | "small" | "midi" | "standart"
-
-/**
- * Նորմալացնում ենք size-ը
- *
- * Ադմինում կարող է լինել՝
- * mini
- * Mini
- * MINI
- * small
- * standard
- * standart
- * midi
- */
-const normalizeSize = (value: any): Filter | null => {
-    const size = String(value ?? "")
-        .trim()
-        .toLowerCase()
-
-    if (size === "small" || size === "mini") {
-        return "small"
-    }
-
-    if (size === "midi") {
-        return "midi"
-    }
-
-    if (size === "standard" || size === "standart") {
-        return "standart"
-    }
-
-    return null
+type AvailableProduct = {
+  id: string
+  name: string
+  price: number
+  image: string
+  category: "small" | "midi" | "standart" | null
+  stock: number
 }
 
-export default function Available() {
-    const { locale } = useParams()
-
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
-
-    const { t } = useLanguage()
-
-    const [filter, setFilter] = useState<Filter>("all")
-
-    const [selectedImage, setSelectedImage] =
-        useState<string | null>(null)
-
-    const [type, setType] = useState<string>("")
-
-    const [creamType, setCreamType] =
-        useState<string>("")
-
-    /**
-     * Այստեղ պահում ենք ԲՈԼՈՐ ապրանքները,
-     * որոնք գալիս են Supabase-ից
-     */
-  const [loadError, setLoadError] = useState("");
-    const [products, setProducts] =
-        useState<any[]>([])
-
-    const [loading, setLoading] =
-        useState<boolean>(true)
-
-    /**
-     * Mobile scroll effect
-     */
-    const [visibleProductId, setVisibleProductId] =
-        useState<string | null>(null)
-
-    const cardRefs =
-        useRef<{ [key: string]: HTMLAnchorElement | null }>({})
-
-    const timeoutRef =
-        useRef<NodeJS.Timeout | null>(null)
-
-
-    // =========================================================
-    // 1. ՍԿԶԲՈՒՄ ՎԵՐՑՆՈՒՄ ԵՆՔ ՄԻԱՅՆ AVAILABLE ԱՊՐԱՆՔՆԵՐԸ
-    // =========================================================
-
-    const availableProducts = products.filter(
-        (product) => product.available === true
-    )
-
-
-    // =========================================================
-    // 2. AVAILABLE ԱՊՐԱՆՔՆԵՐԻ ՎՐԱ ԱՐԴԵՆ ԿԻՐԱՌՈՒՄ ԵՆՔ FILTER
-    // =========================================================
-
-    const filteredProducts =
-        filter === "all"
-            ? availableProducts
-            : availableProducts.filter(
-                (product) =>
-                    product.category === filter
-            )
-
-
-    // Debug
-    console.log("ALL PRODUCTS:", products)
-
-    console.log(
-        "AVAILABLE PRODUCTS:",
-        availableProducts
-    )
-
-    console.log(
-        "CURRENT FILTER:",
-        filter
-    )
-
-    console.log(
-        "FILTERED PRODUCTS:",
-        filteredProducts
-    )
-
-
-    // =========================================================
-    // FILTER CHANGE
-    // =========================================================
-
-    const handleFilterChange = (
-        newFilter: Filter
-    ) => {
-        setFilter(newFilter)
-
-        const params =
-            new URLSearchParams(
-                searchParams.toString()
-            )
-
-        if (newFilter === "all") {
-            params.delete("filter")
-        } else {
-            params.set(
-                "filter",
-                newFilter
-            )
-        }
-
-        const query =
-            params.toString()
-
-        router.push(
-            query
-                ? `${pathname}?${query}`
-                : pathname,
-            {
-                scroll: false,
-            }
-        )
-    }
-
-
-    // =========================================================
-    // URL FILTER
-    // =========================================================
-
-    useEffect(() => {
-        const currentFilter =
-            searchParams.get("filter")
-
-        if (
-            currentFilter === "small" ||
-            currentFilter === "midi" ||
-            currentFilter === "standart"
-        ) {
-            setFilter(
-                currentFilter as Filter
-            )
-        } else {
-            setFilter("all")
-        }
-    }, [searchParams])
-
-
-    // =========================================================
-    // SKELETON
-    // =========================================================
-
-    const ProductSkeleton = () => (
-        <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md animate-pulse">
-
-            <div className="aspect-square bg-gray-200"></div>
-
-            <div className="p-4 space-y-3">
-
-                <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-
-                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-
-                <div className="mt-3">
-                    <div className="h-10 bg-gray-200 rounded-full w-full"></div>
-                </div>
-
-            </div>
-
-        </div>
-    )
-
-
-    // =========================================================
-    // WHATSAPP
-    // =========================================================
-
-    const SITE_URL =
-        "https://www.chupaboo.com"
-
-    const whatsappMessage =
-        selectedImage
-            ? `Բարև, ուզում եմ պատվիրել այս տորթը լինի ${type} և ${creamType}։ Նկարը՝ ${SITE_URL}${selectedImage}`
-            : "Բարև, ուզում եմ պատվիրել տորթ"
-
-    const whatsappLink =
-        `https://wa.me/37433775750?text=${encodeURIComponent(
-            whatsappMessage
-        )}`
-
-
-    // =========================================================
-    // MOBILE SCROLL EFFECT
-    // =========================================================
-
-    useEffect(() => {
-
-        const handleScroll = () => {
-
-            if (window.innerWidth >= 640) {
-                setVisibleProductId(null)
-                return
-            }
-
-            let closestId: string | null = null
-
-            let closestDistance =
-                Infinity
-
-            const windowCenter =
-                window.innerHeight / 2
-
-
-            Object.keys(
-                cardRefs.current
-            ).forEach((id) => {
-
-                const element =
-                    cardRefs.current[id]
-
-                if (!element) {
-                    return
-                }
-
-                const rect =
-                    element.getBoundingClientRect()
-
-                const cardCenter =
-                    rect.top +
-                    rect.height / 2
-
-                const distance =
-                    Math.abs(
-                        cardCenter -
-                        windowCenter
-                    )
-
-                if (
-                    distance <
-                    closestDistance
-                ) {
-                    closestDistance =
-                        distance
-
-                    closestId = id
-                }
-
-            })
-
-
-            if (
-                closestId &&
-                closestDistance < 100
-            ) {
-
-                setVisibleProductId(
-                    closestId
-                )
-
-                if (
-                    timeoutRef.current
-                ) {
-                    clearTimeout(
-                        timeoutRef.current
-                    )
-                }
-
-                timeoutRef.current =
-                    setTimeout(() => {
-
-                        setVisibleProductId(
-                            null
-                        )
-
-                    }, 2500)
-
-            } else {
-
-                setVisibleProductId(null)
-
-                if (
-                    timeoutRef.current
-                ) {
-                    clearTimeout(
-                        timeoutRef.current
-                    )
-                }
-            }
-        }
-
-
-        let ticking = false
-
-
-        const throttledScroll = () => {
-
-            if (!ticking) {
-
-                window.requestAnimationFrame(
-                    () => {
-
-                        handleScroll()
-
-                        ticking = false
-                    }
-                )
-
-                ticking = true
-            }
-        }
-
-
-        window.addEventListener(
-            "scroll",
-            throttledScroll,
-            {
-                passive: true,
-            }
-        )
-
-        window.addEventListener(
-            "resize",
-            handleScroll,
-            {
-                passive: true,
-            }
-        )
-
-
-        setTimeout(
-            handleScroll,
-            100
-        )
-
-
-        return () => {
-
-            window.removeEventListener(
-                "scroll",
-                throttledScroll
-            )
-
-            window.removeEventListener(
-                "resize",
-                handleScroll
-            )
-
-            if (
-                timeoutRef.current
-            ) {
-                clearTimeout(
-                    timeoutRef.current
-                )
-            }
-        }
-
-    }, [filteredProducts])
-
-
-    // =========================================================
-    // LOAD PRODUCTS
-    // =========================================================
+function normalizeSize(value: unknown): AvailableProduct["category"] {
+  const size = String(value ?? "").trim().toLowerCase()
+  if (size === "mini" || size === "small") return "small"
+  if (size === "midi") return "midi"
+  if (size === "standard" || size === "standart") return "standart"
+  return null
+}
+
+type Filter = "all" | "small" | "midi" | "standart"
+const filters: { value: Filter; label: string }[] = [
+  { value: "all", label: "all" },
+  { value: "small", label: "mini" },
+  { value: "midi", label: "midi" },
+  { value: "standart", label: "standard" },
+]
+
+function ArrowIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M13.2 3.5a1 1 0 0 1 1.1.22l7 7.5a1.15 1.15 0 0 1 0 1.56l-7 7.5A1 1 0 0 1 12.5 19.6V15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h8.5V4.4a1 1 0 0 1 .7-.9Z" />
+    </svg>
+  )
+}
+
+export default function AvailablePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-[#69429a]" role="status">Բեռնվում է…</div>}>
+      <AvailableContent />
+    </Suspense>
+  )
+}
+
+function AvailableContent() {
+  const params = useParams()
+  const locale = (Array.isArray(params.locale) ? params.locale[0] : params.locale) || "hy"
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { t } = useLanguage()
+  const [products, setProducts] = useState<AvailableProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [retryKey, setRetryKey] = useState(0)
+
+  const copy = locale === "ru"
+    ? { details: "Подробнее", loading: "Загрузка…", retry: "Попробовать снова", error: "Не удалось загрузить торты", banner: "Наши торты" }
+    : locale === "pl"
+      ? { details: "Zobacz więcej", loading: "Ładowanie…", retry: "Spróbuj ponownie", error: "Nie udało się załadować tortów", banner: "Nasze torty" }
+      : locale === "en"
+        ? { details: "View details", loading: "Loading…", retry: "Try again", error: "Unable to load cakes", banner: "Our cakes" }
+        : { details: "Տեսնել ավելին", loading: "Բեռնվում է…", retry: "Կրկին փորձել", error: "Չհաջողվեց բեռնել տորթերը", banner: "Մեր տորթերը" }
+
+  const basePriceLabel = locale === "ru" ? "Цена" : locale === "pl" ? "Cena" : locale === "en" ? "Price" : "Գին"
+  const priceFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 })
+
+  const queryFilter = searchParams.get("filter")
+  const filter: Filter = filters.find(item => item.value === queryFilter)?.value ?? "all"
+  const filteredProducts = useMemo(
+    () => products.filter(product => product.stock > 0 && (filter === "all" || product.category === filter)),
+    [products, filter],
+  )
+
+  function handleFilterChange(value: Filter) {
+    const nextParams = new URLSearchParams(searchParams.toString())
+    nextParams.set("filter", value)
+    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false })
+  }
 
   useEffect(() => {
-    let cancelled = false;
-
+    const controller = new AbortController()
     async function loadProducts() {
-      setLoading(true);
-      setLoadError("");
+      setLoading(true)
+      setLoadError(null)
       try {
-        const rows: any[] = [];
-        const pageSize = 500;
+        const products: AvailableProduct[] = []
+        const pageSize = 500
         for (let offset = 0; ; offset += pageSize) {
           const { data, error } = await supabase
             .from("catalog_products")
@@ -423,609 +104,157 @@ export default function Available() {
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: true })
             .order("id")
-            .range(offset, offset + pageSize - 1);
-          if (error) throw error;
-          if (cancelled) return;
-          rows.push(...(data ?? []));
-          if (!data || data.length < pageSize) break;
+            .range(offset, offset + pageSize - 1)
+            .abortSignal(controller.signal)
+          if (error) throw error
+          if (controller.signal.aborted) return
+          for (const item of data ?? []) {
+            const path = String(item.image_path ?? "")
+            const image = /^https?:\/\//i.test(path)
+              ? path
+              : path ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl : Cake.src
+            const price = Number(item.price ?? 0)
+            const stock = Number(item.stock_quantity ?? 0)
+            if (!Number.isFinite(price) || price < 0) throw new Error("Invalid price")
+            products.push({
+              id: String(item.id), name: String(item.name ?? ""), price,
+              image, category: normalizeSize(item.cake_size),
+              stock: Number.isFinite(stock) ? Math.max(0, stock) : 0,
+            })
+          }
+          if (!data || data.length < pageSize) break
         }
-
-        const formatted = rows.map((item) => {
-          const path = String(item.image_path ?? "");
-          const imageUrl = /^https?:\/\//i.test(path)
-            ? path
-            : path
-              ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
-              : "";
-          return {
-          id: item.id,
-          name: item.name,
-          price: Number(item.price ?? 0),
-          stock: Math.max(0, Number(item.stock_quantity ?? 0)),
-          image: imageUrl || Cake.src,
-          category: normalizeSize(item.cake_size),
-          cream: Boolean(item.has_cream),
-          available: Number(item.stock_quantity ?? 0) > 0,
-          ingredients: item.ingredients ?? "",
-          };
-        });
-        if (!cancelled) setProducts(formatted);
-      } catch (error) {
-        console.error("Load catalog products error:", error);
-        if (!cancelled) setLoadError("Ապրանքները չհաջողվեց բեռնել։ Խնդրում ենք թարմացնել էջը։");
+        if (!controller.signal.aborted) setProducts(products)
+      } catch {
+        if (!controller.signal.aborted) setLoadError("catalog")
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false)
       }
     }
+    void loadProducts()
+    return () => controller.abort()
+  }, [retryKey])
 
-    void loadProducts();
-    return () => { cancelled = true; };
-  }, []);
+  return (
+    <div className="flex flex-col bg-white">
+      <section aria-label={copy.banner}>
+        <Image src={cakesBanner} alt={copy.banner} priority sizes="100vw" className="h-auto w-full" />
+      </section>
 
+      <section className="px-3 py-7 sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-7 flex flex-wrap justify-center gap-2 sm:mb-10 sm:gap-3" role="group" aria-label={locale === "hy" ? "Տորթի չափը" : locale === "ru" ? "Размер торта" : locale === "pl" ? "Rozmiar tortu" : "Cake size"}>
+            {filters.map(item => (
+              <button
+                key={item.value}
+                type="button"
+                aria-pressed={filter === item.value}
+                onClick={() => handleFilterChange(item.value)}
+                className={`min-h-11 rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:px-6 sm:text-base ${filter === item.value ? "border-[#69429a] bg-[#69429a] text-white shadow-md shadow-purple-900/10" : "border-[#e9e1f1] bg-[#f8f6fb] text-[#69429a] hover:border-[#69429a] hover:bg-[#f0eaf6]"}`}
+              >
+                {t(item.label)}
+              </button>
+            ))}
+          </div>
 
-    // =========================================================
-    // LOADING
-    // =========================================================
-
-  if (loadError) {
-    return <div role="alert" className="container mx-auto px-4 py-12 text-center text-red-600">{loadError}</div>;
-  }
-
-    if (loading) {
-
-        return (
-
-            <div className="flex flex-col">
-
-                <section>
-
-                    <div className="w-full h-[320px] bg-gray-200 animate-pulse"></div>
-
-                </section>
-
-
-                <section className="bg-white py-10">
-
-                    <div className="container mx-auto px-4">
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-                            {Array.from({
-                                length: 8
-                            }).map(
-                                (_, index) => (
-
-                                    <ProductSkeleton
-                                        key={
-                                            index
-                                        }
-                                    />
-
-                                )
-                            )}
-
-                        </div>
-
-                    </div>
-
-                </section>
-
+          {loadError ? (
+            <div className="flex min-h-[35vh] flex-col items-center justify-center gap-5 rounded-3xl bg-[#f8f6fb] px-4 text-center">
+              <p role="alert" className="text-[#69429a]">{copy.error}</p>
+              <Button onClick={() => setRetryKey(value => value + 1)} className="rounded-full bg-[#69429a] px-6 text-white hover:bg-[#573481]">{copy.retry}</Button>
             </div>
-        )
-    }
-
-
-    // =========================================================
-    // PAGE
-    // =========================================================
-
-    return (
-
-        <>
-
-            <div className="flex flex-col">
-
-
-                {/* ============================================
-                    HERO
-                ============================================= */}
-
-                <section>
-
-                    <img
-                        src={
-                            partyShop.src
-                        }
-                        alt="Party Shop"
-                        className="w-full h-[auto] object-contain"
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3" aria-busy={loading}>
+              {loading ? (
+                <>
+                  <span role="status" className="sr-only">{copy.loading}</span>
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <div key={index} aria-hidden="true" className="aspect-square animate-pulse rounded-2xl bg-[#f0eaf6] motion-reduce:animate-none sm:rounded-3xl" />
+                  ))}
+                </>
+              ) : filteredProducts.length ? filteredProducts.map(product => {
+                const price = product.price
+                return (
+                <Link
+                  key={product.id}
+                  href={`/${locale}/product/available/${encodeURIComponent(product.id)}`}
+                  aria-label={`${product.name} — ${copy.details}`}
+                  className="group relative block min-w-0 overflow-hidden rounded-2xl bg-[#f8f6fb] shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl hover:shadow-purple-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:rounded-3xl"
+                >
+                  <div className="relative aspect-square overflow-hidden">
+                    <Image
+                      src={product.image}
+                      unoptimized
+                      alt={product.name}
+                      fill
+                      sizes="(min-width: 1200px) 384px, (min-width: 1024px) 33vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
                     />
-
-                </section>
-
-
-                {/* ============================================
-                    FILTER + PRODUCTS
-                ============================================= */}
-
-                <section>
-
-                    <div className="container mx-auto px-4">
-
-                        <section className="bg-white py-10">
-
-                            <div className="container mx-auto px-4">
-
-
-                                {/* ==================================
-                                    FILTER BUTTONS
-                                =================================== */}
-
-                                <div
-                                    className="flex gap-4 justify-center mb-6 text-sm font-medium flex-wrap"
-                                    style={{
-                                        paddingBottom:
-                                            "20px",
-                                    }}
-                                >
-
-
-                                    {/* ALL */}
-
-                                    <button
-                                        onClick={() =>
-                                            handleFilterChange(
-                                                "all"
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "10px 15px",
-
-                                            background:
-                                                filter ===
-                                                    "all"
-                                                    ? "#aed137"
-                                                    : "#69429a",
-
-                                            color:
-                                                "#fff",
-
-                                            borderRadius:
-                                                "20px",
-
-                                            fontSize:
-                                                "20px",
-
-                                            display:
-                                                "flex",
-
-                                            alignItems:
-                                                "center",
-
-                                            justifyContent:
-                                                "center",
-
-                                            cursor:
-                                                "pointer",
-
-                                            border:
-                                                "none",
-                                        }}
-                                    >
-
-                                        {t("all")}
-
-                                    </button>
-
-
-                                    {/* MINI */}
-
-                                    <button
-                                        onClick={() =>
-                                            handleFilterChange(
-                                                "small"
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "10px 15px",
-
-                                            background:
-                                                filter ===
-                                                    "small"
-                                                    ? "#aed137"
-                                                    : "#69429a",
-
-                                            color:
-                                                "#fff",
-
-                                            borderRadius:
-                                                "20px",
-
-                                            fontSize:
-                                                "20px",
-
-                                            display:
-                                                "flex",
-
-                                            alignItems:
-                                                "center",
-
-                                            justifyContent:
-                                                "center",
-
-                                            cursor:
-                                                "pointer",
-
-                                            border:
-                                                "none",
-                                        }}
-                                    >
-
-                                        {t("mini")}
-
-                                    </button>
-
-
-                                    {/* MIDI */}
-
-                                    <button
-                                        onClick={() =>
-                                            handleFilterChange(
-                                                "midi"
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "10px 15px",
-
-                                            background:
-                                                filter ===
-                                                    "midi"
-                                                    ? "#aed137"
-                                                    : "#69429a",
-
-                                            color:
-                                                "#fff",
-
-                                            borderRadius:
-                                                "20px",
-
-                                            fontSize:
-                                                "20px",
-
-                                            display:
-                                                "flex",
-
-                                            alignItems:
-                                                "center",
-
-                                            justifyContent:
-                                                "center",
-
-                                            cursor:
-                                                "pointer",
-
-                                            border:
-                                                "none",
-                                        }}
-                                    >
-
-                                        {t("midi")}
-
-                                    </button>
-
-
-                                    {/* STANDARD */}
-
-                                    <button
-                                        onClick={() =>
-                                            handleFilterChange(
-                                                "standart"
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "10px 15px",
-
-                                            background:
-                                                filter ===
-                                                    "standart"
-                                                    ? "#aed137"
-                                                    : "#69429a",
-
-                                            color:
-                                                "#fff",
-
-                                            borderRadius:
-                                                "20px",
-
-                                            fontSize:
-                                                "20px",
-
-                                            display:
-                                                "flex",
-
-                                            alignItems:
-                                                "center",
-
-                                            justifyContent:
-                                                "center",
-
-                                            cursor:
-                                                "pointer",
-
-                                            border:
-                                                "none",
-                                        }}
-                                    >
-
-                                        {t("standard")}
-
-                                    </button>
-
-
-                                </div>
-
-
-                                {/* ==================================
-                                    PRODUCTS
-                                =================================== */}
-
-                                <div
-                                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                                    style={{
-                                        paddingTop:
-                                            "10px",
-                                    }}
-                                >
-
-                                    {filteredProducts.length >
-                                        0 ? (
-
-                                        filteredProducts.map(
-                                            (product) => {
-
-                                                const isVisible =
-                                                    visibleProductId ===
-                                                    product.id
-
-
-                                                return (
-
-                                                    <Link
-                                                        key={
-                                                            product.id
-                                                        }
-
-                                                        href={`/${locale}/product/available/${product.id}`}
-
-                                                        className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group block"
-
-                                                        ref={(
-                                                            el
-                                                        ) => {
-
-                                                            cardRefs.current[
-                                                                product.id
-                                                            ] =
-                                                                el
-                                                        }}
-                                                    >
-
-                                                        <div className="relative aspect-square">
-
-
-                                                            {/* IMAGE */}
-
-                                                            <img
-                                                                src={
-                                                                    product.image
-                                                                }
-
-                                                                alt={
-                                                                    "Շան ծննդյան տորթ"
-                                                                }
-
-                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-
-                                                                height={
-                                                                    300
-                                                                }
-
-                                                                width={
-                                                                    300
-                                                                }
-                                                            />
-
-
-                                                            {/* DESKTOP */}
-
-                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 hidden sm:flex items-center justify-center">
-
-                                                                <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 px-4 py-2 rounded-lg text-sm">
-
-                                                                    {locale ===
-                                                                        "hy"
-                                                                        ? "Տեսնել ավելին"
-                                                                        : "View details"}
-
-                                                                </span>
-
-                                                            </div>
-
-
-                                                            {/* MOBILE */}
-
-                                                            <div
-                                                                className={`
-                                                                    absolute inset-0 bg-black/40 flex items-center justify-center sm:hidden
-                                                                    transition-all duration-500 ease-out
-                                                                    ${isVisible
-                                                                        ? "opacity-100 scale-100"
-                                                                        : "opacity-0 scale-90 pointer-events-none"
-                                                                    }
-                                                                `}
-                                                            >
-
-                                                                <div className="bg-black/80 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center gap-2 shadow-xl">
-
-                                                                    <span className="text-white font-medium text-base">
-
-                                                                        {locale ===
-                                                                            "hy"
-                                                                            ? "Տեսնել ավելին"
-                                                                            : "View details"}
-
-                                                                    </span>
-
-                                                                </div>
-
-                                                            </div>
-
-
-                                                        </div>
-
-                                                    </Link>
-
-                                                )
-                                            }
-                                        )
-
-                                    ) : (
-
-                                        <div className="col-span-full text-center py-10">
-
-                                            <p className="text-gray-500 text-lg">
-
-                                                {t(
-                                                    "noProductsAvailable"
-                                                )}
-
-                                            </p>
-
-                                        </div>
-
-                                    )}
-
-                                </div>
-
-
-                            </div>
-
-                        </section>
-
+                  </div>
+                  <div className="flex items-end justify-between gap-2 border-t border-[#eee8f4] bg-white px-3 py-3 text-[#69429a] sm:px-5 sm:py-4">
+                    <div className="min-w-0">
+                    <span className="mb-1 block text-[10px] font-medium text-[#897597] sm:text-xs">{basePriceLabel}</span>
+                    <span className="flex flex-wrap items-baseline gap-1.5 text-lg font-bold tracking-tight sm:text-2xl">
+                      {priceFormatter.format(price)}
+                      <span className="text-[10px] font-semibold text-[#897597] sm:text-xs">AMD</span>
+                    </span>
                     </div>
-
-                </section>
-
-
-                {/* ============================================
-                    INFO
-                ============================================= */}
-
-                <section className="border-t border-border bg-muted/30 py-16">
-
-                    <div className="container mx-auto px-4">
-
-                        <div className="mx-auto max-w-3xl text-center">
-
-
-                            <Image
-                                src={Cake}
-                                alt="cake"
-                                width={40}
-                                height={40}
-                                className="mb-4 mx-auto"
-                                priority
-                            />
-
-
-                            <h2
-                                className="mb-4 text-2xl font-bold text-foreground"
-                                style={{
-                                    color:
-                                        "#69429a",
-                                }}
-                            >
-
-                                {t(
-                                    "customOrdersWelcome"
-                                )}
-
-                            </h2>
-
-
-                            <p
-                                className="mb-6 text-muted-foreground"
-                                style={{
-                                    color:
-                                        "#69429a",
-                                }}
-                            >
-
-                                {t(
-                                    "customOrdersDesc"
-                                )}
-
-                            </p>
-
-
-                            <Button
-                                asChild
-                                variant="outline"
-                                style={{
-                                    backgroundColor:
-                                        "#69429a",
-
-                                    color:
-                                        "#fff",
-                                }}
-                            >
-
-                                <a
-                                    href="https://wa.me/37433775750"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-
-                                    {t(
-                                        "contactUs"
-                                    )}
-
-                                </a>
-
-                            </Button>
-
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-
+                    <span className="cake-explore" aria-hidden="true" >
+                      <span className="explore-arrow"><ArrowIcon /></span>
+                    </span>
+                  </div>
+                </Link>
+              )}) : (
+                <div className="col-span-full rounded-3xl bg-[#f8f6fb] px-5 py-16 text-center text-[#69429a]">
+                  {t("noProductsAvailable")}
+                </div>
+              )}
             </div>
+          )}
+        </div>
+      </section>
 
-
-            <style jsx>{`
-
-                @media (max-width: 450px) {
-
-                    .responsive-text {
-
-                        font-size: 10.5px !important;
-
-                        line-height: 1.2;
-
-                        gap: 6px !important;
-
-                    }
-
-                }
-
-            `}</style>
-
-        </>
-    )
+      <section className="border-t border-[#eee8f4] bg-[#f8f6fb] px-4 py-12 sm:py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
+            <Image src={Cake} alt="" width={40} height={40} />
+          </div>
+          <h2 className="mb-4 text-xl font-bold leading-snug text-[#69429a] sm:text-3xl">{t("customOrdersWelcome")}</h2>
+          <p className="mx-auto mb-7 max-w-xl text-sm leading-relaxed text-[#78638d] sm:text-base">{t("customOrdersDesc")}</p>
+          <Button asChild className="h-auto rounded-full bg-[#69429a] px-7 py-3 text-white shadow-sm hover:bg-[#573481]">
+            <a href="https://wa.me/37433775750" target="_blank" rel="noopener noreferrer">{t("contactUs")}</a>
+          </Button>
+        </div>
+      </section>
+      <style jsx>{`
+        .cake-explore {
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: #f3edf8;
+          color: #69429a;
+          transition: background .2s ease, transform .2s ease;
+        }
+        .explore-arrow { display: flex; }
+        :global(a:focus-visible) .cake-explore {
+          background: #e8daf3;
+        }
+        @media (hover: hover) {
+          :global(a:hover) .cake-explore {
+            background: #e8daf3;
+            transform: translateX(2px);
+          }
+        }
+        @media (min-width: 640px) {
+          .cake-explore { width: 48px; height: 48px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cake-explore { transition: none; }
+          :global(a:hover) .cake-explore { transform: none; }
+        }
+      `}</style>
+    </div>
+  )
 }
