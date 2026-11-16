@@ -213,6 +213,7 @@ export default function ProductPage() {
     if (!product) return 0;
 
     let finalPrice = product.price;
+    if (designType === "NAME_TEXT") finalPrice += 500;
 
     // Custom photo
     if (

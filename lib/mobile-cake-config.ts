@@ -97,6 +97,7 @@ export function calculateCatalogCakePrice(
     product.category === "small" ? 3 : product.category === "midi" ? 2 : 1;
   const roundedAdjustment = Math.round(adjustment / divisor / 500) * 500;
   // Photo is offered only when the administrator enables it for this cake.
+  const nameExtra = config.designType === "NAME_TEXT" && product.designs.includes("NAME_TEXT") ? 500 : 0;
   const photoExtra =
     config.designType === "CUSTOM_PHOTO" &&
     product.designs.includes("CUSTOM_PHOTO")
@@ -104,7 +105,7 @@ export function calculateCatalogCakePrice(
       : 0;
   return (
     Math.round(
-      Math.max(0, product.price + roundedAdjustment + photoExtra) * 100,
+      Math.max(0, product.price + roundedAdjustment + photoExtra + nameExtra) * 100,
     ) / 100
   );
 }

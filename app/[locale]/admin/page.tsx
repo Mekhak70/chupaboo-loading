@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
+import { DonutVariantsEditor } from "@/components/donut-variants-editor";
+import { uploadDonutVariants,type DonutVariantDraft } from "@/lib/donut-variant-admin";
+import { CatalogGalleryInput } from "@/components/catalog-gallery-input";
 import { AdminProducts } from "@/components/admin-products";
 import Link from "next/link";
 import { AdminHomepage } from "@/components/admin-homepage";
@@ -40,8 +43,10 @@ type Design =
 type ProductForm = {
     name: string;
     price: string;
+    donutThreePrice: string;
     unitCost: string;
     cakeSize: CakeSize;
+    productKind: "CAKE" | "DONUT_BOX";
     hasCream: boolean;
     designs: Design[];
     standardText: string;
@@ -91,8 +96,10 @@ function emptyForm(): ProductForm {
     return {
         name: "",
         price: "",
+        donutThreePrice: "10000",
         unitCost: "",
         cakeSize: "MINI",
+        productKind: "CAKE",
         hasCream: false,
         designs: ["STANDARD"],
         standardText: "",
@@ -130,6 +137,8 @@ export default function AdminPage() {
     const [form, setForm] = useState<ProductForm>(emptyForm);
 
     const [image, setImage] = useState<File | null>(null);
+    const [donutVariants,setDonutVariants]=useState<DonutVariantDraft[]>([]);
+    const [extraImages,setExtraImages] = useState<File[]>([]);
     const [preview, setPreview] = useState("");
 
     const [saving, setSaving] = useState(false);
@@ -219,6 +228,8 @@ export default function AdminPage() {
         setSection(next);
         setForm(emptyForm());
         setImage(null);
+        setExtraImages([]);
+        setDonutVariants([]);
         setError("");
         setSuccess("");
 
@@ -348,10 +359,14 @@ export default function AdminPage() {
             return;
         }
 
+        if(section === "cake" && form.productKind === "DONUT_BOX" && (!form.donutThreePrice.trim()||!Number.isFinite(Number(form.donutThreePrice))||Number(form.donutThreePrice)<0)){
+            setError("Մուտքագրիր ճիշտ գին 3 դոնաթի համար։");return;
+        }
+
         savingRef.current = true;
         setSaving(true);
 
-        let uploadedPath: string | null = null;
+        const uploadedPaths: string[] = [];
         let saved = false;
 
         try {
@@ -376,14 +391,30 @@ export default function AdminPage() {
 
             if (uploadError) throw uploadError;
 
-            uploadedPath = imagePath;
+            uploadedPaths.push(imagePath);
+            const galleryPaths:string[]=[];
+            if(section === "party"){
+                if(extraImages.length>9)throw new Error("Առավելագույնը 9 լրացուցիչ նկար։");
+                for(const file of extraImages){
+                    if(!imageExtensions[file.type]||!file.size||file.size>MAX_IMAGE_SIZE)throw new Error("Նկարը պետք է լինի JPG/PNG/WebP և մինչև 5 MB։");
+                    const path=`catalog/${crypto.randomUUID()}.${imageExtensions[file.type]}`;
+                    const {error}=await supabase.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+                    if(error)throw error;
+                    uploadedPaths.push(path);galleryPaths.push(path);
+                }
+            }
 
+            const savedVariants=section === "cake" && form.productKind === "DONUT_BOX" ? await uploadDonutVariants(donutVariants,uploadedPaths) : undefined;
             const productPayload = {
                     id,
                     section,
                     name: form.name.trim(),
+                    ...(savedVariants ? {donut_variants:savedVariants} : {}),
                     price,
+                    ...(section === "cake" && form.productKind === "DONUT_BOX" ? {donut_three_price:Number(form.donutThreePrice)} : {}),
                     image_path: imagePath,
+                    ...(section === "party" ? {additional_image_paths:galleryPaths} : {}),
+                    product_kind: section === "cake" ? form.productKind : "CAKE",
                     cake_size: section === "cake" ? form.cakeSize : null,
                     has_cream: section === "party" ? false : form.hasCream,
                     design_types:
@@ -418,6 +449,8 @@ export default function AdminPage() {
 
             setForm(emptyForm());
             setImage(null);
+            setExtraImages([]);
+        setDonutVariants([]);
 
             if (fileRef.current) {
                 fileRef.current.value = "";
@@ -434,11 +467,11 @@ export default function AdminPage() {
                     : "Պահպանումը չհաջողվեց։ Փորձիր կրկին։"
             );
         } finally {
-            if (uploadedPath && !saved) {
+            if (uploadedPaths.length && !saved) {
                 try {
                     const { error: cleanupError } = await supabase.storage
                         .from(BUCKET)
-                        .remove([uploadedPath]);
+                        .remove(uploadedPaths);
 
                     if (cleanupError) {
                         console.error("Image cleanup failed:", cleanupError);
@@ -658,6 +691,23 @@ export default function AdminPage() {
                                                 />
                                             </label>
 
+                                            {section === "cake" && <label className="block text-sm font-medium text-gray-700">
+                                                Ապրանքի ձևաչափը
+                                                <select value={form.productKind} onChange={event => {change("productKind", event.target.value as ProductForm["productKind"]);if(event.target.value === "DONUT_BOX" && !form.price)change("price","3500");}} className={inputClass}>
+                                                    <option value="CAKE">Տորթ</option>
+                                                    <option value="DONUT_BOX">Դոնաթի բոքս · 2, 4 կամ 6 հատ</option>
+                                                </select>
+                                                {form.productKind === "DONUT_BOX" && <span className="mt-2 block text-xs">Նշիր մեկ դոնաթի գինը և 3 հատի փաթեթի գինը։ Ամեն 3-ը հաշվարկվում է փաթեթով, մնացածը՝ հատով։</span>}
+                                            </label>}
+
+                                            {section === "cake" && form.productKind === "DONUT_BOX" && <div className="sm:col-span-2"><DonutVariantsEditor value={donutVariants} onChange={setDonutVariants}/></div>}
+
+                                            {section === "cake" && form.productKind === "DONUT_BOX" && <label className="block text-sm font-medium text-gray-700">
+                                                3 դոնաթի փաթեթի բազային գին · ֏
+                                                <input required type="number" min="0" step="0.01" value={form.donutThreePrice} onChange={event=>change("donutThreePrice",event.target.value)} className={inputClass}/>
+                                                <span className="mt-1 block text-xs">Վերևի արժեքի դաշտում նշիր մեկ դոնաթի գինը։</span>
+                                            </label>}
+
                                             {section === "cake" ? (
                                                 <label className="block text-sm font-medium text-gray-700">
                                                     Տորթի տեսակը
@@ -873,6 +923,8 @@ export default function AdminPage() {
                                             aria-label="Ընտրել ապրանքի նկար"
                                             className="hidden"
                                         />
+
+                                        {section === "party" && <CatalogGalleryInput files={extraImages} onChange={setExtraImages}/>}
 
                                         {image && (
                                             <p className="mt-3 break-all text-xs text-gray-500">

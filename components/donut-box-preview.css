@@ -1,0 +1,97 @@
+.donut-preview {
+  padding: clamp(18px, 3vw, 32px);
+  border: 1px solid #ece6f0;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 30%, #fff 15%, #f4f0f8 100%);
+}
+.donut-preview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #69429a;
+  font-size: 14px;
+}
+.donut-box-tray {
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  gap: clamp(10px, 2vw, 20px);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 14px;
+  padding: clamp(20px, 3vw, 36px);
+  border: 10px solid #fff;
+  border-bottom-width: 16px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #f0eef0 0%, #fff 35%, #faf9fb 70%, #efedf1 100%);
+  box-shadow: inset 0 3px 9px #40304812, inset 0 0 0 1px #e9e6ec, 0 2px 0 #dedbe3, 0 7px 0 #eeecf1, 0 10px 0 #d9d5df, 0 22px 30px -10px #3e2c4930;
+}
+.donut-box-tray-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.donut-box-tray-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.donut-box-slot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: box-shadow .2s, background-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.donut-box-slot-active { box-shadow: 0 0 0 3px #aed137; background: #aed1370c; }
+.donut-box-slot:focus-visible { outline: 3px solid #69429a; outline-offset: 5px; }
+.donut-box-slot:disabled { cursor: wait; }
+.donut-box-piece { display: block; width: 100%; height: 100%; }
+.donut-box-piece-filled {
+  animation: donut-place-in-box .4s cubic-bezier(.2,.75,.3,1) both;
+}
+.donut-box-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 4px #40251729);
+}
+.donut-box-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  border: 1px dashed #d4ccde;
+  border-radius: 50%;
+  background: #fff9;
+  color: #8d7b9e;
+  font-size: clamp(10px, 1.3vw, 13px);
+}
+.donut-box-number {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: #69429a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.donut-preview-hint { margin-top: 24px; color: #897b94; font-size: 12px; text-align: center; }
+@keyframes donut-place-in-box {
+  from { opacity: 0; transform: translateY(-28px) scale(1.08) rotate(-7deg); }
+  to { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .donut-box-piece-filled { animation: none; }
+  .donut-box-slot { transition: none; }
+}

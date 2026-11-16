@@ -10,9 +10,10 @@ import { getCatalogCakes, type CatalogCake } from "@/lib/catalog-cakes"
 import Cake from "@/public/cake.png"
 import cakesBanner from "@/public/banner-our-cakes.png"
 
-type Filter = "all" | "small" | "midi" | "standart"
+type Filter = "all" | "small" | "midi" | "standart" | "donuts"
 const filters: { value: Filter; label: string }[] = [
   { value: "all", label: "all" },
+  { value: "donuts", label: "donuts" },
   { value: "small", label: "mini" },
   { value: "midi", label: "midi" },
   { value: "standart", label: "standard" },
@@ -60,7 +61,7 @@ function ShopContent() {
   const queryFilter = searchParams.get("filter")
   const filter: Filter = filters.find(item => item.value === queryFilter)?.value ?? "all"
   const filteredProducts = useMemo(
-    () => products.filter(product => filter === "all" || product.category === filter),
+    () => products.filter(product => filter === "all" || (filter === "donuts" ? product.productKind === "DONUT_BOX" : product.productKind !== "DONUT_BOX" && product.category === filter)),
     [products, filter],
   )
 
@@ -105,7 +106,7 @@ function ShopContent() {
                 onClick={() => handleFilterChange(item.value)}
                 className={`min-h-11 rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:px-6 sm:text-base ${filter === item.value ? "border-[#69429a] bg-[#69429a] text-white shadow-md shadow-purple-900/10" : "border-[#e9e1f1] bg-[#f8f6fb] text-[#69429a] hover:border-[#69429a] hover:bg-[#f0eaf6]"}`}
               >
-                {t(item.label)}
+                {item.value === "donuts" ? (locale === "en" ? "Donuts" : locale === "ru" ? "Пончики" : locale === "pl" ? "Donuty" : "Դոնաթներ") : t(item.label)}
               </button>
             ))}
           </div>
@@ -125,7 +126,7 @@ function ShopContent() {
                   ))}
                 </>
               ) : filteredProducts.length ? filteredProducts.map(product => {
-                const price = product.price
+                const price = product.productKind === "DONUT_BOX" ? product.price*2 : product.price
                 return (
                 <Link
                   key={product.id}
@@ -134,6 +135,7 @@ function ShopContent() {
                   className="group relative block min-w-0 overflow-hidden rounded-2xl bg-[#f8f6fb] shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl hover:shadow-purple-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:rounded-3xl"
                 >
                   <div className="relative aspect-square overflow-hidden">
+                    {product.productKind === "DONUT_BOX" && <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#69429a]">🍩 2, 4 կամ 6 հատ</span>}
                     <Image
                       src={product.image}
                       unoptimized

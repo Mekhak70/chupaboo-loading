@@ -23,7 +23,10 @@ function currentMonthEnd() {
 }
 function CakeDetails({ options }: { options: Record<string,unknown> | null }) {
   if (!options) return null;
-  const labels: Record<string,string> = { notes:"Մանրամասներ", cakeType:"Տեսակ",creamType:"Կրեմ",selectedAnimal:"Միս",selectedVegetables:"Բաղադրիչներ",designType:"Դիզայն",petName:"Կենդանու անուն",customText:"Գրվածք" };
+  if (options.productKind === "DONUT_BOX" && Array.isArray(options.donuts)) {
+    return <div className="mt-2 space-y-2">{options.donuts.map((piece,index)=><div key={index} className="rounded-lg bg-purple-50 p-2"><p className="text-xs font-semibold">🍩 Դոնաթ {index+1}</p><CakeDetails options={piece as Record<string,unknown>}/></div>)}<CakeDetails options={{...options,productKind:undefined,donuts:undefined,cakeType:undefined,creamType:undefined,selectedVegetables:undefined,selectedAnimal:undefined}}/></div>;
+  }
+  const labels: Record<string,string> = { donutVariantName:"Դոնաթի տեսակ", notes:"Մանրամասներ", cakeType:"Տեսակ",creamType:"Կրեմ",selectedAnimal:"Միս",selectedVegetables:"Բաղադրիչներ",designType:"Դիզայն",petName:"Կենդանու անուն",customText:"Գրվածք" };
   const values: Record<string,string> = { MEAT:"Մսային", FRUIT:"Մրգային", VEGETABLES:"Բանջարեղենային", DAIRY:"Կաթնային", PLANTBASEDMILK:"Բուսական կաթով", PLANTBASED:"Բուսական", CHICKEN:"Հավ",BEEF:"Տավար",LAMB:"Գառ",TURKEY:"Հնդկահավ",SALMON:"Սաղմոն",STANDARD:"Ստանդարտ",CUSTOM_PHOTO:"Լուսանկարով",CUSTOM_TEXT:"Անհատական գրվածք",NAME_TEXT:"Անունով", POTATO:"Կարտոֆիլ",CARROT:"Գազար",BROCCOLI:"Բրոկոլի",PUMPKIN:"Դդում",PEPPER:"Պղպեղ",ZUCCHINI:"Դդմիկ",CAULIFLOWER:"Ծաղկակաղամբ",SWEET_POTATO:"Բատատ",SPINACH:"Սպանախ",RICE:"Բրինձ",WHEAT:"Ցորեն",OATS:"Վարսակ",APPLE:"Խնձոր",BANANA:"Բանան",PEAR:"Տանձ",ELDERBERRY:"Թանթրվենի",STRAWBERRY:"Ելակ",MANGO:"Մանգո" };
   return <dl className="mt-2 space-y-1 text-xs text-gray-500">{Object.entries(labels).map(([key,label])=>{
     const value=options[key]; if (value===undefined || value===null || value==="") return null;

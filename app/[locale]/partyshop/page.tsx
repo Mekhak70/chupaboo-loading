@@ -379,6 +379,23 @@ export default function ShopPage() {
   const [modalProductId, setModalProductId] = useState<string | null>(null);
   const [modalCurrentIndex, setModalCurrentIndex] = useState(0);
 
+  useEffect(()=>{
+    if(modalOpen||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    const timer=window.setInterval(()=>{
+      if(document.hidden)return;
+      setCurrentImage(previous=>{
+        const next={...previous};
+        for(const product of products){
+          if(Array.isArray(product.image)&&product.image.length>1){
+            const id=String(product.id);next[id]=((previous[id]??0)+1)%product.image.length;
+          }
+        }
+        return next;
+      });
+    },4000);
+    return()=>window.clearInterval(timer);
+  },[products,modalOpen]);
+
   const isProductInCart = (productId: string) => {
     return cart.some((item: { id: string }) => item.id === productId);
   };
@@ -539,19 +556,15 @@ export default function ShopPage() {
         }
 
         const formatted = rows.map((item) => {
-          const path = String(item.image_path ?? "");
-          const imageUrl = /^https?:\/\//i.test(path)
-            ? path
-            : path
-              ? supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl
-              : "";
+          const paths=[item.image_path,...(Array.isArray(item.additional_image_paths)?item.additional_image_paths:[])].filter((path):path is string=>typeof path === "string" && !!path);
+          const images=Array.from(new Set(paths)).map(path=>getWorkingImageUrl(/^https?:\/\//i.test(path)?path:supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl));
           return {
           id: item.id,
           name: item.name,
           price: Number(item.price ?? 0),
           stock: Math.max(0, Number(item.stock_quantity ?? 0)),
           notes: item.ingredients ?? "",
-          image: [getWorkingImageUrl(imageUrl)],
+          image: images.length?images:[PLACEHOLDER_IMAGE],
           set: false,
           };
         });
@@ -666,7 +679,7 @@ export default function ShopPage() {
                     ? product.image
                     : [product.image || PLACEHOLDER_IMAGE];
 
-                  const currentImageIndex = currentImage[productId] || 0;
+                  const currentImageIndex = (currentImage[productId] || 0) % productImages.length;
                   const hasError = imageErrors[productId];
 
                   // 🏷️ Calculate discount for this product (if simulator is active)
@@ -693,7 +706,11 @@ export default function ShopPage() {
                       )}
 
                       <div className="relative aspect-square overflow-hidden bg-gray-100 cursor-pointer">
-                        <img
+                        <motion.img
+                          key={productImages[currentImageIndex]}
+                          initial={{opacity:0}}
+                          animate={{opacity:1}}
+                          transition={{duration:0.4}}
                           src={productImages[currentImageIndex]}
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -723,7 +740,7 @@ export default function ShopPage() {
                           </div>
                         </div>
 
-                        {productImages.length > 1 && !hasError && (
+                        {productImages.length > 1 && (
                           <>
                             <button
                               onClick={(e) => {

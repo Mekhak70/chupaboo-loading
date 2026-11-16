@@ -328,10 +328,15 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  const formatCakeOptions = (options: any) => {
+  const formatCakeOptions = (options: any): { emoji: string; label: string; value: string }[] | null => {
     if (!options) return null;
+    if (options.productKind === "DONUT_BOX" && Array.isArray(options.donuts)) {
+      const donuts = options.donuts.map((piece:any,index:number)=>({emoji:"🍩",label:`Դոնաթ ${index+1}`,value:(formatCakeOptions(piece)||[]).map(detail=>detail.value).join(" · ")}));
+      return [...donuts,...(formatCakeOptions({...options,productKind:undefined,donuts:undefined,cakeType:undefined,creamType:undefined,selectedAnimal:undefined,selectedVegetables:undefined})||[])];
+    }
 
     const details: { emoji: string; label: string; value: string }[] = [];
+    if(options.donutVariantName)details.push({emoji:"🍩",label:"Դոնաթի տեսակ",value:options.donutVariantName});
 
     if (options.cakeType) {
       const cakeTypeKey = options.cakeType.toLowerCase();
@@ -582,69 +587,9 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
       message += `▸ ${item.name} — ${item.quantity} ${t('quantity') || "հատ"} — ${finalPrice * item.quantity} ${t('currency')}\n`;
       if (isCake && item.options) {
-        if (item.options.cakeType) {
-          const typeMap: Record<string, string> = {
-            meat: t('MEAT'),
-            fruit: t('FRUIT'),
-            vegetables: t('VEGETABLES'),
-          };
-          message += `   🍰 ${typeMap[item.options.cakeType.toLowerCase()] || item.options.cakeType}\n`;
+        for (const detail of formatCakeOptions(item.options) || []) {
+          message += `   ${detail.emoji} ${detail.label}: ${detail.value}\n`;
         }
-        if (item.options.creamType) {
-          const creamMap: Record<string, string> = {
-            dairy: t('DAIRY'),
-            plantbasedmilk: t('PLANTBASEDMILK'),
-            plantbased: t('PLANTBASED'),
-          };
-          message += `   🍦 ${creamMap[item.options.creamType.toLowerCase()] || item.options.creamType}\n`;
-        }
-        if (item.options.selectedVegetables?.length) {
-          const vegNames = item.options.selectedVegetables.map((v: string) => {
-            const vegMap: Record<string, string> = {
-              potato: t('potato'),
-              carrot: t('carrot'),
-              broccoli: t('broccoli'),
-              pumpkin: t('pumpkin'),
-              pepper: t('greenPepper'),
-              zucchini: t('zucchini'),
-              cauliflower: t('cauliflower'),
-              sweet_potato: t('sweetPotato'),
-              spinach: t('spinach'),
-              rice: t('rice'),
-              wheat: t('wheat'),
-              oats: t('oats'),
-              apple: t('apple'),
-              banana: t('banana'),
-              pear: t('pear'),
-              elderberry: t('elderberry'),
-              strawberry: t('strawberry'),
-              mango: t('mango'),
-            };
-            return vegMap[v.toLowerCase()] || v;
-          });
-          message += `   🥗 ${vegNames.join(", ")}\n`;
-        }
-        if (item.options.selectedAnimal) {
-          const animalMap: Record<string, string> = {
-            chicken: t('chicken'),
-            beef: t('beef'),
-            lamb: t('lamb'),
-            turkey: t('turkey'),
-            salmon: t('salmon'),
-          };
-          message += `   🍗 ${animalMap[item.options.selectedAnimal.toLowerCase()] || item.options.selectedAnimal}\n`;
-        }
-        if (item.options.designType) {
-          const designMap: Record<string, string> = {
-            standard: t('standardDesign'),
-            custom_photo: t('customMyDogPhotoDesign'),
-            name_text: t('petNameLabel'),
-            custom_text: t('enterCustomText'),
-          };
-          message += `   🎨 ${designMap[item.options.designType.toLowerCase()] || item.options.designType}\n`;
-        }
-        if (item.options.petName) message += `   🐾 ${item.options.petName}\n`;
-        if (item.options.customText) message += `   📝 "${item.options.customText}"\n`;
       }
       if (item?.ingredient) { const translatedIngredients = item.ingredient.split(",").map((ingredient: string) => t(ingredient.trim())).join(", "); const designLabels: Record<string, string> = { STANDARD: "standardDesign", CUSTOM_PHOTO: "customMyDogPhotoDesign", CUSTOM_TEXT: "customDesign", NAME_TEXT: "petName" }; message += ` 🥗 ${t("ingredients") || "Բաղադրություն"}: ${translatedIngredients}\n${item?.options?.creamType ? ` 🥛 ${t("choosecream") || "Կրեմի տեսակ"}: ${t(item.options.creamType) || item.options.creamType}\n` : ""}${item?.options?.designType ? ` 🎨 ${t("chooseDesign") || "Դիզայնի տեսակ"}: ${t(designLabels[item.options.designType] || item.options.designType) || item.options.designType}\n` : ""}`; }
     });

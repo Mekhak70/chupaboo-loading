@@ -26,6 +26,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ArrowUpToLine, ArrowDownToLine, Heart } from "lucide-react";
+import { DonutVariantsEditor } from "@/components/donut-variants-editor";
+import { uploadDonutVariants,type DonutVariantDraft } from "@/lib/donut-variant-admin";
+import { CatalogGalleryInput } from "@/components/catalog-gallery-input";
 import { supabase } from "@/lib/supabase";
 
 type Section = "cake" | "party" | "available";
@@ -40,8 +43,12 @@ type Product = {
   section: Section;
   name: string;
   price: number;
+  donut_three_price?: number;
+  donut_variants?:DonutVariantDraft[];
   unit_cost: number | null;
   image_path: string;
+  additional_image_paths?:string[];
+  product_kind: "CAKE" | "DONUT_BOX";
   cake_size: "MINI" | "MIDI" | "STANDARD" | null;
   has_cream: boolean;
   design_types: Design[];
@@ -171,6 +178,7 @@ export function AdminProducts({
   const [message, setMessage] = useState("");
 
   const [editing, setEditing] = useState<Product | null>(null);
+  const [extraImages,setExtraImages] = useState<File[]>([]);
   const [newImage, setNewImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
 
@@ -259,6 +267,7 @@ export function AdminProducts({
       design_types: [...product.design_types],
     });
     setNewImage(null);
+    setExtraImages([]);
     setError("");
     setMessage("");
   }
@@ -413,7 +422,8 @@ export function AdminProducts({
         throw new Error("Լրացրու բաղադրությունը։");
       }
 
-      let uploadedPath: string | null = null;
+      if(product.product_kind === "DONUT_BOX" && (!Number.isFinite(product.donut_three_price??10000)||(product.donut_three_price??10000)<0))throw new Error("Մուտքագրիր ճիշտ գին 3 դոնաթի համար։");
+      const uploadedPaths:string[] = [];
       let saved = false;
 
       try {
@@ -444,13 +454,30 @@ export function AdminProducts({
             });
 
           if (error) throw error;
-          uploadedPath = path;
+          uploadedPaths.push(path);
         }
 
+        const galleryPaths=[...(product.additional_image_paths??[])];
+        if(product.section === "party"){
+          if(galleryPaths.length+extraImages.length>9)throw new Error("Առավելագույնը 9 լրացուցիչ նկար։");
+          for(const file of extraImages){
+            const extension=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp"} as Record<string,string>)[file.type];
+            if(!extension||!file.size||file.size>5*1024*1024)throw new Error("Նկարը պետք է լինի JPG/PNG/WebP և մինչև 5 MB։");
+            const galleryPath=`catalog/${crypto.randomUUID()}.${extension}`;
+            const {error}=await supabase.storage.from(BUCKET).upload(galleryPath,file,{contentType:file.type,upsert:false});
+            if(error)throw error;
+            uploadedPaths.push(galleryPath);galleryPaths.push(galleryPath);
+          }
+        }
+        const donutVariants=product.section === "cake" && product.product_kind === "DONUT_BOX" ? await uploadDonutVariants(product.donut_variants??[],uploadedPaths) : undefined;
         const productPayload = {
             name: product.name.trim(),
+            ...(donutVariants ? {donut_variants:donutVariants} : {}),
+            product_kind: product.section === "cake" ? product.product_kind || "CAKE" : "CAKE",
             price: product.price,
+            ...(product.section === "cake" && product.product_kind === "DONUT_BOX" ? {donut_three_price:product.donut_three_price??10000} : {}),
             image_path: path,
+            ...(product.section === "party" ? {additional_image_paths:galleryPaths} : {}),
             cake_size:
               product.section === "cake" ? product.cake_size : null,
             has_cream:
@@ -493,14 +520,15 @@ export function AdminProducts({
         saved = true;
         setEditing(null);
         setNewImage(null);
+        setExtraImages([]);
         setMessage("Փոփոխությունները պահպանվեցին։");
         await loadProducts();
       } finally {
-        if (uploadedPath && !saved) {
+        if (uploadedPaths.length && !saved) {
           try {
             const { error } = await supabase.storage
               .from(BUCKET)
-              .remove([uploadedPath]);
+              .remove(uploadedPaths);
 
             if (error) console.error("Image cleanup:", error);
           } catch (cause) {
@@ -624,6 +652,8 @@ export function AdminProducts({
               />
             </label>
 
+            {editing.section === "party" && <CatalogGalleryInput files={extraImages} onChange={setExtraImages} paths={editing.additional_image_paths??[]} onRemovePath={path=>patch("additional_image_paths",(editing.additional_image_paths??[]).filter(item=>item!==path))}/>}
+
             <label className="block text-sm text-gray-700">
               Անուն
               <input
@@ -637,7 +667,7 @@ export function AdminProducts({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm text-gray-700">
-                Արժեք · ֏
+                {editing.product_kind === "DONUT_BOX" ? "Մեկ դոնաթի բազային գին · ֏" : "Արժեք · ֏"}
                 <input
                   required
                   type="number"
@@ -693,6 +723,22 @@ export function AdminProducts({
                 </label>
               )}
             </div>
+
+            {editing.section === "cake" && <label className="block text-sm text-gray-700">
+              Ապրանքի ձևաչափը
+              <select value={editing.product_kind || "CAKE"} onChange={event => patch("product_kind", event.target.value as Product["product_kind"])} className={inputClass}>
+                <option value="CAKE">Տորթ</option>
+                <option value="DONUT_BOX">Դոնաթի բոքս · 2, 4 կամ 6 հատ</option>
+              </select>
+              {editing.product_kind === "DONUT_BOX" && <span className="mt-2 block text-xs">Նշիր մեկ դոնաթի գինը և 3 հատի փաթեթի գինը։ Ամեն 3-ը հաշվարկվում է փաթեթով, մնացածը՝ հատով։</span>}
+            </label>}
+
+            {editing.section === "cake" && editing.product_kind === "DONUT_BOX" && <DonutVariantsEditor value={editing.donut_variants??[]} onChange={value=>patch("donut_variants",value)}/>}
+
+            {editing.section === "cake" && editing.product_kind === "DONUT_BOX" && <label className="block text-sm text-gray-700">
+              3 դոնաթի փաթեթի բազային գին · ֏
+              <input required type="number" min="0" step="0.01" value={editing.donut_three_price??10000} onChange={event=>patch("donut_three_price",event.target.valueAsNumber)} className={inputClass}/>
+            </label>}
 
             {editing.section === "party" && (
               <label className="block text-sm text-gray-700">
@@ -825,6 +871,7 @@ export function AdminProducts({
                 onClick={() => {
                   setEditing(null);
                   setNewImage(null);
+                  setExtraImages([]);
                   setError("");
                 }}
                 className={buttonClass}
