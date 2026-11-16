@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
 import { getCatalogCakes, type CatalogCake } from "@/lib/catalog-cakes"
-import { CATALOG_CAKE_PLACEHOLDER } from "@/lib/cake-config"
+import { CATALOG_CAKE_PLACEHOLDER, calculateCatalogCakeStartingPrice } from "@/lib/cake-config"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
 import Image from "next/image"
@@ -344,7 +344,7 @@ function ShopContent() {
                           </div>
                           <div className="bg-white p-4">
                             <h2 className="font-semibold text-[#69429a]">{product.name}</h2>
-                            <p className="mt-2 text-sm text-gray-600">{new Intl.NumberFormat("hy-AM", {style:"currency",currency:"AMD",maximumFractionDigits:2}).format(product.price)}</p>
+                            <p className="mt-2 text-sm text-gray-600">{new Intl.NumberFormat("hy-AM", {style:"currency",currency:"AMD",maximumFractionDigits:2}).format(calculateCatalogCakeStartingPrice(product))}</p>
                           </div>
                         </Link>
                       );

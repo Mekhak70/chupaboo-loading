@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
     } : false,
   },
   // Կամ սա
-  turbopack: {},
+  turbopack: { root: __dirname },
+  outputFileTracingRoot: __dirname,
 };
 export default withAnalyzer(nextConfig);

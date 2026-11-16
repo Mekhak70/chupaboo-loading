@@ -1,3 +1,4 @@
+import { parseIngredientPrices, ingredientTotal, type IngredientPrices } from "@/lib/ingredient-pricing";
 export type CakeCategory = "small" | "midi" | "standart";
 export type CakeDesign = "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | "NAME_TEXT";
 export interface DonutVariant { id:string; name:string; image:string; price?:number }
@@ -5,6 +6,7 @@ export interface CatalogCake {
   id: string; name: string; price: number; image: string; category: CakeCategory;
   cream: boolean; designs: CakeDesign[]; standardText: string; description: string;
   isFeatured: boolean;
+  ingredientPrices?:IngredientPrices;
   donutThreePrice?: number;
   donutVariants?:DonutVariant[];
   productKind: "CAKE" | "DONUT_BOX";
@@ -30,6 +32,7 @@ export function normalizeCake(row: Record<string, unknown>, publicImageUrl: (pat
   if (designs.length === 0) throw new Error("Տորթի համար դիզայնի տեսակ ընտրված չէ։ Ստուգիր ադմինում։");
   return { id: String(row.id), name: String(row.name), price, category,
     image: typeof row.image_path === "string" && row.image_path ? publicImageUrl(row.image_path) : CATALOG_CAKE_PLACEHOLDER,
+    ingredientPrices:parseIngredientPrices(row.ingredient_prices),
     cream: row.has_cream === true, designs, standardText: typeof row.standard_text === "string" ? row.standard_text : "",
     description: typeof row.description === "string" ? row.description : "",
     donutVariants: (Array.isArray(row.donut_variants)?row.donut_variants:[]).filter((variant):variant is {id:string;name:string;image_path:string;price?:unknown}=>!!variant&&typeof variant === "object"&&typeof variant.id === "string"&&typeof variant.name === "string"&&!!variant.name.trim()&&typeof variant.image_path === "string"&&variant.image_path.startsWith("catalog/")).map(variant=>{
@@ -63,7 +66,16 @@ export function calculateCatalogCakePrice(product: CatalogCake, config: CakeConf
   if (product.productKind === "DONUT_BOX") {
     return calculateCatalogDonutBoxPrice(product, Array.from({length:2},()=>config), config.designType);
   }
+  if(product.ingredientPrices)return Math.round((ingredientTotal(product.ingredientPrices,config,product.cream)+designAdjustment(product,config.designType))*100)/100;
   return Math.round(Math.max(0, product.price + ingredientAdjustment(product,config) + designAdjustment(product,config.designType)) * 100) / 100;
+}
+export function calculateCatalogCakeStartingPrice(product:CatalogCake):number{
+  if(product.productKind === "DONUT_BOX")return product.price*2;
+  if(!product.ingredientPrices)return product.price;
+  const produce=["POTATO","CARROT","BROCCOLI","PUMPKIN","PEPPER","ZUCCHINI","CAULIFLOWER","SWEET_POTATO","SPINACH","RICE","WHEAT","OATS","APPLE","BANANA","PEAR","ELDERBERRY","STRAWBERRY","MANGO"] as const;
+  const cream=product.cream?Math.min(...(["DAIRY","PLANTBASEDMILK","PLANTBASED"] as const).map(key=>product.ingredientPrices![key])):0;
+  const design=Math.min(...product.designs.map(key=>designAdjustment(product,key)));
+  return Math.round((Math.min(...produce.map(key=>product.ingredientPrices![key]))+cream+design)*100)/100;
 }
 export function calculateDonutBoxBasePrice(product: CatalogCake, count: number): number {
   if (!Number.isInteger(count) || ![2,4,6].includes(count)) throw new Error("Բոքսում պետք է լինի 2, 4 կամ 6 դոնաթ։");
@@ -80,13 +92,13 @@ export function validateDonutPairs(pieces:CakeConfiguration[]):void{
     if(composition(pieces[index])!==composition(pieces[index+1]))throw new Error(`Դոնաթ ${index+1} և ${index+2}-ի բաղադրությունները պետք է նույնը լինեն։`);
   }
 }
-export function calculateCatalogDonutBoxPrice(product: CatalogCake, pieces: CakeConfiguration[], design: CakeDesign | ""): number {
+export function calculateCatalogDonutBoxPrice(product: CatalogCake, pieces: CakeConfiguration[], _design: CakeDesign | ""): number {
   validateDonutPairs(pieces);
   const base = calculateDonutBoxBasePrice(product,pieces.length);
   const variants=pieces.map(piece=>product.donutVariants?.find(variant=>variant.id===piece.donutVariantId));
   const hasIndividualPrices=product.donutVariants?.some(variant=>variant.price!==undefined)??false;
   const total = pieces.reduce((sum,piece,index)=>sum + Math.max(0, (hasIndividualPrices?(variants[index]?.price??product.price):base / pieces.length) + ingredientAdjustment(product,piece)),0);
-  return Math.round((total + designAdjustment(product,design)) * 100) / 100;
+  return Math.round(total * 100) / 100;
 }
 export function toggleCakeIngredient(current: string[], key: string): string[] {
   if (current.includes(key)) return current.length === 1 ? current : current.filter(item => item !== key);

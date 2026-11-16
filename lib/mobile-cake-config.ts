@@ -1,3 +1,4 @@
+import { parseIngredientPrices, ingredientTotal, type IngredientPrices } from "./ingredient-pricing";
 export type CakeCategory = "small" | "midi" | "standart";
 export type CakeDesign =
   "STANDARD" | "CUSTOM_PHOTO" | "CUSTOM_TEXT" | "NAME_TEXT";
@@ -12,6 +13,7 @@ export interface CatalogCake {
   standardText: string;
   description: string;
   isFeatured: boolean;
+  ingredientPrices?:IngredientPrices;
 }
 export interface CakeConfiguration {
   cakeType: "MEAT" | "FRUIT" | "VEGETABLES" | "";
@@ -65,6 +67,7 @@ export function normalizeCake(
       typeof row.standard_text === "string" ? row.standard_text : "",
     description: typeof row.description === "string" ? row.description : "",
     isFeatured: row.is_featured === true,
+    ingredientPrices:parseIngredientPrices(row.ingredient_prices),
   };
 }
 // Admin price is the base price of THIS size, with chicken and two regular ingredients.
@@ -73,6 +76,10 @@ export function calculateCatalogCakePrice(
   product: CatalogCake,
   config: CakeConfiguration,
 ): number {
+  if(product.ingredientPrices){
+    const design=config.designType === "NAME_TEXT"&&product.designs.includes("NAME_TEXT")?500:config.designType === "CUSTOM_PHOTO"&&product.designs.includes("CUSTOM_PHOTO")?5000:0;
+    return Math.round((ingredientTotal(product.ingredientPrices,config,product.cream)+design)*100)/100;
+  }
   const meatExtra: Record<string, number> = {
     CHICKEN: 0,
     BEEF: 1000,

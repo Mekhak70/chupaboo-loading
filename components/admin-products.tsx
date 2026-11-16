@@ -473,6 +473,7 @@ export function AdminProducts({
         const productPayload = {
             name: product.name.trim(),
             ...(donutVariants ? {donut_variants:donutVariants} : {}),
+            ...(product.product_kind === "DONUT_BOX" ? {ingredient_prices:null}:{}),
             product_kind: product.section === "cake" ? product.product_kind || "CAKE" : "CAKE",
             price: product.price,
             ...(product.section === "cake" && product.product_kind === "DONUT_BOX" ? {donut_three_price:product.donut_three_price??10000} : {}),

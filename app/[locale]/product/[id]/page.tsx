@@ -10,6 +10,7 @@ import { DonutOrderGuide } from "@/components/donut-order-guide";
 import { DonutBoxPreview } from "@/components/donut-box-preview";
 import { CartDrawer } from "@/components/CartDrawer";
 import { getCatalogCake, type CatalogCake } from "@/lib/catalog-cakes";
+import { INGREDIENT_ITEMS,ingredientPriceLines,type IngredientKey } from "@/lib/ingredient-pricing";
 import { CATALOG_CAKE_PLACEHOLDER, calculateCatalogCakePrice, calculateCatalogDonutBoxPrice, donutPairIndices, toggleCakeIngredient,
   type CakeConfiguration, type CakeDesign } from "@/lib/cake-config";
 
@@ -35,9 +36,12 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
   const [boxCount,setBoxCount] = useState(2);
   const visiblePieces=pieces.slice(0,boxCount);
   const [activePiece,setActivePiece] = useState(0);
+  const [editingComposition,setEditingComposition]=useState(false);
   const selectedPieces=[activePiece];
+  const highlightedPieces=editingComposition?donutPairIndices(activePiece):selectedPieces;
   const {cakeType,creamType,selectedVegetables,selectedAnimal} = pieces[activePiece];
   function patchPiece<K extends keyof CakeConfiguration>(key:K, value:SetStateAction<CakeConfiguration[K]>){
+    setEditingComposition(key!=="donutVariantId");
     setPieces(previous=>{
       const nextValue=typeof value === "function" ? (value as (old:CakeConfiguration[K])=>CakeConfiguration[K])(previous[activePiece][key]) : value;
       const targets=product?.productKind === "DONUT_BOX" && key!=="donutVariantId" ? donutPairIndices(activePiece) : [activePiece];
@@ -76,7 +80,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
         if(found){
           if(initializedId.current!==id){
             initializedId.current=id; fileVersion.current+=1;
-            setPieces(newBox(found.cream));setActivePiece(0);setBoxCount(2);
+            setPieces(newBox(found.cream));setEditingComposition(false);setActivePiece(0);setBoxCount(2);
             setQuantity(1);setCustomText("");setPetName("");setCustomImage(null);setErrors({});
             setDesignType(found.designs.includes("STANDARD")?"STANDARD":found.designs[0]);setFailedImage(null);
           }else{
@@ -99,11 +103,16 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
   },[product]);
 
   const isDonutBox = product?.productKind === "DONUT_BOX";
-  const price=product?(isDonutBox?calculateCatalogDonutBoxPrice(product,visiblePieces,designType):calculateCatalogCakePrice(product,{cakeType,creamType,selectedVegetables,selectedAnimal,designType})):0;
+  const effectiveDesign=isDonutBox?"":designType;
+  const price=product?(isDonutBox?calculateCatalogDonutBoxPrice(product,visiblePieces,""):calculateCatalogCakePrice(product,{cakeType,creamType,selectedVegetables,selectedAnimal,designType})):0;
   const filledCount=visiblePieces.filter(piece=>product?.donutVariants?.some(variant=>variant.id===piece.donutVariantId)).length;
   const needsAppearances=isDonutBox&&!!product?.donutVariants?.length&&filledCount<boxCount;
   const productName=product?.name||"";
   const clearFieldError=(field:keyof ValidationErrors)=>setErrors(previous=>({...previous,[field]:undefined}));
+  function ingredientPriceTag(key:string){
+    const prices=product?.ingredientPrices;
+    return prices&&key in prices?<span className="ml-1 text-xs font-semibold">{formatMoney(prices[key as IngredientKey])}</span>:null;
+  }
   function recipeSummary(piece:CakeConfiguration){
     const keys:Record<string,string>={PEPPER:"greenPepper",SWEET_POTATO:"sweetPotato",CAULIFLOWER:"cauliflower"};
     return [t(piece.cakeType),...(piece.cakeType==="MEAT"?[t(piece.selectedAnimal.toLowerCase())]:[]),...piece.selectedVegetables.map(key=>t(keys[key]??key.toLowerCase())),...(product?.cream?[t(piece.creamType)]:[])].join(" · ");
@@ -131,10 +140,10 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
     if(product?.cream&&!creamType)next.creamType=t("creamTypeRequired");
     if(!selectedVegetables.length)next.selectedVegetables=t("ingredientsRequired");
     if(cakeType==="MEAT"&&!selectedAnimal)next.selectedAnimal=t("meatTypeRequired");
-    if(!product?.designs.includes(designType as CakeDesign))next.designType=t("designTypeRequired");
-    if(designType==="NAME_TEXT"&&!petName.trim())next.petName=t("petNameLabel");
-    if(designType==="CUSTOM_TEXT"&&!customText.trim())next.customText=t("customTextRequired");
-    if(designType==="CUSTOM_PHOTO"&&!customImage)next.customImage=t("uploadPetPhoto");
+    if(!isDonutBox&&!product?.designs.includes(designType as CakeDesign))next.designType=t("designTypeRequired");
+    if(!isDonutBox&&designType==="NAME_TEXT"&&!petName.trim())next.petName=t("petNameLabel");
+    if(!isDonutBox&&designType==="CUSTOM_TEXT"&&!customText.trim())next.customText=t("customTextRequired");
+    if(!isDonutBox&&designType==="CUSTOM_PHOTO"&&!customImage)next.customImage=t("uploadPetPhoto");
     if(isDonutBox){
       const missingVariant=(product?.donutVariants?.length??0)>0?visiblePieces.findIndex(piece=>!product!.donutVariants!.some(variant=>variant.id===piece.donutVariantId)):-1;
       if(missingVariant!==-1){setActivePiece(missingVariant);next.selectedVegetables=`Ընտրիր դոնաթ ${missingVariant+1}-ի տեսակը։`;document.getElementById("donut-variants")?.scrollIntoView({behavior:"smooth",block:"center"});}
@@ -167,11 +176,12 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
       const composition=isDonutBox?pieces[0]:{cakeType,creamType,selectedVegetables,selectedAnimal};
       addToCart({id:product.id,name:product.name,image:product.image,price,quantity,options:{
         ...(isDonutBox?{productKind:"DONUT_BOX",boxSize:boxCount,donuts:visiblePieces.map(piece=>({...((product.donutVariants?.length??0)>0?{donutVariantId:piece.donutVariantId,donutVariantPrice:product.donutVariants?.find(variant=>variant.id===piece.donutVariantId)?.price??product.price,donutVariantName:product.donutVariants?.find(variant=>variant.id===piece.donutVariantId)?.name,donutVariantImage:product.donutVariants?.find(variant=>variant.id===piece.donutVariantId)?.image}:{}),cakeType:piece.cakeType,creamType:product.cream?piece.creamType:"",selectedVegetables:[...piece.selectedVegetables],selectedAnimal:piece.cakeType==="MEAT"?piece.selectedAnimal:""}))}:{}),
+        ...(product.ingredientPrices?{ingredientPriceBreakdown:ingredientPriceLines(product.ingredientPrices,composition,product.cream)}:{}),
         cakeType:composition.cakeType,creamType:product.cream?composition.creamType:"",selectedVegetables:[...composition.selectedVegetables],
-        selectedAnimal:composition.cakeType==="MEAT"?composition.selectedAnimal:undefined,designType,
-        customImage:designType==="CUSTOM_PHOTO"?customImage:null,
-        customText:designType==="CUSTOM_TEXT"?customText.trim():designType==="STANDARD"?product.standardText:"",
-        petName:designType==="NAME_TEXT"?petName.trim():"",cakeSize:product.category,basePrice:product.price,
+        selectedAnimal:composition.cakeType==="MEAT"?composition.selectedAnimal:undefined,designType:effectiveDesign,
+        customImage:effectiveDesign==="CUSTOM_PHOTO"?customImage:null,
+        customText:effectiveDesign==="CUSTOM_TEXT"?customText.trim():effectiveDesign==="STANDARD"?product.standardText:"",
+        petName:effectiveDesign==="NAME_TEXT"?petName.trim():"",cakeSize:product.category,basePrice:product.price,
       }});
       setIsCartOpen(true);
     }catch(error){alert(error instanceof Error?error.message:"Ապրանքը չհաջողվեց ավելացնել։");}
@@ -193,11 +203,16 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
         </div>
       </Link>
 
-      <div className="container mx-auto px-4 py-8">
+      {isDonutBox&&<div className="donut-mobile-preview md:hidden">
+        <DonutBoxPreview compact pieces={visiblePieces} activePiece={activePiece} selectedPieces={highlightedPieces} disabled={adding} variants={product.donutVariants??[]} onSelect={index=>{setActivePiece(index);setErrors({});}}/>
+      </div>}
+
+      <div className={`container mx-auto px-4 py-8 ${isDonutBox?"donut-mobile-content":""}`}>
+
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Left column: Product image */}
-          <div className={isDonutBox?"relative self-start rounded-2xl bg-white shadow-lg md:sticky md:top-24":"relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg"}>
-            {isDonutBox ? <DonutBoxPreview pieces={visiblePieces} activePiece={activePiece} selectedPieces={selectedPieces} disabled={adding} variants={product.donutVariants??[]} onSelect={index=>{setActivePiece(index);setErrors({});}}/> : <Image
+          <div className={isDonutBox?"relative hidden md:block self-start rounded-2xl bg-white shadow-lg md:sticky md:top-24":"relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg"}>
+            {isDonutBox ? <DonutBoxPreview pieces={visiblePieces} activePiece={activePiece} selectedPieces={highlightedPieces} disabled={adding} variants={product.donutVariants??[]} onSelect={index=>{setActivePiece(index);setErrors({});}}/> : <Image
               src={failedImage === product.image ? CATALOG_CAKE_PLACEHOLDER : product.image}
               unoptimized
               sizes="(max-width:768px) 100vw, 50vw"
@@ -228,7 +243,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             {isDonutBox && !!product.donutVariants?.length && <section id="donut-variants" className="rounded-2xl border border-purple-100 bg-white p-4">
               <div className="flex items-center justify-between gap-2"><h2 className="font-semibold text-[#69429a]">2. Ընտրիր տեսքերը</h2><span className="text-sm text-gray-500" aria-live="polite">{filledCount}/{boxCount}</span></div>
               <div className="mt-3 flex gap-2" aria-label="Տուփի դոնաթները">
-                {visiblePieces.map((piece,index)=>{const variant=product.donutVariants?.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={adding} aria-label={`Դոնաթ ${index+1}${variant?`՝ ${variant.name}`:"՝ ընտրիր տեսքը"}`} aria-pressed={activePiece===index} onClick={()=>setActivePiece(index)} className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border text-sm ${activePiece===index?"border-[#69429a] bg-purple-50 ring-1 ring-[#69429a]":"border-purple-100"}`}>
+                {visiblePieces.map((piece,index)=>{const variant=product.donutVariants?.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={adding} aria-label={`Դոնաթ ${index+1}${variant?`՝ ${variant.name}`:"՝ ընտրիր տեսքը"}`} aria-pressed={activePiece===index} onClick={()=>{setEditingComposition(false);setActivePiece(index);}} className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border text-sm ${activePiece===index?"border-[#69429a] bg-purple-50 ring-1 ring-[#69429a]":"border-purple-100"}`}>
                   {variant?<img src={variant.image} alt="" className="h-8 w-8 object-contain"/>:<span>🍩</span>}<span>{index+1}</span>
                 </button>})}
               </div>
@@ -248,7 +263,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
               {errors.selectedVegetables&&<p role="alert" className="mt-2 text-sm text-red-500">{errors.selectedVegetables}</p>}
             </section>}
 
-            <details ref={ingredientsDetailsRef} open={!isDonutBox||undefined} className={isDonutBox?"rounded-2xl border border-purple-100 bg-white p-4":""}>
+            <details ref={ingredientsDetailsRef} onToggle={event=>setEditingComposition(event.currentTarget.open)} open={!isDonutBox||undefined} className={isDonutBox?"rounded-2xl border border-purple-100 bg-white p-4":""}>
               {isDonutBox&&<summary className="cursor-pointer font-semibold text-[#69429a]">3. Բաղադրություն <span className="ml-2 text-xs font-normal text-gray-500">Փոխել</span>
                 <span className="mt-2 grid gap-1 text-xs font-normal leading-5 text-gray-600">{Array.from({length:boxCount/2},(_,pair)=><span key={pair}>Դոնաթներ {pair*2+1}–{pair*2+2}՝ {recipeSummary(pieces[pair*2])}</span>)}</span>
               </summary>}
@@ -256,7 +271,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
               {isDonutBox&&<div>
                 <p className="mb-3 text-sm text-gray-600">Զույգի երկու դոնաթները նույն բաղադրությունն ունեն։</p>
                 <div className="flex flex-wrap gap-2" aria-label="Դոնաթների զույգերը">
-                  {Array.from({length:boxCount/2},(_,pair)=><button key={pair} type="button" disabled={adding} aria-pressed={Math.floor(activePiece/2)===pair} onClick={()=>setActivePiece(pair*2)} className={`rounded-xl border px-4 py-2 text-sm ${Math.floor(activePiece/2)===pair?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a]"}`}>Դոնաթներ {pair*2+1} և {pair*2+2}</button>)}
+                  {Array.from({length:boxCount/2},(_,pair)=><button key={pair} type="button" disabled={adding} aria-pressed={Math.floor(activePiece/2)===pair} onClick={()=>{setEditingComposition(true);setActivePiece(pair*2);}} className={`rounded-xl border px-4 py-2 text-sm ${Math.floor(activePiece/2)===pair?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a]"}`}>Դոնաթներ {pair*2+1} և {pair*2+2}</button>)}
                 </div>
               </div>}
             {/* Cake Type */}
@@ -282,7 +297,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
                     { key: "TURKEY", label: t("turkey"), emoji: "🦃", color: "#DAA520" },
                     { key: "SALMON", label: t("salmon"), emoji: "🐟", color: "#FF6F61" },
                   ].map((veg) => (
-                    <button disabled={adding} key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError("selectedAnimal"); }} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: selectedAnimal === veg.key ? veg.color : "white", color: selectedAnimal === veg.key ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
+                    <button disabled={adding} key={veg.key} onClick={() => { setSelectedAnimal(veg.key); clearFieldError("selectedAnimal"); }} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: selectedAnimal === veg.key ? veg.color : "white", color: selectedAnimal === veg.key ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}{ingredientPriceTag(veg.key)}</button>
                   ))}
                 </div>
                 {errors.selectedAnimal && <p className="text-red-500 text-sm mt-2">{errors.selectedAnimal}</p>}
@@ -317,7 +332,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
                   const showIngredient = (cakeType === "FRUIT" && veg.type === "FRUIT") || (cakeType !== "FRUIT" && veg.type !== "FRUIT");
                   if (!showIngredient) return null;
                   return (
-                    <button disabled={adding} key={veg.key} onClick={() => handleVegetableToggle(veg.key)} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}</button>
+                    <button disabled={adding} key={veg.key} onClick={() => handleVegetableToggle(veg.key)} className="px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all" style={{ backgroundColor: isSelected ? veg.color : "white", color: isSelected ? "white" : veg.color, borderColor: veg.color }}>{veg.emoji} {veg.label}{ingredientPriceTag(veg.key)}</button>
                   );
                 })}
               </div>
@@ -328,9 +343,9 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             {product.cream && <div id="error-creamType">
               <p className="text-lg font-semibold text-[#69429a] mb-3">{t("choosecream")}</p>
               <div className="flex flex-wrap gap-3">
-                <button disabled={adding} onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}</button>
-                <button disabled={adding} onClick={() => { setCreamType("PLANTBASEDMILK"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK" ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105" : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"}`}>🥥 {t("PLANTBASEDMILK")}</button>
-                <button disabled={adding} onClick={() => { setCreamType("PLANTBASED"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("DAIRY"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "DAIRY" ? "bg-[#1e439b] text-white border-[#1e439b] shadow-md scale-105" : "bg-white text-[#1e439b] border-[#1e439b] hover:bg-[#e0e7ff]"}`}>🐄 {t("DAIRY")}{ingredientPriceTag("DAIRY")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("PLANTBASEDMILK"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASEDMILK" ? "bg-[#72bfe9] text-white border-[#72bfe9] shadow-md scale-105" : "bg-white text-[#72bfe9] border-[#72bfe9] hover:bg-[#e1f5fe]"}`}>🥥 {t("PLANTBASEDMILK")}{ingredientPriceTag("PLANTBASEDMILK")}</button>
+                <button disabled={adding} onClick={() => { setCreamType("PLANTBASED"); clearFieldError("creamType"); }} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border cursor-pointer transition-all ${creamType === "PLANTBASED" ? "bg-[#008042] text-white border-[#008042] shadow-md scale-105" : "bg-white text-[#008042] border-[#008042] hover:bg-[#e8f5e9]"}`}>🥕 {t("PLANTBASED")}{ingredientPriceTag("PLANTBASED")}</button>
               </div>
               {errors.creamType && <p className="text-red-500 text-sm mt-2">{errors.creamType}</p>}
             </div>}
@@ -338,9 +353,16 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
               </div>
             </details>
 
+            {!isDonutBox&&product.ingredientPrices&&<section className="rounded-2xl border border-purple-100 bg-white p-4">
+              <h2 className="mb-3 font-semibold text-[#69429a]">Գնի հաշվարկը</h2>
+              <dl className="space-y-2 text-sm">{ingredientPriceLines(product.ingredientPrices,{cakeType,creamType,selectedAnimal,selectedVegetables},product.cream).map(line=><div key={line.key} className="flex items-center justify-between gap-3"><dt>{t(INGREDIENT_ITEMS.find(item=>item[0]===line.key)?.[2]??line.key)}</dt><dd className="font-semibold text-[#69429a]">{formatMoney(line.price)}</dd></div>)}</dl>
+              <p className="mt-3 text-xs text-gray-500">Տորթի արժեքը կազմվում է այս բաղադրիչներից։ Դիզայնի վճարը՝ առանձին, եթե ընտրված է։</p>
+            </section>}
+
             <details ref={extrasDetailsRef} open={!isDonutBox||undefined} className={isDonutBox?"rounded-2xl border border-purple-100 bg-white p-4":""}>
-              {isDonutBox&&<summary className="cursor-pointer text-sm font-medium text-[#69429a]">Գրվածք, դիզայն կամ մի քանի բոքս · ոչ պարտադիր</summary>}
+              {isDonutBox&&<summary className="cursor-pointer text-sm font-medium text-[#69429a]">Մի քանի բոքս · ոչ պարտադիր</summary>}
               <div className="grid gap-6 pt-4">
+            {!isDonutBox&&<>
             {/* Only the designs enabled in the administrator are offered. */}
             <div id="error-designType">
               <p className="mb-3 text-lg font-semibold text-[#69429a]">{t("chooseDesign")}</p>
@@ -377,6 +399,8 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
               {errors.customImage && <p className="mt-2 text-sm text-red-500">{errors.customImage}</p>}
             </div>}
 
+            </>}
+
             {/* Quantity */}
             <div>
               <p className="text-lg font-semibold text-[#69429a] mb-3">{isDonutBox ? "Տուփերի քանակ" : language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}</p>
@@ -398,7 +422,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             <div className="sticky bottom-5 z-30 mt-auto rounded-2xl border border-[#69429a]/10 bg-white p-4 shadow-lg">
               <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {formatMoney(price * quantity)}</div>
               <div className="mt-2 text-3xl font-bold text-[#69429a]">{t("total")}: {formatMoney(price * quantity)}<sup className="ml-1 text-sm font-normal text-gray-400">*</sup></div>
-              <div className="mt-3 border-t border-dashed border-gray-200 pt-2 text-xs text-gray-400">* {isDonutBox ? `Գինը հաշվարկվում է ${boxCount} դոնաթների քանակից, բաղադրություններից և ընտրված դիզայնից։` : t("priceDependsOnComponentsAndDesign")}</div>
+              <div className="mt-3 border-t border-dashed border-gray-200 pt-2 text-xs text-gray-400">* {isDonutBox ? `Գինը հաշվարկվում է ${boxCount} դոնաթների քանակից, բաղադրություններից և ընտրված դիզայնից։` : product.ingredientPrices?"Ընտրված բաղադրիչների գումարը և դիզայնի վճարը։":t("priceDependsOnComponentsAndDesign")}</div>
             </div>
             <button disabled={adding} onClick={()=>void addToCartHandler()} className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-xl bg-[#69429a] px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#aed137] disabled:cursor-wait disabled:opacity-60">
               {adding ? t("loading") : `🛒 ${t("addToCart") || "Add to Cart"}`}

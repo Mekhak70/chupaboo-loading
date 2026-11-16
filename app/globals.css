@@ -86,7 +86,7 @@ a:hover {
 }
 
 @theme inline {
-  --font-sans: "Nunito", "Nunito Fallback", system-ui, sans-serif;
+  --font-sans: var(--font-nunito), system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);

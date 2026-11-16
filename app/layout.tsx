@@ -1,7 +1,7 @@
 import "./globals.css"
 
 import type { ReactNode } from "react"
-import { Nunito } from "next/font/google"
+import localFont from "next/font/local"
 import { LanguageProvider } from "@/components/language-provider"
 
 import {
@@ -12,9 +12,12 @@ import {
   CartProvider as CheckoutCartProvider,
 } from "@/components/cart-provider"
 
-const nunito = Nunito({
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+const nunito = localFont({
+  src: "../public/fonts/nunito/Nunito-Variable.ttf",
+  weight: "200 1000",
+  style: "normal",
+  display: "swap",
+  variable: "--font-nunito",
 })
 
 export default function RootLayout({
@@ -23,7 +26,7 @@ export default function RootLayout({
   children: ReactNode
 }) {
   return (
-    <html lang="hy" className={nunito.className}>
+    <html lang="hy" className={nunito.variable}>
       <body className="font-sans antialiased">
         <LanguageProvider>
           <StoreCartProvider>

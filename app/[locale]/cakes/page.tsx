@@ -7,6 +7,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from "next/navigat
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
 import { getCatalogCakes, type CatalogCake } from "@/lib/catalog-cakes"
+import { calculateCatalogCakeStartingPrice } from "@/lib/cake-config";
 import Cake from "@/public/cake.png"
 import cakesBanner from "@/public/banner-our-cakes.png"
 
@@ -126,7 +127,7 @@ function ShopContent() {
                   ))}
                 </>
               ) : filteredProducts.length ? filteredProducts.map(product => {
-                const price = product.productKind === "DONUT_BOX" ? product.price*2 : product.price
+                const price = calculateCatalogCakeStartingPrice(product)
                 return (
                 <Link
                   key={product.id}
@@ -147,7 +148,7 @@ function ShopContent() {
                   </div>
                   <div className="flex items-end justify-between gap-2 border-t border-[#eee8f4] bg-white px-3 py-3 text-[#69429a] sm:px-5 sm:py-4">
                     <div className="min-w-0">
-                    <span className="mb-1 block text-[10px] font-medium text-[#897597] sm:text-xs">{basePriceLabel}</span>
+                    <span className="mb-1 block text-[10px] font-medium text-[#897597] sm:text-xs">{product.ingredientPrices?(locale === "en"?"From":locale === "ru"?"От":locale === "pl"?"Od":"Սկսած"):basePriceLabel}</span>
                     <span className="flex flex-wrap items-baseline gap-1.5 text-lg font-bold tracking-tight sm:text-2xl">
                       {priceFormatter.format(price)}
                       <span className="text-[10px] font-semibold text-[#897597] sm:text-xs">AMD</span>

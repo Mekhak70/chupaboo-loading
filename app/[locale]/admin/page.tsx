@@ -25,6 +25,7 @@ import { uploadDonutVariants,type DonutVariantDraft } from "@/lib/donut-variant-
 import { CatalogGalleryInput } from "@/components/catalog-gallery-input";
 import { AdminProducts } from "@/components/admin-products";
 import Link from "next/link";
+import { AdminIngredientPrices } from "@/components/admin-ingredient-prices";
 import { AdminHomepage } from "@/components/admin-homepage";
 
 const ADMIN_UID = "5d86c4c6-a328-47ae-8f8e-4fa97339de14";
@@ -130,7 +131,7 @@ export default function AdminPage() {
         "checking" | "allowed" | "error"
     >("checking");
 
-    const [view, setView] = useState<"catalog" | "homepage">("catalog");
+    const [view, setView] = useState<"catalog" | "homepage" | "ingredient-prices">("catalog");
     const [homepageBusy, setHomepageBusy] = useState(false);
 
     const [section, setSection] = useState<Section | null>(null);
@@ -535,7 +536,7 @@ export default function AdminPage() {
                         </p>
 
                         <h1 className="mt-2 text-2xl font-bold text-gray-900">
-                            {view === "homepage" ? "Գլխավոր էջի կառավարում" : selected
+                            {view === "ingredient-prices" ? "Բաղադրիչների գներ" : view === "homepage" ? "Գլխավոր էջի կառավարում" : selected
                                 ? `Ավելացնել · ${selected.title}`
                                 : "Կառավարման վահանակ"}
                         </h1>
@@ -593,9 +594,10 @@ export default function AdminPage() {
                         className={`rounded-xl border px-5 py-3 text-sm font-semibold disabled:opacity-50 ${view === "homepage" ? "border-[#69429a] bg-[#69429a] text-white" : "border-purple-200 bg-white text-[#69429a]"}`}>
                         Գլխավոր էջ · Սլայդեր և հարցեր
                     </button>
+                    <button type="button" disabled={saving || loggingOut || homepageBusy} onClick={()=>{setView("ingredient-prices");setError("");setSuccess("");}} className={`rounded-xl border px-5 py-3 text-sm font-semibold disabled:opacity-50 ${view === "ingredient-prices"?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 bg-white text-[#69429a]"}`}>Բաղադրիչների գներ</button>
                 </nav>
 
-                {view === "homepage" ? (
+                {view === "ingredient-prices" ? <fieldset disabled={loggingOut}><AdminIngredientPrices onBusyChange={setHomepageBusy}/></fieldset> : view === "homepage" ? (
                     <fieldset disabled={loggingOut} className="min-w-0 border-0 p-0">
                         <AdminHomepage initialLanguage={typeof locale === "string" ? locale : "hy"} onBusyChange={setHomepageBusy} />
                     </fieldset>

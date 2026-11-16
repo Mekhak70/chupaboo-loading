@@ -1,14 +1,15 @@
 "use client";
 import "./donut-box-preview.css";
+import type { CSSProperties } from "react";
 import { CATALOG_CAKE_PLACEHOLDER, type CakeConfiguration, type DonutVariant } from "@/lib/cake-config";
 
-export function DonutBoxPreview({pieces,activePiece,selectedPieces,onSelect,disabled,variants=[]}:{
-  pieces:CakeConfiguration[];activePiece:number;selectedPieces:number[];onSelect:(index:number)=>void;disabled:boolean;variants?:DonutVariant[];
+export function DonutBoxPreview({pieces,activePiece,selectedPieces,onSelect,disabled,variants=[],compact=false}:{
+  pieces:CakeConfiguration[];activePiece:number;selectedPieces:number[];onSelect:(index:number)=>void;disabled:boolean;variants?:DonutVariant[];compact?:boolean;
 }){
-  return <div className="donut-preview">
+  return <div className={`donut-preview ${compact?"donut-preview-compact":""}`} style={{"--donut-count":pieces.length} as CSSProperties}>
     <div className="donut-preview-heading"><span className="font-bold">Քո բոքսը</span><span aria-live="polite">{pieces.length} դոնաթ</span></div>
     <div className={`donut-box-tray ${pieces.length===2||pieces.length===4?"donut-box-tray-two":"donut-box-tray-three"}`} aria-label={`${pieces.length} դոնաթով բոքսի պատկեր`}>
-      {pieces.map((piece,index)=>{const variant=variants.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={disabled} onClick={()=>onSelect(index)} aria-label={`Խմբագրել դոնաթ ${index+1}`} aria-pressed={selectedPieces.includes(index)} className={`donut-box-slot ${activePiece===index?"donut-box-slot-active":""}`}>
+      {pieces.map((piece,index)=>{const variant=variants.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={disabled} onClick={()=>onSelect(index)} aria-label={`Խմբագրել դոնաթ ${index+1}`} aria-pressed={selectedPieces.includes(index)} className={`donut-box-slot ${selectedPieces.includes(index)?"donut-box-slot-active":""}`}>
         <span key={variant?.id??`empty-${index}`} className={`donut-box-piece ${variant?"donut-box-piece-filled":""}`}>
         {variant?<img src={variant.image} alt={variant.name} className="donut-box-photo" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src=CATALOG_CAKE_PLACEHOLDER;}}/>:variants.length?<span className="donut-box-empty">Ընտրիր տեսակը</span>:<svg viewBox="0 0 140 140" className="w-full drop-shadow-lg" aria-hidden="true">
           <defs><radialGradient id={`dough-${index}`}><stop stopColor="#f4ca84"/><stop offset="1" stopColor="#b97533"/></radialGradient></defs>
