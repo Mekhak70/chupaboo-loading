@@ -6,6 +6,7 @@ export interface CatalogCake {
   id: string; name: string; price: number; image: string; category: CakeCategory;
   cream: boolean; designs: CakeDesign[]; standardText: string; description: string;
   isFeatured: boolean;
+  images?:string[];
   ingredientPrices?:IngredientPrices;
   donutThreePrice?: number;
   donutVariants?:DonutVariant[];
@@ -32,6 +33,7 @@ export function normalizeCake(row: Record<string, unknown>, publicImageUrl: (pat
   if (designs.length === 0) throw new Error("Տորթի համար դիզայնի տեսակ ընտրված չէ։ Ստուգիր ադմինում։");
   return { id: String(row.id), name: String(row.name), price, category,
     image: typeof row.image_path === "string" && row.image_path ? publicImageUrl(row.image_path) : CATALOG_CAKE_PLACEHOLDER,
+    images: [...new Set([row.image_path, ...(Array.isArray(row.additional_image_paths)?row.additional_image_paths:[])].filter((path):path is string=>typeof path === "string" && !!path).map(publicImageUrl))],
     ingredientPrices:parseIngredientPrices(row.ingredient_prices),
     cream: row.has_cream === true, designs, standardText: typeof row.standard_text === "string" ? row.standard_text : "",
     description: typeof row.description === "string" ? row.description : "",

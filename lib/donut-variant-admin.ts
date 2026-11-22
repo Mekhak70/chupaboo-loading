@@ -1,3 +1,4 @@
+import { randomId } from "@/lib/random-id";
 import { supabase } from "@/lib/supabase";
 
 export interface DonutVariantRecord { id:string; name:string; image_path:string; price?:number|null }
@@ -20,7 +21,7 @@ export async function uploadDonutVariants(variants:DonutVariantDraft[],uploadedP
   for(const variant of variants){
     let path=variant.image_path;
     if(variant.file){
-      path=`catalog/${crypto.randomUUID()}.${donutImageExtensions[variant.file.type]}`;
+      path=`catalog/${randomId()}.${donutImageExtensions[variant.file.type]}`;
       const {error}=await supabase.storage.from("catalog-images").upload(path,variant.file,{contentType:variant.file.type,upsert:false});
       if(error)throw error;
       uploadedPaths.push(path);

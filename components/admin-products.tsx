@@ -1,5 +1,7 @@
 "use client";
 
+import { StandardTextPicker } from "@/components/standard-text-picker";
+import { randomId } from "@/lib/random-id";
 import {
   useCallback,
   useEffect,
@@ -28,6 +30,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ArrowUpToLine, ArrowDownToLine, Heart } from "lucide-react";
 import { DonutVariantsEditor } from "@/components/donut-variants-editor";
 import { uploadDonutVariants,type DonutVariantDraft } from "@/lib/donut-variant-admin";
+import { selectCatalogCover } from "@/lib/catalog-gallery";
 import { CatalogGalleryInput } from "@/components/catalog-gallery-input";
 import { supabase } from "@/lib/supabase";
 
@@ -179,6 +182,7 @@ export function AdminProducts({
 
   const [editing, setEditing] = useState<Product | null>(null);
   const [extraImages,setExtraImages] = useState<File[]>([]);
+  const [galleryMain,setGalleryMain] = useState<File|string|null>(null);
   const [newImage, setNewImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
 
@@ -267,7 +271,7 @@ export function AdminProducts({
       design_types: [...product.design_types],
     });
     setNewImage(null);
-    setExtraImages([]);
+    setExtraImages([]);setGalleryMain(null);
     setError("");
     setMessage("");
   }
@@ -444,7 +448,7 @@ export function AdminProducts({
             );
           }
 
-          path = `catalog/${crypto.randomUUID()}.${extension}`;
+          path = `catalog/${randomId()}.${extension}`;
 
           const { error } = await supabase.storage
             .from(BUCKET)
@@ -458,17 +462,19 @@ export function AdminProducts({
         }
 
         const galleryPaths=[...(product.additional_image_paths??[])];
-        if(product.section === "party"){
+        if(product.section === "party" || product.section === "cake"){
           if(galleryPaths.length+extraImages.length>9)throw new Error("Առավելագույնը 9 լրացուցիչ նկար։");
           for(const file of extraImages){
             const extension=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp"} as Record<string,string>)[file.type];
             if(!extension||!file.size||file.size>5*1024*1024)throw new Error("Նկարը պետք է լինի JPG/PNG/WebP և մինչև 5 MB։");
-            const galleryPath=`catalog/${crypto.randomUUID()}.${extension}`;
+            const galleryPath=`catalog/${randomId()}.${extension}`;
             const {error}=await supabase.storage.from(BUCKET).upload(galleryPath,file,{contentType:file.type,upsert:false});
             if(error)throw error;
             uploadedPaths.push(galleryPath);galleryPaths.push(galleryPath);
           }
         }
+        const selectedPath=typeof galleryMain === "string" ? galleryMain : galleryMain ? galleryPaths[(product.additional_image_paths??[]).length+extraImages.indexOf(galleryMain)] : null;
+        const cover=selectCatalogCover(path,galleryPaths,selectedPath);
         const donutVariants=product.section === "cake" && product.product_kind === "DONUT_BOX" ? await uploadDonutVariants(product.donut_variants??[],uploadedPaths) : undefined;
         const productPayload = {
             name: product.name.trim(),
@@ -477,8 +483,8 @@ export function AdminProducts({
             product_kind: product.section === "cake" ? product.product_kind || "CAKE" : "CAKE",
             price: product.price,
             ...(product.section === "cake" && product.product_kind === "DONUT_BOX" ? {donut_three_price:product.donut_three_price??10000} : {}),
-            image_path: path,
-            ...(product.section === "party" ? {additional_image_paths:galleryPaths} : {}),
+            image_path: cover.imagePath,
+            ...(["party","cake"].includes(product.section) ? {additional_image_paths:cover.additionalImagePaths} : {}),
             cake_size:
               product.section === "cake" ? product.cake_size : null,
             has_cream:
@@ -521,7 +527,7 @@ export function AdminProducts({
         saved = true;
         setEditing(null);
         setNewImage(null);
-        setExtraImages([]);
+        setExtraImages([]);setGalleryMain(null);
         setMessage("Փոփոխությունները պահպանվեցին։");
         await loadProducts();
       } finally {
@@ -629,7 +635,11 @@ export function AdminProducts({
       )}
 
       {editing ? (
-        <form onSubmit={saveEdit} className="mt-6">
+        <form onSubmit={saveEdit} className="mt-6" onInvalidCapture={event=>{
+            const field=event.target as HTMLInputElement;
+            const label=field.labels?.[0]?.textContent?.trim();
+            setError(label?`Լրացրու կամ ուղղիր «${label}» դաշտը։`:"Լրացրու բոլոր պարտադիր դաշտերը և ստուգիր թվերի արժեքները։");
+          }}>
           <fieldset disabled={busy || dragging} className="space-y-5 disabled:opacity-60">
             <h3 className="font-bold text-[#69429a]">
               Խմբագրել · {sectionNames[editing.section]}
@@ -653,7 +663,7 @@ export function AdminProducts({
               />
             </label>
 
-            {editing.section === "party" && <CatalogGalleryInput files={extraImages} onChange={setExtraImages} paths={editing.additional_image_paths??[]} onRemovePath={path=>patch("additional_image_paths",(editing.additional_image_paths??[]).filter(item=>item!==path))}/>}
+            {["party","cake"].includes(editing.section) && <CatalogGalleryInput selectedMain={galleryMain} onSelectMain={setGalleryMain} files={extraImages} onChange={setExtraImages} paths={editing.additional_image_paths??[]} onRemovePath={path=>patch("additional_image_paths",(editing.additional_image_paths??[]).filter(item=>item!==path))}/>}
 
             <label className="block text-sm text-gray-700">
               Անուն
@@ -832,18 +842,9 @@ export function AdminProducts({
                   </div>
                 </fieldset>
 
-                {editing.design_types.includes("STANDARD") && (
-                  <label className="block text-sm text-gray-700">
-                    Ստանդարտ տեքստ
-                    <input
-                      value={editing.standard_text}
-                      onChange={(event) =>
-                        patch("standard_text", event.target.value)
-                      }
-                      className={inputClass}
-                    />
-                  </label>
-                )}
+
+
+                {editing.section === "cake" && editing.product_kind !== "DONUT_BOX" && <StandardTextPicker value={editing.design_types[0]??""} onChange={value=>patch("design_types",[value,...editing.design_types.filter(design=>design!==value)])}/>}
               </>
             )}
 
@@ -859,6 +860,7 @@ export function AdminProducts({
               Ցուցադրել կայքում
             </label>
 
+            {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             <div className="flex flex-wrap gap-3">
               <button
                 type="submit"
@@ -872,7 +874,7 @@ export function AdminProducts({
                 onClick={() => {
                   setEditing(null);
                   setNewImage(null);
-                  setExtraImages([]);
+                  setExtraImages([]);setGalleryMain(null);
                   setError("");
                 }}
                 className={buttonClass}

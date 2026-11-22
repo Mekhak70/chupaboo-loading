@@ -1,9 +1,10 @@
 "use client";
-import { use, useEffect, useRef, useState, type ChangeEvent, type SetStateAction } from "react";
-import Image from "next/image";
+import { use, useEffect, useRef, useState, type SetStateAction } from "react";
+import { CakeImageSlider } from "@/components/cake-image-slider";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { useDonutText } from "@/components/use-donut-text";
 import { useLanguage } from "@/components/language-provider";
 import { useCart } from "@/components/cart-context";
 import { DonutOrderGuide } from "@/components/donut-order-guide";
@@ -18,7 +19,7 @@ const newPiece = (cream = true): CakeConfiguration => ({cakeType:"MEAT", creamTy
 const newBox = (cream = true) => Array.from({length:6},()=>newPiece(cream));
 type CakeType = CakeConfiguration["cakeType"];
 type CreamType = CakeConfiguration["creamType"];
-type ValidationErrors = Partial<Record<"cakeType"|"creamType"|"selectedVegetables"|"selectedAnimal"|"designType"|"petName"|"customImage"|"customText",string>>;
+type ValidationErrors = Partial<Record<"cakeType"|"creamType"|"selectedVegetables"|"selectedAnimal"|"designType"|"petName"|"customText",string>>;
 const formatMoney = (amount:number) => new Intl.NumberFormat("hy-AM",{style:"currency",currency:"AMD",maximumFractionDigits:2}).format(amount);
 
 export default function ProductPage({ params }: { params: Promise<{ id:string }> }) {
@@ -26,6 +27,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
   const route = useParams();
   const locale = typeof route.locale === "string" ? route.locale : "hy";
   const { t, language } = useLanguage();
+  const dt = useDonutText();
   const { addToCart, getItemCount } = useCart();
   const [product,setProduct] = useState<CatalogCake|null>(null);
   const [loadedId,setLoadedId] = useState<string|null>(null);
@@ -54,19 +56,15 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
   const setSelectedAnimal = (value:SetStateAction<string>)=>patchPiece("selectedAnimal",value);
   const [quantity,setQuantity] = useState(1);
   const [designType,setDesignType] = useState<CakeDesign|"">("");
-  const [customImage,setCustomImage] = useState<string|null>(null);
   const [customText,setCustomText] = useState("");
   const [petName,setPetName] = useState("");
   const [errors,setErrors] = useState<ValidationErrors>({});
   const [adding,setAdding] = useState(false);
-  const [failedImage,setFailedImage] = useState<string|null>(null);
   const ingredientsDetailsRef=useRef<HTMLDetailsElement>(null);
   const extrasDetailsRef=useRef<HTMLDetailsElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const initializedId = useRef<string|null>(null);
   const lastTrackedId = useRef<string|null>(null);
   const addLock = useRef(false);
-  const fileVersion = useRef(0);
 
   useEffect(()=>{
     let controller:AbortController|null=null;
@@ -79,20 +77,21 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
         setProduct(found);setLoadedId(id);
         if(found){
           if(initializedId.current!==id){
-            initializedId.current=id; fileVersion.current+=1;
+            initializedId.current=id;
             setPieces(newBox(found.cream));setEditingComposition(false);setActivePiece(0);setBoxCount(2);
-            setQuantity(1);setCustomText("");setPetName("");setCustomImage(null);setErrors({});
-            setDesignType(found.designs.includes("STANDARD")?"STANDARD":found.designs[0]);setFailedImage(null);
+            setQuantity(1);setCustomText("");setPetName("");setErrors({});
+            // Admin stores the default design first in the enabled design list.
+            setDesignType(found.designs[0]);
           }else{
             setDesignType(previous=>found.designs.includes(previous as CakeDesign)?previous:found.designs[0]);
             setPieces(previous=>previous.map(piece=>({...piece,creamType:found.cream?(piece.creamType||"DAIRY"):""})));
           }
         }
-      }catch(error){if(!current.signal.aborted){setProduct(null);setError(error instanceof Error?error.message:"Տորթը չհաջողվեց բեռնել։");setLoadedId(id);}}
+      }catch(error){if(!current.signal.aborted){setProduct(null);setError(error instanceof Error?error.message:dt("loadError"));setLoadedId(id);}}
       finally{if(!current.signal.aborted)setLoading(false);}
     }
     const refresh=()=>{void loadProduct();};refresh();window.addEventListener("focus",refresh);
-    return()=>{controller?.abort();fileVersion.current+=1;window.removeEventListener("focus",refresh);};
+    return()=>{controller?.abort();window.removeEventListener("focus",refresh);};
   },[id]);
 
   useEffect(()=>{
@@ -124,16 +123,6 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
   function handleVegetableToggle(key:string){
     setSelectedVegetables(previous=>toggleCakeIngredient(previous,key));clearFieldError("selectedVegetables");
   }
-  function handleImageUpload(event:ChangeEvent<HTMLInputElement>){
-    const file=event.target.files?.[0];if(!file)return;
-    if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size===0||file.size>10*1024*1024){
-      setErrors(previous=>({...previous,customImage:t("invalidFileType")||"Ընտրիր JPG, PNG կամ WebP նկար՝ մինչև 10 MB։"}));event.target.value="";return;
-    }
-    const version=++fileVersion.current;const reader=new FileReader();
-    reader.onload=()=>{if(version===fileVersion.current){setCustomImage(String(reader.result));clearFieldError("customImage");}};
-    reader.onerror=()=>{if(version===fileVersion.current)setErrors(previous=>({...previous,customImage:"Նկարը չհաջողվեց կարդալ։"}));};
-    reader.readAsDataURL(file);
-  }
   function validateForm(){
     const next:ValidationErrors={};
     if(!cakeType)next.cakeType=t("cakeTypeRequired");
@@ -143,12 +132,11 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
     if(!isDonutBox&&!product?.designs.includes(designType as CakeDesign))next.designType=t("designTypeRequired");
     if(!isDonutBox&&designType==="NAME_TEXT"&&!petName.trim())next.petName=t("petNameLabel");
     if(!isDonutBox&&designType==="CUSTOM_TEXT"&&!customText.trim())next.customText=t("customTextRequired");
-    if(!isDonutBox&&designType==="CUSTOM_PHOTO"&&!customImage)next.customImage=t("uploadPetPhoto");
     if(isDonutBox){
       const missingVariant=(product?.donutVariants?.length??0)>0?visiblePieces.findIndex(piece=>!product!.donutVariants!.some(variant=>variant.id===piece.donutVariantId)):-1;
-      if(missingVariant!==-1){setActivePiece(missingVariant);next.selectedVegetables=`Ընտրիր դոնաթ ${missingVariant+1}-ի տեսակը։`;document.getElementById("donut-variants")?.scrollIntoView({behavior:"smooth",block:"center"});}
+      if(missingVariant!==-1){setActivePiece(missingVariant);next.selectedVegetables=dt("missingLook",{n:missingVariant+1});document.getElementById("donut-variants")?.scrollIntoView({behavior:"smooth",block:"center"});}
       const invalid=visiblePieces.findIndex(piece=>!piece.cakeType||!piece.selectedVegetables.length||(piece.cakeType==="MEAT"&&!piece.selectedAnimal)||(product?.cream&&!piece.creamType));
-      if(invalid!==-1){setActivePiece(invalid);next.selectedVegetables=`Դոնաթ ${invalid+1}․ լրացրու բաղադրությունը։`;}
+      if(invalid!==-1){setActivePiece(invalid);next.selectedVegetables=dt("missingRecipe",{n:invalid+1});}
     }
     setErrors(next);
     const first=Object.keys(next)[0];
@@ -156,7 +144,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
       if(isDonutBox){
         const missingAppearance=!!product?.donutVariants?.length&&visiblePieces.some(piece=>!product.donutVariants!.some(variant=>variant.id===piece.donutVariantId));
         if(!missingAppearance&&["cakeType","creamType","selectedVegetables","selectedAnimal"].includes(first)&&ingredientsDetailsRef.current)ingredientsDetailsRef.current.open=true;
-        if(["designType","petName","customText","customImage"].includes(first)&&extrasDetailsRef.current)extrasDetailsRef.current.open=true;
+        if(["designType","petName","customText"].includes(first)&&extrasDetailsRef.current)extrasDetailsRef.current.open=true;
       }
       document.getElementById(`error-${first}`)?.scrollIntoView({behavior:"smooth",block:"center"});return false;}
     return true;
@@ -171,7 +159,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
       if(JSON.stringify(latest)!==JSON.stringify(product)){
         setProduct(latest);setDesignType(previous=>latest.designs.includes(previous as CakeDesign)?previous:latest.designs[0]);
         setCreamType(previous=>latest.cream?(previous||"DAIRY"):"");
-        alert("Տորթի տվյալները թարմացվել են։ Ստուգիր նոր գինն ու ընտրանքները և կրկին ավելացրու զամբյուղ։");return;
+        alert(dt("updated"));return;
       }
       const composition=isDonutBox?pieces[0]:{cakeType,creamType,selectedVegetables,selectedAnimal};
       addToCart({id:product.id,name:product.name,image:product.image,price,quantity,options:{
@@ -179,16 +167,16 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
         ...(product.ingredientPrices?{ingredientPriceBreakdown:ingredientPriceLines(product.ingredientPrices,composition,product.cream)}:{}),
         cakeType:composition.cakeType,creamType:product.cream?composition.creamType:"",selectedVegetables:[...composition.selectedVegetables],
         selectedAnimal:composition.cakeType==="MEAT"?composition.selectedAnimal:undefined,designType:effectiveDesign,
-        customImage:effectiveDesign==="CUSTOM_PHOTO"?customImage:null,
+        customImage:null,
         customText:effectiveDesign==="CUSTOM_TEXT"?customText.trim():effectiveDesign==="STANDARD"?product.standardText:"",
         petName:effectiveDesign==="NAME_TEXT"?petName.trim():"",cakeSize:product.category,basePrice:product.price,
       }});
       setIsCartOpen(true);
-    }catch(error){alert(error instanceof Error?error.message:"Ապրանքը չհաջողվեց ավելացնել։");}
+    }catch(error){alert(error instanceof Error?error.message:dt("addError"));}
     finally{addLock.current=false;setAdding(false);}
   }
   if(loading||loadedId!==id)return <div role="status" className="flex min-h-screen items-center justify-center text-[#69429a]">{t("loading")||"Բեռնվում է…"}</div>;
-  if(error)return <div role="alert" className="p-10 text-center"><p className="text-red-600">{error}</p><button onClick={()=>location.reload()} className="mt-4 rounded-xl bg-[#69429a] px-5 py-3 text-white">Կրկին փորձել</button></div>;
+  if(error)return <div role="alert" className="p-10 text-center"><p className="text-red-600">{error}</p><button onClick={()=>location.reload()} className="mt-4 rounded-xl bg-[#69429a] px-5 py-3 text-white">{dt("retry")}</button></div>;
   if(!product)return notFound();
 
   // ========== JSX ==========
@@ -212,42 +200,34 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Left column: Product image */}
           <div className={isDonutBox?"relative hidden md:block self-start rounded-2xl bg-white shadow-lg md:sticky md:top-24":"relative aspect-square rounded-2xl overflow-hidden bg-white shadow-lg"}>
-            {isDonutBox ? <DonutBoxPreview pieces={visiblePieces} activePiece={activePiece} selectedPieces={highlightedPieces} disabled={adding} variants={product.donutVariants??[]} onSelect={index=>{setActivePiece(index);setErrors({});}}/> : <Image
-              src={failedImage === product.image ? CATALOG_CAKE_PLACEHOLDER : product.image}
-              unoptimized
-              sizes="(max-width:768px) 100vw, 50vw"
-              onError={()=>setFailedImage(product.image)}
-              alt={productName}
-              fill
-              className="object-cover"
-            />}
+            {isDonutBox ? <DonutBoxPreview pieces={visiblePieces} activePiece={activePiece} selectedPieces={highlightedPieces} disabled={adding} variants={product.donutVariants??[]} onSelect={index=>{setActivePiece(index);setErrors({});}}/> : <CakeImageSlider key={[product.id,...(product.images??[])].join("|")} images={product.images?.length?product.images:[product.image]} name={productName}/> }
           </div>
 
           {/* Right column: Full customization form */}
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-[#69429a] mb-2">{productName}</h1>
-              <p className="text-gray-600 text-xs">{isDonutBox?"Հավաքիր քո բոքսը մի քանի սեղմումով։":product.description || t("cakeDescription")}</p>
-              <p className="mt-3 text-sm font-medium text-[#69429a]">{isDonutBox ? `🍩 Քո բոքսը · ${boxCount} դոնաթ` : product.category === "small" ? t("mini") : product.category === "midi" ? t("midi") : t("standard")}</p>
+              <p className="text-gray-600 text-xs">{isDonutBox?dt("intro"):product.description || t("cakeDescription")}</p>
+              <p className="mt-3 text-sm font-medium text-[#69429a]">{isDonutBox ? `🍩 ${dt("yourBox")} · ${dt("count",{n:boxCount})}` : product.category === "small" ? t("mini") : product.category === "midi" ? t("midi") : t("standard")}</p>
               {isDonutBox&&<DonutOrderGuide/>}
             </div>
 
             {isDonutBox && <section className="rounded-2xl border border-purple-100 bg-white p-4">
-              <h2 className="font-semibold text-[#69429a]">1. Ընտրիր քանակը</h2>
-              <div className="mt-3 flex flex-wrap gap-2" aria-label="Դոնաթների քանակը">
-                {[2,4,6].map(count=><button key={count} type="button" disabled={adding} aria-pressed={boxCount===count} onClick={()=>{setBoxCount(count);const next=pieces.slice(0,count).findIndex(piece=>!product.donutVariants?.some(variant=>variant.id===piece.donutVariantId));setActivePiece(next===-1?0:next);setErrors({});}} className={`rounded-xl border px-5 py-3 font-semibold ${boxCount===count?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a] hover:bg-purple-50"}`}>{count} հատ</button>)}
+              <h2 className="font-semibold text-[#69429a]">{dt("chooseQuantity")}</h2>
+              <div className="mt-3 flex flex-wrap gap-2" aria-label={dt("quantityLabel")}>
+                {[2,4,6].map(count=><button key={count} type="button" disabled={adding} aria-pressed={boxCount===count} onClick={()=>{setBoxCount(count);const next=pieces.slice(0,count).findIndex(piece=>!product.donutVariants?.some(variant=>variant.id===piece.donutVariantId));setActivePiece(next===-1?0:next);setErrors({});}} className={`rounded-xl border px-5 py-3 font-semibold ${boxCount===count?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a] hover:bg-purple-50"}`}>{dt("pieces",{n:count})}</button>)}
               </div>
 
             </section>}
 
             {isDonutBox && !!product.donutVariants?.length && <section id="donut-variants" className="rounded-2xl border border-purple-100 bg-white p-4">
-              <div className="flex items-center justify-between gap-2"><h2 className="font-semibold text-[#69429a]">2. Ընտրիր տեսքերը</h2><span className="text-sm text-gray-500" aria-live="polite">{filledCount}/{boxCount}</span></div>
-              <div className="mt-3 flex gap-2" aria-label="Տուփի դոնաթները">
-                {visiblePieces.map((piece,index)=>{const variant=product.donutVariants?.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={adding} aria-label={`Դոնաթ ${index+1}${variant?`՝ ${variant.name}`:"՝ ընտրիր տեսքը"}`} aria-pressed={activePiece===index} onClick={()=>{setEditingComposition(false);setActivePiece(index);}} className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border text-sm ${activePiece===index?"border-[#69429a] bg-purple-50 ring-1 ring-[#69429a]":"border-purple-100"}`}>
+              <div className="flex items-center justify-between gap-2"><h2 className="font-semibold text-[#69429a]">{dt("chooseLooks")}</h2><span className="text-sm text-gray-500" aria-live="polite">{filledCount}/{boxCount}</span></div>
+              <div className="mt-3 flex gap-2" aria-label={dt("slots")}>
+                {visiblePieces.map((piece,index)=>{const variant=product.donutVariants?.find(item=>item.id===piece.donutVariantId);return <button key={index} type="button" disabled={adding} aria-label={`${dt("donut",{n:index+1})}: ${variant?variant.name:dt("selectLook")}`} aria-pressed={activePiece===index} onClick={()=>{setEditingComposition(false);setActivePiece(index);}} className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border text-sm ${activePiece===index?"border-[#69429a] bg-purple-50 ring-1 ring-[#69429a]":"border-purple-100"}`}>
                   {variant?<img src={variant.image} alt="" className="h-8 w-8 object-contain"/>:<span>🍩</span>}<span>{index+1}</span>
                 </button>})}
               </div>
-              <p className="mt-3 text-sm text-[#69429a]" aria-live="polite">{needsAppearances?`Սեղմիր նկարը՝ ${activePiece+1}-րդ դոնաթի համար`:`Բոլոր ${boxCount} տեսքերն ընտրված են ✓`}</p>
+              <p className="mt-3 text-sm text-[#69429a]" aria-live="polite">{needsAppearances?dt("clickLook",{n:activePiece+1}):dt("allSelected",{n:boxCount})}</p>
               <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
                 {product.donutVariants.map(variant=><button key={variant.id} type="button" disabled={adding} aria-pressed={selectedPieces.every(index=>pieces[index].donutVariantId===variant.id)} onClick={()=>{
                   patchPiece("donutVariantId",variant.id);clearFieldError("selectedVegetables");
@@ -259,19 +239,19 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
                   <span className="mt-1 block text-xs font-semibold text-[#69429a]">{formatMoney(variant.price??product.price)}</span>
                 </button>)}
               </div>
-              <button type="button" disabled={adding||!pieces[0].donutVariantId} onClick={()=>{const id=pieces[0].donutVariantId;setPieces(previous=>previous.map((piece,index)=>index<boxCount?{...piece,donutVariantId:id}:piece));clearFieldError("selectedVegetables");}} className="mt-3 w-full rounded-xl border border-purple-200 py-3 text-sm font-medium text-[#69429a] disabled:opacity-40">Բոլորը՝ առաջինի տեսքով</button>
+              <button type="button" disabled={adding||!pieces[0].donutVariantId} onClick={()=>{const id=pieces[0].donutVariantId;setPieces(previous=>previous.map((piece,index)=>index<boxCount?{...piece,donutVariantId:id}:piece));clearFieldError("selectedVegetables");}} className="mt-3 w-full rounded-xl border border-purple-200 py-3 text-sm font-medium text-[#69429a] disabled:opacity-40">{dt("sameLook")}</button>
               {errors.selectedVegetables&&<p role="alert" className="mt-2 text-sm text-red-500">{errors.selectedVegetables}</p>}
             </section>}
 
             <details ref={ingredientsDetailsRef} onToggle={event=>setEditingComposition(event.currentTarget.open)} open={!isDonutBox||undefined} className={isDonutBox?"rounded-2xl border border-purple-100 bg-white p-4":""}>
-              {isDonutBox&&<summary className="cursor-pointer font-semibold text-[#69429a]">3. Բաղադրություն <span className="ml-2 text-xs font-normal text-gray-500">Փոխել</span>
-                <span className="mt-2 grid gap-1 text-xs font-normal leading-5 text-gray-600">{Array.from({length:boxCount/2},(_,pair)=><span key={pair}>Դոնաթներ {pair*2+1}–{pair*2+2}՝ {recipeSummary(pieces[pair*2])}</span>)}</span>
+              {isDonutBox&&<summary className="cursor-pointer font-semibold text-[#69429a]">{dt("composition")} <span className="ml-2 text-xs font-normal text-gray-500">{dt("change")}</span>
+                <span className="mt-2 grid gap-1 text-xs font-normal leading-5 text-gray-600">{Array.from({length:boxCount/2},(_,pair)=><span key={pair}>{dt("pair",{a:pair*2+1,b:pair*2+2})}: {recipeSummary(pieces[pair*2])}</span>)}</span>
               </summary>}
               <div className="grid gap-6 pt-4">
               {isDonutBox&&<div>
-                <p className="mb-3 text-sm text-gray-600">Զույգի երկու դոնաթները նույն բաղադրությունն ունեն։</p>
-                <div className="flex flex-wrap gap-2" aria-label="Դոնաթների զույգերը">
-                  {Array.from({length:boxCount/2},(_,pair)=><button key={pair} type="button" disabled={adding} aria-pressed={Math.floor(activePiece/2)===pair} onClick={()=>{setEditingComposition(true);setActivePiece(pair*2);}} className={`rounded-xl border px-4 py-2 text-sm ${Math.floor(activePiece/2)===pair?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a]"}`}>Դոնաթներ {pair*2+1} և {pair*2+2}</button>)}
+                <p className="mb-3 text-sm text-gray-600">{dt("pairNote")}</p>
+                <div className="flex flex-wrap gap-2" aria-label={dt("pairs")}>
+                  {Array.from({length:boxCount/2},(_,pair)=><button key={pair} type="button" disabled={adding} aria-pressed={Math.floor(activePiece/2)===pair} onClick={()=>{setEditingComposition(true);setActivePiece(pair*2);}} className={`rounded-xl border px-4 py-2 text-sm ${Math.floor(activePiece/2)===pair?"border-[#69429a] bg-[#69429a] text-white":"border-purple-200 text-[#69429a]"}`}>{dt("pair",{a:pair*2+1,b:pair*2+2})}</button>)}
                 </div>
               </div>}
             {/* Cake Type */}
@@ -360,7 +340,7 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             </section>}
 
             <details ref={extrasDetailsRef} open={!isDonutBox||undefined} className={isDonutBox?"rounded-2xl border border-purple-100 bg-white p-4":""}>
-              {isDonutBox&&<summary className="cursor-pointer text-sm font-medium text-[#69429a]">Մի քանի բոքս · ոչ պարտադիր</summary>}
+              {isDonutBox&&<summary className="cursor-pointer text-sm font-medium text-[#69429a]">{dt("extraBoxes")}</summary>}
               <div className="grid gap-6 pt-4">
             {!isDonutBox&&<>
             {/* Only the designs enabled in the administrator are offered. */}
@@ -371,12 +351,13 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
                   const labels: Record<CakeDesign,string> = {STANDARD:t("standardDesign"), CUSTOM_PHOTO:t("customMyDogPhotoDesign"),NAME_TEXT:t("petName"),CUSTOM_TEXT:t("customDesign")};
                   const emoji: Record<CakeDesign,string> = {STANDARD:"🎂",CUSTOM_PHOTO:"📸",NAME_TEXT:"✏️",CUSTOM_TEXT:"✏️"};
                   const selected = designType === key;
-                  return <button disabled={adding} key={key} type="button" aria-pressed={selected} onClick={()=>{setDesignType(key);clearFieldError("designType");}}
+                  return <button disabled={adding} key={key} type="button" aria-describedby={key==="CUSTOM_TEXT"&&selected?"custom-design-price-notice":undefined} aria-pressed={selected} onClick={()=>{setDesignType(key);clearFieldError("designType");}}
                     className={`flex cursor-pointer items-center gap-2 rounded-full border border-[#69429a] px-4 py-2 text-sm font-medium transition ${selected?"bg-[#69429a] text-white shadow-md":"bg-white text-[#69429a] hover:bg-purple-50"}`}>
                     {emoji[key]} {labels[key]}
                   </button>;
                 })}
               </div>
+              {designType==="CUSTOM_TEXT"&&<p id="custom-design-price-notice" className="mt-3 rounded-xl bg-purple-50 px-4 py-3 text-sm leading-6 text-[#69429a]">{t("customDesignPriceNotice")}</p>}
               {errors.designType && <p className="mt-2 text-sm text-red-500">{errors.designType}</p>}
             </div>
             {designType === "STANDARD" && product.standardText && <p className="rounded-xl bg-purple-50 p-4 text-sm text-[#69429a]">{product.standardText}</p>}
@@ -392,18 +373,13 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
                 placeholder={t("enterCustomText")} className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 focus:border-[#69429a] focus:outline-none"/>
               {errors.customText && <p className="mt-2 text-sm text-red-500">{errors.customText}</p>}
             </div>}
-            {designType === "CUSTOM_PHOTO" && <div id="error-customImage">
-              <label htmlFor="pet-photo" className="mb-3 block text-lg font-semibold text-[#69429a]">{t("uploadPetPhoto")}</label>
-              <input disabled={adding} id="pet-photo" ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} className="block w-full text-sm"/>
-              {customImage && <img src={customImage} alt={t("uploadPetPhoto")} className="mt-3 h-32 w-32 rounded-xl object-cover"/>}
-              {errors.customImage && <p className="mt-2 text-sm text-red-500">{errors.customImage}</p>}
-            </div>}
+
 
             </>}
 
             {/* Quantity */}
             <div>
-              <p className="text-lg font-semibold text-[#69429a] mb-3">{isDonutBox ? "Տուփերի քանակ" : language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}</p>
+              <p className="text-lg font-semibold text-[#69429a] mb-3">{isDonutBox ? dt("boxQuantity") : language === "en" ? "Quantity" : language === "ru" ? "Количество" : language === "pl" ? "Ilość" : "Քանակ"}</p>
               <div className="flex items-center gap-4">
                 <button disabled={adding} onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full bg-[#69429a] text-white font-bold text-xl flex items-center justify-center cursor-pointer hover:bg-[#5a3a85] transition-colors">-</button>
                 <span className="text-2xl font-bold text-[#69429a] w-12 text-center">{quantity}</span>
@@ -415,14 +391,13 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             </details>
 
             {isDonutBox?<div className="sticky bottom-3 z-30 rounded-2xl border border-purple-100 bg-white p-4 shadow-lg">
-              <div className="mb-3 flex items-center justify-between gap-3"><span className="text-sm text-gray-600">{boxCount} դոնաթ{quantity>1?` × ${quantity} բոքս`:""}</span><strong className="text-xl text-[#69429a]" aria-live="polite">{formatMoney(price*quantity)}</strong></div>
-              <button disabled={adding||needsAppearances} onClick={()=>void addToCartHandler()} className="w-full rounded-xl bg-[#69429a] px-5 py-3 font-semibold text-white transition hover:bg-[#573481] disabled:opacity-50">{adding?t("loading"):needsAppearances?`Ընտրիր ևս ${boxCount-filledCount} տեսք`:"Ավելացնել զամբյուղ"}</button>
+              <div className="mb-3 flex items-center justify-between gap-3"><span className="text-sm text-gray-600">{dt("count",{n:boxCount})}{quantity>1?` × ${dt("boxes",{n:quantity})}`:""}</span><strong className="text-xl text-[#69429a]" aria-live="polite">{formatMoney(price*quantity)}</strong></div>
+              <button disabled={adding||needsAppearances} onClick={()=>void addToCartHandler()} className="w-full rounded-xl bg-[#69429a] px-5 py-3 font-semibold text-white transition hover:bg-[#573481] disabled:opacity-50">{adding?t("loading"):needsAppearances?dt("remaining",{n:boxCount-filledCount}):dt("add")}</button>
             </div>:<>
             {/* Price is based on the administrator's saved price for this size. */}
             <div className="sticky bottom-5 z-30 mt-auto rounded-2xl border border-[#69429a]/10 bg-white p-4 shadow-lg">
               <div className="text-2xl font-bold text-[#69429a]">{t("subtotal")}: {formatMoney(price * quantity)}</div>
-              <div className="mt-2 text-3xl font-bold text-[#69429a]">{t("total")}: {formatMoney(price * quantity)}<sup className="ml-1 text-sm font-normal text-gray-400">*</sup></div>
-              <div className="mt-3 border-t border-dashed border-gray-200 pt-2 text-xs text-gray-400">* {isDonutBox ? `Գինը հաշվարկվում է ${boxCount} դոնաթների քանակից, բաղադրություններից և ընտրված դիզայնից։` : product.ingredientPrices?"Ընտրված բաղադրիչների գումարը և դիզայնի վճարը։":t("priceDependsOnComponentsAndDesign")}</div>
+
             </div>
             <button disabled={adding} onClick={()=>void addToCartHandler()} className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-xl bg-[#69429a] px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#aed137] disabled:cursor-wait disabled:opacity-60">
               {adding ? t("loading") : `🛒 ${t("addToCart") || "Add to Cart"}`}
@@ -434,9 +409,9 @@ export default function ProductPage({ params }: { params: Promise<{ id:string }>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold text-[#69429a] mb-3">{t("productInfo")}</h3>
               <ul className="space-y-2 text-gray-600">
-                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("safeIngredients")}</li>
-                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("freshDaily2")}</li>
-                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("madeWithLove")}</li>
+                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("productNoSugar")}</li>
+                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("productNoArtificialAdditives")}</li>
+                <li className="flex items-center gap-2"><span className="text-[#aed137]">✓</span>{t("productNaturalFreshIngredients")}</li>
               </ul>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { normalizeCake, type CatalogCake } from "@/lib/cake-config";
 export type { CatalogCake } from "@/lib/cake-config";
-const fields = "id,name,price,ingredient_prices,donut_three_price,donut_variants,product_kind,image_path,cake_size,has_cream,design_types,standard_text,is_active,is_featured,sort_order,created_at";
+const fields = "id,name,price,ingredient_prices,donut_three_price,donut_variants,product_kind,image_path,additional_image_paths,cake_size,has_cream,design_types,standard_text,is_active,is_featured,sort_order,created_at";
 const publicImageUrl = (path: string) => supabase.storage.from("catalog-images").getPublicUrl(path).data.publicUrl;
 export async function getCatalogCakes(signal?: AbortSignal): Promise<CatalogCake[]> {
   const result: CatalogCake[] = [];

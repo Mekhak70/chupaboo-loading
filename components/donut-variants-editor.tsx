@@ -1,4 +1,5 @@
 "use client";
+import { randomId } from "@/lib/random-id";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { DONUT_VARIANT_LIMIT,donutImageExtensions,type DonutVariantDraft } from "@/lib/donut-variant-admin";
@@ -19,7 +20,7 @@ export function DonutVariantsEditor({value,onChange}:{value:DonutVariantDraft[];
         const files=Array.from(event.target.files??[]);event.target.value="";
         if(files.length+value.length>DONUT_VARIANT_LIMIT){setError("Ընդամենը կարելի է ավելացնել մինչև 15 տեսակ։");return;}
         if(files.some(file=>!donutImageExtensions[file.type]||!file.size||file.size>5*1024*1024)){setError("Նկարները պետք է լինեն JPG/PNG/WebP և մինչև 5 MB։");return;}
-        setError("");onChange([...value,...files.map(file=>({id:crypto.randomUUID(),name:file.name.replace(/\.[^.]+$/,""),image_path:"",file}))]);
+        setError("");onChange([...value,...files.map(file=>({id:randomId(),name:file.name.replace(/\.[^.]+$/,""),image_path:"",file}))]);
       }}/>
     </label>
     {error&&<p role="alert" className="text-sm text-red-600">{error}</p>}
@@ -34,7 +35,7 @@ export function DonutVariantsEditor({value,onChange}:{value:DonutVariantDraft[];
         <button type="button" onClick={()=>onChange(value.filter(variant=>variant.id!==item.id))} className="text-xs text-red-600">Հեռացնել տեսակը</button>
       </div>)}
     </div>
-    <button type="button" disabled={value.length>=DONUT_VARIANT_LIMIT} onClick={()=>onChange([...value,{id:crypto.randomUUID(),name:"",image_path:""}])} className="rounded-xl border border-purple-200 px-4 py-2 text-sm font-medium text-[#69429a] disabled:opacity-40">+ Ավելացնել տեսակ</button>
+    <button type="button" disabled={value.length>=DONUT_VARIANT_LIMIT} onClick={()=>onChange([...value,{id:randomId(),name:"",image_path:""}])} className="rounded-xl border border-purple-200 px-4 py-2 text-sm font-medium text-[#69429a] disabled:opacity-40">+ Ավելացնել տեսակ</button>
     <p className="text-xs text-gray-500">Դատարկ գնի դեպքում կիրառվում է ապրանքի մեկ դոնաթի գինը։ Եթե որևէ տեսակ ունի առանձին գին, բոքսի գինը գումարվում է հատիկների գներից․ 3 հատի փաթեթային գինը չի կիրառվում։</p>
     <p className="text-xs text-gray-500">Փոփոխությունները կպահպանվեն ապրանքի «Պահպանել» կոճակը սեղմելուց հետո։</p>
   </fieldset>;

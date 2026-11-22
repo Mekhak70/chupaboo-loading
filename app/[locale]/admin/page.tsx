@@ -1,5 +1,7 @@
 "use client";
 
+import { StandardTextPicker } from "@/components/standard-text-picker";
+import { randomId } from "@/lib/random-id";
 import {
     useEffect,
     useRef,
@@ -22,6 +24,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { DonutVariantsEditor } from "@/components/donut-variants-editor";
 import { uploadDonutVariants,type DonutVariantDraft } from "@/lib/donut-variant-admin";
+import { selectCatalogCover } from "@/lib/catalog-gallery";
 import { CatalogGalleryInput } from "@/components/catalog-gallery-input";
 import { AdminProducts } from "@/components/admin-products";
 import Link from "next/link";
@@ -140,6 +143,7 @@ export default function AdminPage() {
     const [image, setImage] = useState<File | null>(null);
     const [donutVariants,setDonutVariants]=useState<DonutVariantDraft[]>([]);
     const [extraImages,setExtraImages] = useState<File[]>([]);
+  const [galleryMain,setGalleryMain] = useState<File|string|null>(null);
     const [preview, setPreview] = useState("");
 
     const [saving, setSaving] = useState(false);
@@ -229,7 +233,7 @@ export default function AdminPage() {
         setSection(next);
         setForm(emptyForm());
         setImage(null);
-        setExtraImages([]);
+        setExtraImages([]);setGalleryMain(null);
         setDonutVariants([]);
         setError("");
         setSuccess("");
@@ -380,7 +384,7 @@ export default function AdminPage() {
                 return;
             }
 
-            const id = crypto.randomUUID();
+            const id = randomId();
             const imagePath = `catalog/${id}.${extension}`;
 
             const { error: uploadError } = await supabase.storage
@@ -394,17 +398,19 @@ export default function AdminPage() {
 
             uploadedPaths.push(imagePath);
             const galleryPaths:string[]=[];
-            if(section === "party"){
+            if(section === "party" || section === "cake"){
                 if(extraImages.length>9)throw new Error("Առավելագույնը 9 լրացուցիչ նկար։");
                 for(const file of extraImages){
                     if(!imageExtensions[file.type]||!file.size||file.size>MAX_IMAGE_SIZE)throw new Error("Նկարը պետք է լինի JPG/PNG/WebP և մինչև 5 MB։");
-                    const path=`catalog/${crypto.randomUUID()}.${imageExtensions[file.type]}`;
+                    const path=`catalog/${randomId()}.${imageExtensions[file.type]}`;
                     const {error}=await supabase.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
                     if(error)throw error;
                     uploadedPaths.push(path);galleryPaths.push(path);
                 }
             }
 
+            const selectedPath=galleryMain instanceof File ? galleryPaths[extraImages.indexOf(galleryMain)] : null;
+            const cover=selectCatalogCover(imagePath,galleryPaths,selectedPath);
             const savedVariants=section === "cake" && form.productKind === "DONUT_BOX" ? await uploadDonutVariants(donutVariants,uploadedPaths) : undefined;
             const productPayload = {
                     id,
@@ -413,8 +419,8 @@ export default function AdminPage() {
                     ...(savedVariants ? {donut_variants:savedVariants} : {}),
                     price,
                     ...(section === "cake" && form.productKind === "DONUT_BOX" ? {donut_three_price:Number(form.donutThreePrice)} : {}),
-                    image_path: imagePath,
-                    ...(section === "party" ? {additional_image_paths:galleryPaths} : {}),
+                    image_path: cover.imagePath,
+                    ...(["party","cake"].includes(section) ? {additional_image_paths:cover.additionalImagePaths} : {}),
                     product_kind: section === "cake" ? form.productKind : "CAKE",
                     cake_size: section === "cake" ? form.cakeSize : null,
                     has_cream: section === "party" ? false : form.hasCream,
@@ -450,7 +456,7 @@ export default function AdminPage() {
 
             setForm(emptyForm());
             setImage(null);
-            setExtraImages([]);
+            setExtraImages([]);setGalleryMain(null);
         setDonutVariants([]);
 
             if (fileRef.current) {
@@ -651,7 +657,11 @@ export default function AdminPage() {
                             Բոլոր բաժինները
                         </button>
 
-                        <form onSubmit={saveProduct}>
+                        <form onSubmit={saveProduct} onInvalidCapture={event=>{
+            const field=event.target as HTMLInputElement;
+            const label=field.labels?.[0]?.textContent?.trim();
+            setError(label?`Լրացրու կամ ուղղիր «${label}» դաշտը։`:"Լրացրու բոլոր պարտադիր դաշտերը և ստուգիր թվերի արժեքները։");
+          }}>
                             <fieldset
                                 disabled={saving || loggingOut}
                                 className="grid min-w-0 gap-6 disabled:opacity-70 lg:grid-cols-[1fr_320px]"
@@ -853,24 +863,9 @@ export default function AdminPage() {
                                                     </div>
                                                 </fieldset>
 
-                                                {form.designs.includes(
-                                                    "STANDARD"
-                                                ) && (
-                                                        <label className="block text-sm font-medium text-gray-700">
-                                                            Ստանդարտ տեքստ · ոչ պարտադիր
-                                                            <input
-                                                                value={form.standardText}
-                                                                onChange={(event) =>
-                                                                    change(
-                                                                        "standardText",
-                                                                        event.target.value
-                                                                    )
-                                                                }
-                                                                placeholder="Օրինակ՝ Ծնունդդ շնորհավոր"
-                                                                className={inputClass}
-                                                            />
-                                                        </label>
-                                                    )}
+
+
+                                                {section === "cake" && form.productKind !== "DONUT_BOX" && <StandardTextPicker value={form.designs[0]??""} onChange={value=>change("designs",[value,...form.designs.filter(design=>design!==value)])}/>}
                                             </>
                                         )}
                                     </div>
@@ -926,7 +921,7 @@ export default function AdminPage() {
                                             className="hidden"
                                         />
 
-                                        {section === "party" && <CatalogGalleryInput files={extraImages} onChange={setExtraImages}/>}
+                                        {["party","cake"].includes(section) && <CatalogGalleryInput selectedMain={galleryMain} onSelectMain={setGalleryMain} files={extraImages} onChange={setExtraImages}/>}
 
                                         {image && (
                                             <p className="mt-3 break-all text-xs text-gray-500">
@@ -948,6 +943,7 @@ export default function AdminPage() {
                                             Ցուցադրել կայքում
                                         </label>
 
+                                        {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
                                         <button
                                             type="submit"
                                             disabled={saving || loggingOut}

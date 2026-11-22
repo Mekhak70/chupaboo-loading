@@ -1075,7 +1075,7 @@ if(creamType === "PLANTBASEDMILK") {
                   </span>
 
                   {t(
-                    "safeIngredients"
+                    "productNoSugar"
                   ) ||
                     "Անվտանգ բաղադրիչներ"}
                 </li>
@@ -1086,7 +1086,7 @@ if(creamType === "PLANTBASEDMILK") {
                   </span>
 
                   {t(
-                    "freshDaily2"
+                    "productNoArtificialAdditives"
                   ) ||
                     "Թարմ պատրաստված"}
                 </li>
@@ -1097,7 +1097,7 @@ if(creamType === "PLANTBASEDMILK") {
                   </span>
 
                   {t(
-                    "madeWithLove"
+                    "productNaturalFreshIngredients"
                   ) ||
                     "Պատրաստված սիրով"}
                 </li>

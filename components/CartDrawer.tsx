@@ -726,8 +726,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
       ];
     }
     return [
-      { value: "15:00-18:00", label: "15:00 - 18:00" },
-      { value: "18:00-21:00", label: "18:00 - 21:00" },
+      { value: "16:00-19:00", label: "16:00-19:00" },
+      { value: "19:00-21:00", label: "19:00-21:00" },
       { value: "21:00-24:00", label: "21:00 - 24:00" }
     ];
   };

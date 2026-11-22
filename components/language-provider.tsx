@@ -409,6 +409,24 @@ mini: {
   ru: "МИНИ",
   pl: "MINI"
 },
+productNoSugar: {
+  hy: "Առանց շաքարի",
+  en: "No sugar",
+  ru: "Без сахара",
+  pl: "Bez cukru"
+},
+productNoArtificialAdditives: {
+  hy: "Առանց արհեստական հավելումների",
+  en: "No artificial additives",
+  ru: "Без искусственных добавок",
+  pl: "Bez sztucznych dodatków"
+},
+productNaturalFreshIngredients: {
+  hy: "Բնական և թարմ բաղադրիչներով",
+  en: "Made with natural, fresh ingredients",
+  ru: "Из натуральных и свежих ингредиентов",
+  pl: "Z naturalnych i świeżych składników"
+},
 productInfo: {
   hy: "Տեղեկություն ապրանքի մասին",
   en: "Product Information",
@@ -1414,6 +1432,12 @@ pieces: {
     en: "My dog photo",
     ru: "Фото собаки",
     pl: "Zdjęcie psa"
+  },
+  customDesignPriceNotice: {
+    hy: "Ձեր դիզայնն ուսումնասիրելուց հետո գնի մասին Ձեզ առանձին կտեղեկացնենք։",
+    en: "We will review your design and let you know the price separately.",
+    ru: "После изучения вашего дизайна мы отдельно сообщим вам стоимость.",
+    pl: "Po zapoznaniu się z Twoim projektem poinformujemy Cię osobno o cenie."
   },
   customDesign: {
     hy: "Անհատական դիզայն",

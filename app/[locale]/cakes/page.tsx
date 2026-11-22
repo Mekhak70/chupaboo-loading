@@ -1,5 +1,6 @@
 "use client"
 
+import { useDonutText } from "@/components/use-donut-text";
 import { Suspense, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -43,6 +44,7 @@ function ShopContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { t } = useLanguage()
+  const dt = useDonutText();
   const [products, setProducts] = useState<CatalogCake[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -136,7 +138,7 @@ function ShopContent() {
                   className="group relative block min-w-0 overflow-hidden rounded-2xl bg-[#f8f6fb] shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl hover:shadow-purple-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:rounded-3xl"
                 >
                   <div className="relative aspect-square overflow-hidden">
-                    {product.productKind === "DONUT_BOX" && <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#69429a]">🍩 2, 4 կամ 6 հատ</span>}
+                    {product.productKind === "DONUT_BOX" && <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#69429a]">🍩 {dt("sizes")}</span>}
                     <Image
                       src={product.image}
                       unoptimized
