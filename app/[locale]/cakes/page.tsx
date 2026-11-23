@@ -1,5 +1,6 @@
 "use client"
 
+import { CakeImageSlider } from "@/components/cake-image-slider";
 import { useDonutText } from "@/components/use-donut-text";
 import { Suspense, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
@@ -131,22 +132,14 @@ function ShopContent() {
               ) : filteredProducts.length ? filteredProducts.map(product => {
                 const price = calculateCatalogCakeStartingPrice(product)
                 return (
-                <Link
+                <article
                   key={product.id}
-                  href={`/${locale}/product/${encodeURIComponent(product.id)}`}
-                  aria-label={`${product.name} — ${copy.details}`}
                   className="group relative block min-w-0 overflow-hidden rounded-2xl bg-[#f8f6fb] shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl hover:shadow-purple-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] focus-visible:ring-offset-4 sm:rounded-3xl"
                 >
+                  <Link href={`/${locale}/product/${encodeURIComponent(product.id)}`} aria-label={`${product.name} — ${copy.details}`} className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69429a] sm:rounded-3xl"/>
                   <div className="relative aspect-square overflow-hidden">
                     {product.productKind === "DONUT_BOX" && <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#69429a]">🍩 {dt("sizes")}</span>}
-                    <Image
-                      src={product.image}
-                      unoptimized
-                      alt={product.name}
-                      fill
-                      sizes="(min-width: 1200px) 384px, (min-width: 1024px) 33vw, 50vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
-                    />
+                    <CakeImageSlider key={[product.id,...(product.images??[])].join("|")} card images={product.images?.length?product.images:[product.image]} name={product.name}/>
                   </div>
                   <div className="flex items-end justify-between gap-2 border-t border-[#eee8f4] bg-white px-3 py-3 text-[#69429a] sm:px-5 sm:py-4">
                     <div className="min-w-0">
@@ -160,7 +153,7 @@ function ShopContent() {
                       <span className="explore-arrow"><ArrowIcon /></span>
                     </span>
                   </div>
-                </Link>
+                </article>
               )}) : (
                 <div className="col-span-full rounded-3xl bg-[#f8f6fb] px-5 py-16 text-center text-[#69429a]">
                   {t("noProductsAvailable")}
