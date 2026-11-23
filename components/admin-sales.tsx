@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { money, firstDay, today, people, saleSections, summarize, errorText,
   type FinanceOrder, type Expense, type SaleSection } from "@/lib/finance";
+import { AdminSaleCakeCost } from "@/components/admin-sale-cake-cost";
+import { costSizeFor,validateCakeCosts,type CakeCostSettings,type CostSize } from "@/lib/cake-cost";
+import { AdminSaleImage } from "@/components/admin-sale-image";
+import { AdminOrderEdit } from "@/components/admin-order-edit";
 import { AdminManualSale } from "@/components/admin-manual-sale";
 import { FinancePeriod } from "@/components/finance-period";
 // Reports use the date explicitly chosen in the order; older orders fall back to business_date.
@@ -24,7 +28,7 @@ function currentMonthEnd() {
 function CakeDetails({ options }: { options: Record<string,unknown> | null }) {
   if (!options) return null;
   if (options.productKind === "DONUT_BOX" && Array.isArray(options.donuts)) {
-    return <div className="mt-2 space-y-2">{options.donuts.map((piece,index)=><div key={index} className="rounded-lg bg-purple-50 p-2"><p className="text-xs font-semibold">🍩 Դոնաթ {index+1}</p><CakeDetails options={piece as Record<string,unknown>}/></div>)}<CakeDetails options={{...options,productKind:undefined,donuts:undefined,cakeType:undefined,creamType:undefined,selectedVegetables:undefined,selectedAnimal:undefined}}/></div>;
+    return <div className="mt-2 space-y-2">{options.donuts.map((piece,index)=><div key={index} className="rounded-lg bg-purple-50 p-2"><p className="text-xs font-semibold">🍩 Դոնաթ {index+1}</p>{typeof piece?.donutVariantImage==="string"&&<div className="mt-2"><AdminSaleImage image={piece.donutVariantImage} name={piece.donutVariantName||`Դոնաթ ${index+1}`}/></div>}<CakeDetails options={piece as Record<string,unknown>}/></div>)}<CakeDetails options={{...options,productKind:undefined,donuts:undefined,cakeType:undefined,creamType:undefined,selectedVegetables:undefined,selectedAnimal:undefined}}/></div>;
   }
   const labels: Record<string,string> = { donutVariantName:"Դոնաթի տեսակ", notes:"Մանրամասներ", cakeType:"Տեսակ",creamType:"Կրեմ",selectedAnimal:"Միս",selectedVegetables:"Բաղադրիչներ",designType:"Դիզայն",petName:"Կենդանու անուն",customText:"Գրվածք" };
   const values: Record<string,string> = { MEAT:"Մսային", FRUIT:"Մրգային", VEGETABLES:"Բանջարեղենային", DAIRY:"Կաթնային", PLANTBASEDMILK:"Բուսական կաթով", PLANTBASED:"Բուսական", CHICKEN:"Հավ",BEEF:"Տավար",LAMB:"Գառ",TURKEY:"Հնդկահավ",SALMON:"Սաղմոն",STANDARD:"Ստանդարտ",CUSTOM_PHOTO:"Լուսանկարով",CUSTOM_TEXT:"Անհատական գրվածք",NAME_TEXT:"Անունով", POTATO:"Կարտոֆիլ",CARROT:"Գազար",BROCCOLI:"Բրոկոլի",PUMPKIN:"Դդում",PEPPER:"Պղպեղ",ZUCCHINI:"Դդմիկ",CAULIFLOWER:"Ծաղկակաղամբ",SWEET_POTATO:"Բատատ",SPINACH:"Սպանախ",RICE:"Բրինձ",WHEAT:"Ցորեն",OATS:"Վարսակ",APPLE:"Խնձոր",BANANA:"Բանան",PEAR:"Տանձ",ELDERBERRY:"Թանթրվենի",STRAWBERRY:"Ելակ",MANGO:"Մանգո" };
@@ -37,7 +41,7 @@ function CakeDetails({ options }: { options: Record<string,unknown> | null }) {
       <div><a href={options.customImage} target="_blank" rel="noopener noreferrer" className="text-[#69429a] underline">Բացել կցված լուսանկարը</a></div>}
   </dl>;
 }
-const sourceNames: Record<string,string> = { instagram:"Instagram",phone:"Հեռախոս",whatsapp:"WhatsApp",telegram:"Telegram",in_person:"Տեղում",other:"Այլ" };
+const sourceNames: Record<string,string> = { instagram:"Instagram",phone:"Հեռախոս",whatsapp:"WhatsApp",telegram:"Telegram",in_person:"Տեղում",other:"Այլ",website:"Կայք" };
 function sourceName(order:FinanceOrder) {
   const source=order.delivery_info?.source;
   return typeof source==="string" ? sourceNames[source] || source : "Կայք";
@@ -50,7 +54,8 @@ function CustomerDetails({order}:{order:FinanceOrder}) {
     <div><dt className="inline font-medium">Հասցե՝ </dt><dd className="inline">{String(info.deliveryAddress || "Չի նշվել")}</dd></div>
     <div><dt className="inline font-medium">Ազգություն՝ </dt><dd className="inline">{String(info.nationality || "Չի նշվել")}</dd></div>
     <div><dt className="inline font-medium">Աղբյուր՝ </dt><dd className="inline">{sourceName(order)}</dd></div>
-    <div><dt className="inline font-medium">Ապրանքների գին՝ </dt><dd className="inline">{money(Number(order.product_total))}</dd></div>
+    <div><dt className="inline font-medium">Տորթերի արժեք՝ </dt><dd className="inline">{money(Number(order.cake_total)+Number(order.available_total))}</dd></div>
+    <div><dt className="inline font-medium">Փարթի շոփ՝ </dt><dd className="inline">{money(Number(order.party_total))}</dd></div>
     <div><dt className="inline font-medium">Առաքում՝ </dt><dd className="inline">{money(Number(order.delivery_fee))}</dd></div>
     <div><dt className="inline font-medium">Ընդհանուր գին՝ </dt><dd className="inline font-bold text-[#69429a]">{money(Number(order.product_total)+Number(order.delivery_fee))}</dd></div>
     {info.notes ? <div><dt className="inline font-medium">Նշումներ՝ </dt><dd className="inline">{String(info.notes)}</dd></div> : null}
@@ -58,6 +63,10 @@ function CustomerDetails({order}:{order:FinanceOrder}) {
 }
 export function AdminSales() {
   const [manualOpen,setManualOpen]=useState(false);
+  const [cakeCosts,setCakeCosts]=useState<CakeCostSettings|null>(null);
+  const [catalogSizes,setCatalogSizes]=useState<Record<string,CostSize>>({});
+  const [catalogImages,setCatalogImages]=useState<Record<string,string>>({});
+  const [editing,setEditing]=useState<FinanceOrder|null>(null);
   const [notice,setNotice]=useState("");
   const [from,setFrom]=useState(firstDay); const [to,setTo]=useState(currentMonthEnd);
   const [orders,setOrders]=useState<FinanceOrder[]>([]); const [expenses,setExpenses]=useState<Expense[]>([]);
@@ -69,7 +78,7 @@ export function AdminSales() {
       if (!from || !to || from>to) throw new Error("Ընտրիր ճիշտ ժամանակահատված։");
       const allOrders: FinanceOrder[]=[];const allExpenses: Expense[]=[];
       for (let offset=0;;offset+=500) {
-        const {data,error}=await supabase.from("finance_orders").select("id,created_at,business_date,sold_at,status,phone,delivery_info,items,delivery_fee,product_total")
+        const {data,error}=await supabase.from("finance_orders").select("id,created_at,business_date,sold_at,status,phone,delivery_info,items,delivery_fee,product_total,cake_total,party_total,available_total,updated_at")
           .order("created_at",{ascending:true}).order("id").range(offset,offset+499);
         if(error)throw error;allOrders.push(...(data??[]) as FinanceOrder[]);if(!data||data.length<500)break;
       }
@@ -77,11 +86,30 @@ export function AdminSales() {
         const {data,error}=await supabase.from("finance_expenses").select("*").gte("expense_date",from).lte("expense_date",to).order("id").range(offset,offset+499);
         if(error)throw error;allExpenses.push(...(data??[]) as Expense[]);if(!data||data.length<500)break;
       }
+      const images:Record<string,string>={};
+      const sizes:Record<string,CostSize>={};
+      const {data:costRow,error:costError}=await supabase.from("finance_cake_cost_settings").select("settings").eq("id",true).single();
+      if(!costError&&costRow){try{validateCakeCosts(costRow.settings);if(version===generation.current)setCakeCosts(costRow.settings);}catch{if(version===generation.current)setCakeCosts(null);}}
+      const missingIds=[...new Set(allOrders.filter(order=>orderDate(order)>=from&&orderDate(order)<=to).flatMap(order=>order.items)
+        .filter(item=>(!item.image||(item.section!=="party"&&!item.options?.cakeSize))&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.product_id)).map(item=>item.product_id))];
+      for(let offset=0;offset<missingIds.length;offset+=200){
+        const {data,error}=await supabase.from("catalog_products").select("id,image_path,cake_size,product_kind").in("id",missingIds.slice(offset,offset+200));
+        if(error){console.error("Sales image lookup failed:",error.code);break;}
+        for(const row of data??[]){if(row.image_path)images[row.id]=/^https?:\/\//i.test(row.image_path)?row.image_path:supabase.storage.from("catalog-images").getPublicUrl(row.image_path).data.publicUrl;const size=costSizeFor(row.product_kind==="DONUT_BOX"?"DONUT_BOX":row.cake_size);if(size)sizes[row.id]=size;}
+      }
+      if(version===generation.current){setCatalogImages(images);setCatalogSizes(sizes);}
       if(version===generation.current){setOrders(allOrders.filter(order => orderDate(order) >= from && orderDate(order) <= to).sort(compareOrders));setExpenses(allExpenses);}
     }catch(error){if(version===generation.current){setError(errorText(error));setOrders([]);setExpenses([]);}}
     finally{if(version===generation.current)setLoading(false);}
   },[from,to]);
   useEffect(()=>{void load();return()=>{generation.current+=1;};},[load]);
+  useEffect(()=>{
+    const refresh=()=>{if(!busy&&!editing)void load();};
+    window.addEventListener("focus",refresh);
+    const interval=window.setInterval(refresh,30000);
+    return()=>{window.removeEventListener("focus",refresh);window.clearInterval(interval);};
+  },[load,busy,editing]);
+  function editOrder(order:FinanceOrder){setManualOpen(false);setEditing(order);window.scrollTo({top:0,behavior:"smooth"});}
   async function changeStatus(order:FinanceOrder,status:"sold"|"cancelled"){
     if(lock.current || !confirm(status==="sold"?"Հաստատե՞լ, որ պատվերն իրականում վաճառվել է։ Ստուգիր ապրանքներն ու գները։":"Չեղարկե՞լ պատվերը և հանել վաճառքի հաշվարկից։"))return;
     lock.current=true;setBusy(true);setError("");
@@ -102,11 +130,12 @@ export function AdminSales() {
   const pending=orders.filter(order=>order.status==="pending");
   const personTotal=(person:string)=>expenses.filter(x=>x.person===person).reduce((sum,x)=>sum+Math.round(Number(x.amount)*100),0)/100;
   return <>
-    <button type="button" disabled={busy} onClick={()=>{setManualOpen(value=>!value);setNotice("");}}
+    <button type="button" disabled={busy} onClick={()=>{setManualOpen(value=>!value);setEditing(null);setNotice("");}}
       className="mb-5 rounded-xl bg-[#69429a] px-5 py-3 font-semibold text-white disabled:opacity-50">
       {manualOpen?"Փակել ավելացման ձևը":"+ Ձեռքով ավելացնել վաճառք"}
     </button>
     {manualOpen&&<AdminManualSale onSaved={manualSaved} onCancel={()=>setManualOpen(false)} onBusyChange={setBusy}/>}
+    {editing&&<AdminOrderEdit key={editing.id} order={editing} onBusyChange={setBusy} onCancel={()=>setEditing(null)} onSaved={date=>{setEditing(null);manualSaved(date);setNotice("Պատվերի փոփոխությունները պահպանվեցին։");}}/>}
     {notice&&<p role="status" className="mb-4 rounded-xl bg-green-50 p-4 text-green-800">{notice}</p>}
     <FinancePeriod disabled={busy} from={from} to={to} onFrom={setFrom} onTo={setTo}/>
     <p className="mb-4 text-sm text-gray-500">Վաճառքներն ու պատվերները դասավորված են նշված ստացման/առաքման ամսաթվով՝ հնից դեպի նորը։ Ժամանակահատվածի ֆիլտրը և իտոգները նույնպես այդ ամսաթվով են։ Եթե ամսաթիվը բացակայում է՝ օգտագործվում է հաշվառման օրը։</p>
@@ -119,12 +148,12 @@ export function AdminSales() {
         {pending.map(order=><details key={order.id} className="mt-4 rounded-xl border p-4"><summary className="cursor-pointer font-semibold">
           {orderDate(order)} · {order.phone} · {money(Number(order.product_total)+Number(order.delivery_fee))}</summary>
           <p className="mt-3 break-all text-xs text-gray-500">Պատվեր՝ {order.id}</p>
-          {order.items.map((item,index)=><div key={index} className="mt-3 border-b pb-3"><p>{item.name} × {item.quantity} · {money(Number(item.unit_price)*item.quantity)}</p>
-            {item.section==="cake"&&<CakeDetails options={item.options}/>}</div>)}
-          <p className="mt-3 text-sm">Առաքում՝ {money(Number(order.delivery_fee))}</p>
+          {order.items.map((item,index)=><div key={index} className="mt-3 flex items-start gap-3 border-b pb-3"><AdminSaleImage image={item.image||catalogImages[item.product_id]} name={item.name}/><div className="min-w-0"><p>{item.name} × {item.quantity} · {money(Number(item.unit_price)*item.quantity)}</p>
+            {item.section==="cake"&&<CakeDetails options={item.options}/>}<AdminSaleCakeCost item={item} settings={cakeCosts} size={catalogSizes[item.product_id]??null}/></div></div>)}
+          <div className="mt-3 grid gap-2 rounded-xl bg-purple-50 p-3 text-sm sm:grid-cols-3"><p>Տորթեր՝ {money(Number(order.cake_total)+Number(order.available_total))}</p><p>Փարթի շոփ՝ {money(Number(order.party_total))}</p><p>Առաքում՝ {money(Number(order.delivery_fee))}</p></div>
           <dl className="mt-3 text-sm text-gray-600">{Object.entries({deliveryDate:"Ամսաթիվ",deliveryTime:"Ժամ",deliveryAddress:"Հասցե",paymentMethod:"Վճարում",deliveryOption:"Ստացման եղանակ"}).map(([key,label])=>
             order.delivery_info[key]?<div key={key}><dt className="inline">{label}: </dt><dd className="inline">{String(order.delivery_info[key])}</dd></div>:null)}</dl>
-          <div className="mt-4 flex flex-wrap gap-3"><button disabled={busy} onClick={()=>void changeStatus(order,"sold")} className="rounded-xl bg-green-600 px-4 py-3 text-white disabled:opacity-50">Հաստատել վաճառքը</button>
+          <div className="mt-4 flex flex-wrap gap-3"><button disabled={busy} onClick={()=>editOrder(order)} className="rounded-xl border border-purple-200 px-4 py-3 text-[#69429a] disabled:opacity-50">Խմբագրել պատվերը</button><button disabled={busy} onClick={()=>void changeStatus(order,"sold")} className="rounded-xl bg-green-600 px-4 py-3 text-white disabled:opacity-50">Հաստատել վաճառքը</button>
             <button disabled={busy} onClick={()=>void changeStatus(order,"cancelled")} className="rounded-xl border border-red-200 px-4 py-3 text-red-600 disabled:opacity-50">Չեղարկել</button></div>
         </details>)}
       </section>
@@ -135,7 +164,7 @@ export function AdminSales() {
           <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b">
             {["Ստացման/առաքման ամսաթիվ","Ապրանք","Քանակ","Միավորի գին","Ընդամենը",...(section==="party"?["Ինքնարժեք / հատ"]:[])].map(x=><th key={x} className="p-3">{x}</th>)}</tr></thead><tbody>
             {lines.map(({item,index,order})=><tr key={`${order.id}-${index}`} className="border-b"><td className="whitespace-nowrap p-3">{orderDate(order)}</td>
-              <td className="min-w-48 p-3"><p className="font-semibold">{item.name}</p>{section==="cake"&&<CakeDetails options={item.options}/>}</td>
+              <td className="min-w-64 p-3"><div className="flex items-start gap-3"><AdminSaleImage image={item.image||catalogImages[item.product_id]} name={item.name}/><div className="min-w-0"><p className="font-semibold">{item.name}</p>{section==="cake"&&<CakeDetails options={item.options}/>}<AdminSaleCakeCost item={item} settings={cakeCosts} size={catalogSizes[item.product_id]??null}/></div></div></td>
               <td className="p-3">{item.quantity}</td><td className="whitespace-nowrap p-3">{money(Number(item.unit_price))}</td>
               <td className="whitespace-nowrap p-3">{money(Math.round(Number(item.unit_price)*100)*item.quantity/100)}</td>
               {section==="party"&&<td className="whitespace-nowrap p-3">{item.unit_cost===null?"Նշված չէ":money(Number(item.unit_cost))}</td>}</tr>)}
@@ -183,7 +212,8 @@ export function AdminSales() {
           <summary className="cursor-pointer font-semibold">{orderDate(order)} · {sourceName(order)} · {order.phone||"Հեռախոսը նշված չէ"} · {money(Number(order.product_total)+Number(order.delivery_fee))}</summary>
           <CustomerDetails order={order}/>
           <p className="mt-3 break-all text-xs text-gray-400">Պատվեր՝ {order.id}</p>
-          {order.items.map((item,index)=><div key={index} className="mt-3 border-t pt-3 text-sm"><p>{item.name} × {item.quantity} · {money(Number(item.unit_price)*item.quantity)}</p><CakeDetails options={item.options}/></div>)}
+          {order.items.map((item,index)=><div key={index} className="mt-3 flex items-start gap-3 border-t pt-3 text-sm"><AdminSaleImage image={item.image||catalogImages[item.product_id]} name={item.name}/><div className="min-w-0"><p>{item.name} × {item.quantity} · {money(Number(item.unit_price)*item.quantity)}</p><CakeDetails options={item.options}/><AdminSaleCakeCost item={item} settings={cakeCosts} size={catalogSizes[item.product_id]??null}/></div></div>)}
+          <button disabled={busy} onClick={()=>editOrder(order)} className="mr-4 mt-4 rounded-xl border border-purple-200 px-4 py-2 text-sm text-[#69429a] disabled:opacity-50">Խմբագրել պատվերը</button>
           <button disabled={busy} onClick={()=>void changeStatus(order,"cancelled")} className="mt-4 text-sm text-red-600 disabled:opacity-50">Չեղարկել վաճառքը</button>
         </details>)}
       </section>}

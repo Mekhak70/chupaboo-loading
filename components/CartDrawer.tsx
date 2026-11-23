@@ -5,6 +5,9 @@ import { useCart } from "@/components/cart-context";
 import { useLanguage } from "@/components/language-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback, useRef, useEffect } from "react";
+import { randomId } from "@/lib/random-id";
+import { websiteOrderPayload } from "@/lib/website-order";
+import { checkoutUnitPrice } from "@/lib/finance";
 import { supabase } from "@/lib/supabase";
 
 type PaymentMethod = "cash" | "CARD" | "bankTransfer" | "";
@@ -127,6 +130,9 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
   const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showMessengerSelector, setShowMessengerSelector] = useState(false);
+  const [recordingOrder,setRecordingOrder]=useState(false);
+  const orderLock=useRef(false);
+  const checkoutAttempt=useRef<{id:string;payload:string}|null>(null);
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const existingOrderInfo = contextOrderInfo || propOrderInfo;
@@ -206,12 +212,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
   const productsTotal = cart.reduce((total, item) => {
     const isCake = !!item.options?.cakeType;
-    let unitPrice = item.price;
-
-    if (hasCakeInCart && !isCake && discountPercent > 0) {
-      const discountAmount = unitPrice * (discountPercent / 100);
-      unitPrice = Math.max(0, unitPrice - discountAmount);
-    }
+    const unitPrice = checkoutUnitPrice(item.price,hasCakeInCart&&!isCake?discountPercent:0);
 
     return total + unitPrice * (typeof item.quantity === "number" ? item.quantity : 0);
   }, 0);
@@ -578,12 +579,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
 
     cart.forEach((item) => {
       const isCake = !!item.options?.cakeType;
-      let finalPrice = item.price;
-
-      if (hasCakeInCart && !isCake && discountPercent > 0) {
-        const discountAmount = finalPrice * (discountPercent / 100);
-        finalPrice = Math.max(0, finalPrice - discountAmount);
-      }
+      const finalPrice = checkoutUnitPrice(item.price,hasCakeInCart&&!isCake?discountPercent:0);
 
       message += `▸ ${item.name} — ${item.quantity} ${t('quantity') || "հատ"} — ${finalPrice * item.quantity} ${t('currency')}\n`;
       if (isCake && item.options) {
@@ -676,29 +672,29 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
     return true;
   };
 
-  const redirectToMessenger = (
-    platform: "whatsapp" | "telegram"
-  ) => {
+  const redirectToMessenger = async (platform:"whatsapp"|"telegram") => {
+    if(orderLock.current)return;
+    orderLock.current=true;setRecordingOrder(true);
     try {
-      // Հաղորդագրությունը կազմում ենք մինչև զամբյուղը մաքրելը։
-      const message = buildOrderMessage(platform);
-      const encodedMessage = encodeURIComponent(message);
-  
-      const messengerUrl =
-        platform === "whatsapp"
-          ? `https://wa.me/37433775750?text=${encodedMessage}`
-          : `https://t.me/Chupaboo?text=${encodedMessage}`;
-  
-      window.location.href = messengerUrl;
-  
-      setShowMessengerSelector(false);
-      clearCart();
-      onClose();
-    } catch (error) {
-      console.error("Messenger redirect error:", error);
-  
-      alert("Չհաջողվեց բացել մեսսենջերը։ Փորձեք կրկին։");
-    }
+      const message=buildOrderMessage(platform);
+      const payload=websiteOrderPayload(cart,tempOrderInfo,discountPercent);
+      const serialized=JSON.stringify(payload);
+      if(checkoutAttempt.current?.payload!==serialized)checkoutAttempt.current={id:randomId(),payload:serialized};
+      const response=await fetch("/api/checkout-record",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:checkoutAttempt.current.id,...payload}),
+        signal:AbortSignal.timeout(25000),
+      });
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error||t("orderSaveError"));
+      const encodedMessage=encodeURIComponent(message);
+      window.location.href=platform==="whatsapp"?`https://wa.me/37433775750?text=${encodedMessage}`:`https://t.me/Chupaboo?text=${encodedMessage}`;
+      setShowMessengerSelector(false);clearCart();onClose();
+      checkoutAttempt.current=null;
+    }catch(error){
+      console.error("Order registration failed:",error);
+      alert(t("orderSaveError"));
+    }finally{orderLock.current=false;setRecordingOrder(false);}
   };
   const deliveryInfo = formatDeliveryInfo();
 
@@ -1293,7 +1289,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                  onClick={() => setShowMessengerSelector(false)}
+                  onClick={() => {if(!recordingOrder)setShowMessengerSelector(false);}}
                 >
                   <motion.div
                     initial={{ scale: 0.85, opacity: 0, y: 20 }}
@@ -1316,11 +1312,13 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         {t('chooseSendMethodDesc') || "Պատվերը հաստատելու համար ընտրեք մեսսենջեր"}
                       </p>
 
+                      {recordingOrder&&<p role="status" className="mb-3 text-sm text-[#69429a]">{t("loading")}</p>}
                       <div className="flex flex-col gap-3">
                         <motion.button
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.97 }}
-                          onClick={() => redirectToMessenger('whatsapp')}
+                          disabled={recordingOrder}
+                          onClick={() => void redirectToMessenger('whatsapp')}
                           className="w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg"
                           style={{
                             background: "linear-gradient(135deg, #25D366, #128C7E)",
@@ -1336,7 +1334,8 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                         <motion.button
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.97 }}
-                          onClick={() => redirectToMessenger('telegram')}
+                          disabled={recordingOrder}
+                          onClick={() => void redirectToMessenger('telegram')}
                           className="w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg"
                           style={{
                             background: "linear-gradient(135deg, #0088cc, #006699)",
@@ -1351,6 +1350,7 @@ export function CartDrawer({ isOpen, onClose, orderInfo: propOrderInfo }: CartDr
                       </div>
 
                       <button
+                        disabled={recordingOrder}
                         onClick={() => setShowMessengerSelector(false)}
                         className="mt-5 text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium"
                       >

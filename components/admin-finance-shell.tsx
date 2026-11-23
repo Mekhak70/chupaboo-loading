@@ -34,7 +34,7 @@ export function AdminFinanceShell({ title, children }: { title: string; children
     <div className="mx-auto max-w-7xl"><p className="text-sm font-bold text-[#69429a]">CHUPABOO · ԱԴՄԻՆ</p>
       <h1 className="my-5 text-3xl font-bold">{title}</h1>
       <nav className="mb-6 flex flex-wrap gap-3" aria-label="Ֆինանսների բաժիններ">
-        {[[base,"Ապրանքներ"],[`${base}/expenses`,"Ծախսեր"],[`${base}/sales`,"Վաճառք և արդյունք"]].map(([href,label]) =>
+        {[[base,"Ապրանքներ"],[`${base}/expenses`,"Ծախսեր"],[`${base}/sales`,"Վաճառք և արդյունք"],[`${base}/costs`,"Տորթերի ինքնարժեք"]].map(([href,label]) =>
           <Link key={href} href={href} className="rounded-xl border border-purple-100 bg-white px-5 py-3 font-semibold text-[#69429a]">{label}</Link>)}
       </nav>{children}
     </div>

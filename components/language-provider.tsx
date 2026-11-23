@@ -427,6 +427,12 @@ productNaturalFreshIngredients: {
   ru: "Из натуральных и свежих ингредиентов",
   pl: "Z naturalnych i świeżych składników"
 },
+orderSaveError: {
+  hy: "Պատվերը չհաջողվեց պահպանել։ Զամբյուղը պահպանված է․ խնդրում ենք կրկին փորձել։",
+  en: "Could not save your order. Your cart is unchanged; please try again.",
+  ru: "Не удалось сохранить заказ. Корзина сохранена; попробуйте ещё раз.",
+  pl: "Nie udało się zapisać zamówienia. Koszyk pozostał bez zmian; spróbuj ponownie."
+},
 productInfo: {
   hy: "Տեղեկություն ապրանքի մասին",
   en: "Product Information",

@@ -587,6 +587,7 @@ export default function AdminPage() {
                 <div className="mb-5 flex flex-wrap gap-3">
                     <Link href={`${typeof locale === "string" ? `/${locale}` : ""}/admin/expenses`} className="rounded-xl bg-white px-5 py-3 font-semibold text-[#69429a]">Ծախսեր</Link>
                     <Link href={`${typeof locale === "string" ? `/${locale}` : ""}/admin/sales`} className="rounded-xl bg-[#69429a] px-5 py-3 font-semibold text-white">Վաճառք և արդյունք</Link>
+                    <Link href={`${typeof locale === "string" ? `/${locale}` : ""}/admin/costs`} className="rounded-xl bg-white px-5 py-3 font-semibold text-[#69429a]">Տորթերի ինքնարժեք</Link>
                 </div>
 
                 <nav aria-label="Ադմինի բաժիններ" className="mb-6 flex flex-wrap gap-3">

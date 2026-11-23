@@ -19,6 +19,7 @@ export interface FinanceOrder {
   status: "pending" | "sold" | "cancelled"; phone: string;
   delivery_info: Record<string, unknown>; items: SaleItem[];
   delivery_fee: number; product_total: number;
+  cake_total: number; party_total: number; available_total: number; updated_at:string;
 }
 export const money = (value: number) => new Intl.NumberFormat("hy-AM", {
   style: "currency", currency: "AMD", maximumFractionDigits: 2,
