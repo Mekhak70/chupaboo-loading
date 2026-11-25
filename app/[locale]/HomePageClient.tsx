@@ -1,0 +1,1272 @@
+"use client";
+
+import Image from "next/image";
+import type { HomepageData } from "@/lib/homepage-data";
+import { HelpCircle, CakeSlice, CreditCard, Clock } from "lucide-react";
+import { Heart, Shield, Sparkles, PawPrint, Truck, Palette, X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
+import { useCart } from "@/components/cart-context";
+import { CartDrawer } from "@/components/CartDrawer";
+import { motion, useInView, useAnimation } from "framer-motion";
+
+// Desktop images
+import homepageDesktop from "@/public/fon.png";
+import main1Desktop from "@/public/main1.png";
+import main2Desktop from "@/public/main2.png";
+import main3Desktop from "@/public/main3.png";
+
+// Mobile images
+import homepageMobile from "@/public/fon-mobile.png";
+import main1Mobile from "@/public/main-mobile1.png";
+import main2Mobile from "@/public/main-mobile2.png";
+import main3Mobile from "@/public/main-mobile3.png";
+const faqIcons = { HelpCircle, Heart, Truck, Shield, CakeSlice, PawPrint, CreditCard, Clock };
+
+type Filter = "all" | "meat" | "vegetable" | "fruit" | "small" | "standart";
+
+interface Product {
+  id: string | number;
+  name: string;
+  image: string | StaticImport;
+  category: Filter;
+}
+
+interface Ad {
+  id: number;
+  title: string;
+  description: string;
+  ctaText: string;
+  ctaLink: string;
+  icon: string;
+  bgColor: string;
+}
+
+// Check if device is mobile
+const isMobileDevice = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 768;
+};
+
+// Hero slides with responsive images
+const getHeroSlides = () => [
+  {
+    id: 2,
+    showFloatingImages: false,
+    imageDesktop: "/chupaboo-giveaway.jpg",
+    imageMobile: "/chupaboo-giveaway-mobile.jpg",
+    title: "Chupaboo Giveaway",
+    subtitle: "",
+    ctaText: "",
+    ctaLink: "https://www.instagram.com/p/De6wRuSCFj9/?img_index=1",
+    bgColor: "",
+  },
+  {
+    id: 1,
+    showFloatingImages: true,
+    imageDesktop: homepageDesktop,
+    imageMobile: homepageMobile,
+    title: "",
+    subtitle: "",
+    ctaText: "",
+    ctaLink: "",
+    bgColor: "",
+  },
+];
+
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='200' y='200' font-family='Arial' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+// Get responsive floating images
+const getFloatingImages = () => ({
+  centerDesktop: main2Desktop,
+  centerMobile: main2Mobile,
+  leftDesktop: main1Desktop,
+  leftMobile: main1Mobile,
+  rightDesktop: main3Desktop,
+  rightMobile: main3Mobile,
+});
+
+// Scroll-triggered animation wrapper component
+const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" }: { children: React.ReactNode; delay?: number; direction?: "up" | "down" | "left" | "right"; className?: string }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2, margin: "-50px" });
+  const controls = useAnimation();
+
+  const directions = {
+    up: { y: 80, x: 0 },
+    down: { y: -80, x: 0 },
+    left: { x: 80, y: 0 },
+    right: { x: -80, y: 0 },
+  };
+
+  useEffect(() => {
+    if (isInView) {
+      controls.start("visible");
+    }
+  }, [isInView, controls]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={controls}
+      variants={{
+        hidden: { opacity: 1, ...directions[direction] },
+        visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.8, ease: "easeOut", delay } }
+      }}
+      className={className}
+    >
+      {children}
+      
+    </motion.div>
+  );
+};
+
+// Staggered children wrapper
+const StaggerContainer = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+      variants={{
+        hidden: { opacity: 1 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.15,
+            delayChildren: 0.2,
+          }
+        }
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const StaggerItem = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 1, y: 40 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+interface HomePageClientProps {
+  initialData: HomepageData;
+}
+
+export default function HomePageClient({ initialData }: HomePageClientProps) {
+
+  const [isHovering, setIsHovering] = useState(false);
+  const scrollRef = useRef(null);
+  const animationRef = useRef(null);
+  const positionRef = useRef(0);
+  const speed = 0.8;
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let lastTimestamp = 0;
+
+    const animate = (timestamp: any) => {
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+        //@ts-ignore
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      if (!isHovering) {
+        positionRef.current -= speed;
+        //@ts-ignore
+        const halfWidth = scrollContainer.scrollWidth / 2;
+        if (Math.abs(positionRef.current) >= halfWidth) {
+          positionRef.current = 0;
+        }
+        //@ts-ignore
+        scrollContainer.style.transform = `translateX(${positionRef.current}px)`;
+      }
+
+      lastTimestamp = timestamp;
+      //@ts-ignore
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    //@ts-ignore
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isHovering, speed]);
+
+  const { t, language } = useLanguage();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [type, setType] = useState<string>("");
+  const [creamType, setCreamType] = useState<string>("");
+  const [isMobile, setIsMobile] = useState(false);
+  const productsParty = initialData.productsParty;
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [currentImage, setCurrentImage] = useState<Record<string, number>>({});
+  const products = initialData.products;
+  const available = initialData.available;
+  const faqs = initialData.faqs;
+  const catalogError = initialData.catalogError;
+  const faqError = initialData.faqError;
+
+  // AD STATES - using sessionStorage
+  const [currentAd, setCurrentAd] = useState<Ad | null>(null);
+  const [isAdVisible, setIsAdVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isAdClosedInSession, setIsAdClosedInSession] = useState(false);
+
+  // HERO SLIDER STATE
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const adTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { locale } = useParams();
+  const SITE_URL = "https://www.chupaboo.com";
+
+  const { addToCart, getItemCount, cart, orderInfo } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Detect mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Get responsive hero slides
+  const heroSlides = useMemo(() => getHeroSlides(), []);
+  const floatingImages = useMemo(() => getFloatingImages(), []);
+
+  // ADS
+  const ads: Ad[] = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "📢 Այստեղ կարող է լինել ձեր գովազդը #1",
+        description: "Հասեք 1000+ հաճախորդների ամեն օր",
+        ctaText: "Մանրամասն →",
+        ctaLink: `https://www.chupaboo.com/${locale}/contact`,
+        bgColor: "from-[#69429a] to-[#8b5fcf]",
+        icon: "📢",
+      },
+      {
+        id: 2,
+        title: "🚕 Pet Taxi - Հոգատար փոխադրում կենդանիների համար",
+        description: "Անվտանգ, հարմարավետ և սիրով: Երևանով և Հայաստանով:",
+        ctaText: "Պատվիրել →",
+        ctaLink: "https://pettaxi.am",
+        bgColor: "from-[#4a90e2] to-[#2c5aa0]",
+        icon: "🚕",
+      },
+
+    ],
+    []
+  );
+
+  const features = [
+    { icon: Heart, title: t("handmade"), description: t("handmadeDesc") },
+    { icon: Shield, title: t("petSafe"), description: t("petSafeDesc") },
+    { icon: Sparkles, title: t("freshDaily"), description: t("freshDailyDesc") },
+  ];
+
+  const filteredProducts = useMemo(() => {
+    if (filter === "all") return products;
+    return products.filter((product) => product.category === filter);
+  }, [filter, products]);
+
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+
+  const handleSelectImage = (image: { src: string } | StaticImport) => {
+    let src = "";
+    if (typeof image === "object" && "src" in image) {
+      src = (image as any).src || "";
+    } else if (typeof image === "string") {
+      src = image;
+    }
+    setPendingImage(src);
+  };
+
+  const whatsappMessage = pendingImage
+    ? `${t("whatsappMessageTextOne")}
+
+${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("/") ? pendingImage : "/" + pendingImage}`
+    : t("whatsappMessageText");
+
+  const whatsappLink = `https://wa.me/37433775750?text=${encodeURIComponent(whatsappMessage)}`;
+
+  // AD LOGIC - using sessionStorage
+  const showRandomAd = useCallback(() => {
+    // Check sessionStorage - if closed in this session, don't show
+    if (typeof window !== "undefined") {
+      const adClosed = sessionStorage.getItem("chupaboo_ad_closed_session");
+      if (adClosed === "true") {
+        setIsAdClosedInSession(true);
+        return;
+      }
+    }
+
+    // Clear any existing timeout
+    if (adTimeoutRef.current) {
+      clearTimeout(adTimeoutRef.current);
+      adTimeoutRef.current = null;
+    }
+
+    // Select random ad (different from current if possible)
+    let randomIndex = Math.floor(Math.random() * ads.length);
+    if (currentAd && ads[randomIndex].id === currentAd.id && ads.length > 1) {
+      randomIndex = (randomIndex + 1) % ads.length;
+    }
+
+    const nextAd = ads[randomIndex];
+    setCurrentAd(nextAd);
+    setIsClosing(false);
+    setIsAdVisible(true);
+
+    // Auto-close after 8 seconds
+    adTimeoutRef.current = setTimeout(() => {
+      handleCloseAd();
+    }, 8000);
+  }, [ads, currentAd]);
+
+  const handleCloseAd = useCallback(() => {
+    if (isClosing || !isAdVisible) return;
+
+    setIsClosing(true);
+
+    // Save to sessionStorage that ad was closed in this session
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("chupaboo_ad_closed_session", "true");
+    }
+    setIsAdClosedInSession(true);
+
+    // Hide after animation
+    setTimeout(() => {
+      setIsAdVisible(false);
+      setIsClosing(false);
+      if (adTimeoutRef.current) {
+        clearTimeout(adTimeoutRef.current);
+        adTimeoutRef.current = null;
+      }
+    }, 500);
+  }, [isClosing, isAdVisible]);
+
+  // Initialize ad system
+  useEffect(() => {
+    // Check sessionStorage
+    if (typeof window !== "undefined") {
+      const adClosed = sessionStorage.getItem("chupaboo_ad_closed_session");
+      if (adClosed === "true") {
+        setIsAdClosedInSession(true);
+        return;
+      }
+    }
+
+    // Show first ad after 2 seconds
+    const initialTimeout = setTimeout(() => {
+      showRandomAd();
+    }, 2000);
+
+    // Set interval for next ads (only if not closed in session)
+    intervalRef.current = setInterval(() => {
+      if (!isAdVisible && !isAdClosedInSession) {
+        showRandomAd();
+      }
+    }, 12000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (adTimeoutRef.current) clearTimeout(adTimeoutRef.current);
+    };
+  }, [showRandomAd, isAdVisible, isAdClosedInSession]);
+
+  // Clear sessionStorage when navigating away (optional - handled by browser)
+  // This effect runs when component unmounts (user leaves page)
+  useEffect(() => {
+    return () => {
+      // Don't clear sessionStorage on unmount - we want to keep it for the session
+      // sessionStorage will be cleared automatically when browser tab is closed
+    };
+  }, []);
+
+  // HERO SLIDER LOGIC
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  }, [heroSlides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  }, [heroSlides.length]);
+
+  useEffect(() => {
+    if (!isAutoPlaying || heroSlides.length <= 1) return;
+
+    // Start a fresh five-second delay after every slide change.
+    const timeout = setTimeout(nextSlide, 5000);
+    autoPlayRef.current = timeout;
+
+    return () => {
+      clearTimeout(timeout);
+      autoPlayRef.current = null;
+    };
+  }, [currentSlide, isAutoPlaying, nextSlide, heroSlides.length]);
+
+  // Products slider state
+  const [isProductsAutoPlaying, setIsProductsAutoPlaying] = useState(true);
+  const productsControls = useAnimation();
+
+  // PartyShop slider state
+  const [isPartyShopAutoPlaying, setIsPartyShopAutoPlaying] = useState(true);
+
+  const availableProductsControls = useAnimation();
+
+  useEffect(() => {
+    if (!products.length) return;
+
+    if (!isPartyShopAutoPlaying) {
+      availableProductsControls.stop();
+      return;
+    }
+
+    const itemWidth =
+      window.innerWidth < 768
+        ? 240 + 16 // mobile
+        : window.innerWidth < 1024
+          ? 280 + 24 // tablet
+          : 320 + 24; // desktop
+
+    const totalWidth = products.slice(0, 6).length * itemWidth;
+
+    availableProductsControls.set({ x: 0 });
+
+    availableProductsControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 20,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    });
+  }, [products, isPartyShopAutoPlaying, availableProductsControls]);
+
+
+  const partyShopControls = useAnimation();
+
+  // Products slider animation
+  const visibleProductsCount = useMemo(
+    () => Math.min(filteredProducts.length, 6),
+    [filteredProducts.length]
+  );
+
+  useEffect(() => {
+    if (!isProductsAutoPlaying) {
+      productsControls.stop();
+      return;
+    }
+
+    const itemWidth = 320 + 24;
+    const totalWidth = visibleProductsCount * itemWidth;
+
+    productsControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 30,
+        repeat: Infinity,
+        ease: "linear",
+        repeatType: "loop"
+      }
+    });
+  }, [isProductsAutoPlaying, visibleProductsCount, productsControls]);
+
+  // PartyShop slider animation
+  useEffect(() => {
+    if (!products.length) return;
+
+    if (!isPartyShopAutoPlaying) {
+      partyShopControls.stop();
+      return;
+    }
+
+    const itemWidth =
+      window.innerWidth < 768
+        ? 240 + 16 // mobile
+        : window.innerWidth < 1024
+          ? 280 + 24 // tablet
+          : 320 + 24; // desktop
+
+    const totalWidth = products.slice(0, 6).length * itemWidth;
+
+    partyShopControls.set({ x: 0 });
+
+    partyShopControls.start({
+      x: [0, -totalWidth],
+      transition: {
+        duration: 20,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    });
+  }, [products, isPartyShopAutoPlaying, partyShopControls]);
+
+  const getWorkingImageUrl = (url: string) => {
+    if (!url) return PLACEHOLDER_IMAGE;
+
+    if (url.includes('drive.google.com') ||
+      url.includes('drive.usercontent.google.com') ||
+      url.includes('googleusercontent.com')) {
+      return `/api/image?url=${encodeURIComponent(url)}`;
+    }
+
+    return url;
+  };
+
+  const isProductInCart = (productId: string) => {
+    return cart.some((item: { id: string }) => item.id === productId);
+  };
+
+  const getProductQuantity = (productId: string) => {
+    const item = cart.find((item: { id: string }) => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const renderFaqCard = (faq: any, centered = false) => {
+    const Icon = faqIcons[faq.icon as keyof typeof faqIcons] ?? HelpCircle;
+    return (
+                <StaggerItem key={faq.id} className={centered ? "w-full max-w-2xl" : ""}>
+                  <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#69429a]/30 group">
+                    <div className="flex items-start gap-3 md:gap-5">
+                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#69429a]/10 flex items-center justify-center text-xl md:text-2xl group-hover:bg-[#69429a] group-hover:text-white transition-all duration-300">
+                        <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                      </div>
+                      <div className="min-w-0 break-words">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 md:mb-2">{faq.title}</h3>
+                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </StaggerItem>
+    );
+  };
+
+  return (
+    <>
+      <div className="flex flex-col w-full min-w-0 max-w-full overflow-x-hidden">
+        {/* Floating Cart Button */}
+        {getItemCount() > 0 && (
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="fixed bottom-6 right-6 text-white p-4 rounded-full shadow-lg transition z-50 flex items-center justify-center"
+            style={{ backgroundColor: "#69429a" }}
+          >
+            <ShoppingCart className="h-6 w-6" />
+            {getItemCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {getItemCount()}
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* Cart Drawer */}
+        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} orderInfo={orderInfo} />
+
+        {/* ========== HERO SLIDER ========== */}
+        <ScrollReveal direction="up" delay={0}>
+          <section
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            className="relative overflow-hidden"
+          >
+            <div className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] lg:h-[480px]">
+              {heroSlides.map((slide, idx) => (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-all duration-700 ease-out ${idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                    }`}
+                >
+                  {slide.ctaLink && (
+                    <a
+                      href={slide.ctaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Chupaboo giveaway on Instagram"
+                      tabIndex={idx === currentSlide ? 0 : -1}
+                      className={`absolute inset-0 z-30 ${idx === currentSlide ? "" : "pointer-events-none"}`}
+                    />
+                  )}
+                  {/* Desktop and mobile banner images; switch at 768px. */}
+                  <Image
+                    src={slide.imageDesktop}
+                    alt={slide.title || "Chupaboo banner"}
+                    fill
+                    className="hidden md:block object-fill object-center"
+                    priority={idx === 0}
+                    sizes="100vw"
+                    quality={90}
+                  />
+                  <Image
+                    src={slide.imageMobile}
+                    alt={slide.title || "Chupaboo banner"}
+                    fill
+                    className="block md:hidden object-fill object-center"
+                    priority={idx === 0}
+                    sizes="100vw"
+                    quality={90}
+                  />
+
+                  {/* Floating Images - with CSS animations */}
+                  {slide.showFloatingImages && (
+                  <div className="absolute inset-0 z-20 pointer-events-none">
+                    {/* Կենտրոնական նկար */}
+                    <div
+                      className="absolute animate-float-center"
+                      style={{
+                        top: isMobile ? "35%" : "50%",
+                        left: isMobile ? "60%" : "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: isMobile ? "min(150px, 35vw)" : "min(260px, 24vw)",
+                        height: isMobile ? "min(150px, 35vw)" : "min(268px, 25vw)",
+                      }}
+                    >
+                      <Image
+                        src={isMobile ? floatingImages.centerMobile : floatingImages.centerDesktop}
+                        alt="floating center image"
+                        width={367}
+                        height={379}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+
+                    {/* Ձախ կողմի նկար - hidden on mobile */}
+                    <div
+                      className={`absolute animate-float-left `}
+                      style={{
+                        top: isMobile ? "57%" : "50%",
+                        left: isMobile ? "65%" : "67%",
+                        width: isMobile ? "min(150px, 35vw)" : "min(300px, 30vw)",
+                        height: isMobile ? "min(150px, 35vw)" : "min(300px, 30vw)",
+                      }}
+                    >
+                      <Image
+                        src={isMobile ? floatingImages.leftMobile : floatingImages.leftDesktop}
+                        alt="floating left image"
+                        width={401}
+                        height={402}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+
+                    {/* Աջ կողմի նկար - hidden on mobile */}
+                    <div
+                      className={`absolute animate-float-right `}
+                      style={{
+                        top: isMobile ? "78%" : "55%",
+                        left: isMobile ? "39%" : "33%",
+                        width: isMobile ? "min(110px, 35vw)" : "min(290px, 29vw)",
+                        height: isMobile ? "min(110px, 35vw)" : "min(285px, 28vw)",
+                      }}
+                    >
+                      <Image
+                        src={isMobile ? floatingImages.rightMobile : floatingImages.rightDesktop}
+                        alt="floating right image"
+                        width={407}
+                        height={399}
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        priority
+                      />
+                    </div>
+                  </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
+            >
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-1.5 md:p-2 transition-all hover:scale-110"
+            >
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </button>
+          </section>
+        </ScrollReveal>
+
+       
+
+        {catalogError && <p role="alert">{catalogError}</p>}
+        {/* PRODUCTS SECTION */}
+        <section className="bg-gray-50 py-8 md:py-12 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <ScrollReveal direction="up">
+              <Link href={`/${locale}/cakes`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
+              </Link>
+            </ScrollReveal>
+
+            <div
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
+              onMouseEnter={() => setIsProductsAutoPlaying(false)}
+              onMouseLeave={() => setIsProductsAutoPlaying(true)}
+            >
+              <motion.div
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={partyShopControls}
+                style={{
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                {[...products.slice(0, 6), ...products.slice(0, 6)].map((product, idx) => (
+                  <Link
+                    key={`${product.id}-${idx}`}
+                    href={`/${locale}/product/${product.id}`}
+                    className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group block flex-shrink-0"
+                  >
+                    <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white">
+                      <div className="relative w-full aspect-square overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                          
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </div>
+                      <div className="p-3 md:p-4 text-center bg-white">
+                        <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
+                          {product.name}
+                        </h3>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        <ScrollReveal direction="up" delay={0.2}>
+          <div className="flex justify-center mt-8 md:mt-12">
+            <Link href={`/${locale}/cakes`}>
+              <button
+                className="
+                  group relative px-6 md:px-8 py-2.5 md:py-3 
+                  rounded-full 
+                  bg-[#69429a] text-white 
+                  font-semibold text-base md:text-lg 
+                  transition-all duration-300 ease-out 
+                  hover:bg-[#7c4fb3] 
+                  hover:scale-105 hover:-translate-y-0.5 
+                  active:scale-95 active:translate-y-0
+                  shadow-lg hover:shadow-xl 
+                  active:shadow-md
+                  overflow-hidden
+                  cursor-pointer
+                  select-none
+                  touch-manipulation
+                  tap-highlight-transparent
+                  focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2
+                  z-20 relative
+                "
+                style={{
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation',
+                }}
+              >
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <span className="relative flex items-center gap-2">
+                  <span>{t('seeMoreLabel')}</span>
+                  <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-0">
+                    →
+                  </span>
+                </span>
+              </button>
+            </Link>
+          </div>
+        </ScrollReveal>
+
+        {/* ========== AVAILABLE PRODUCTS SECTION ========== */}
+        <section className="bg-white py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <ScrollReveal direction="up">
+              <Link href={`/${locale}/available`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">
+                    {t("available")}
+                  </h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
+              </Link>
+            </ScrollReveal>
+
+            <div
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
+              onMouseEnter={() => setIsProductsAutoPlaying(false)}
+              onMouseLeave={() => setIsProductsAutoPlaying(true)}
+            >
+              <motion.div
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={availableProductsControls}
+                style={{
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                {[...available,
+                ...available
+                ].map((product, idx) => (
+
+                  <Link href={`/${locale}/product/available/${product.id}`}
+                    key={`${product.id}-${idx}`}
+
+                    className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group block flex-shrink-0"
+                  >
+                    <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white border border-gray-100">
+                      <div className="relative w-full aspect-square overflow-hidden">
+                        <img
+                          src={product.image || PLACEHOLDER_IMAGE}
+                          alt={product.name || "Առկա ապրանք"}
+                          
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                        />
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                        <div className="absolute top-3 left-3">
+                          <span className="inline-flex items-center gap-1 bg-[#aed137] text-white text-xs md:text-sm font-bold px-3 py-1.5 rounded-full shadow-md">
+                            ✓ {t("inStock")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 md:p-4 text-center bg-white">
+                        <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors line-clamp-2">
+                          {product.name}
+                        </h3>
+
+                        {product.price > 0 && (
+                          <p className="text-sm md:text-base font-bold text-[#69429a] mt-2">
+                            {Number(product.price).toLocaleString()} AMD
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </motion.div>
+            </div>
+
+            <ScrollReveal direction="up" delay={0.3}>
+              <div className="flex justify-center mt-8 md:mt-12">
+                <Link href={`/${locale}/available`}>
+                  <button
+                    className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg"
+                  >
+                    {t("viewAllProductsLabel")} →
+                  </button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* PARTY SHOP SECTION */}
+        <section className="bg-gray-50 py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <ScrollReveal direction="up">
+              <Link href={`/${locale}/partyshop`}>
+                <div className="text-center mb-8 md:mb-12">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t("partyshop")}</h2>
+                  <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
+                </div>
+              </Link>
+            </ScrollReveal>
+
+            <div
+              className="relative overflow-hidden w-full min-w-0 max-w-full"
+              onPointerEnter={() => setIsPartyShopAutoPlaying(false)}
+              onPointerLeave={() => setIsPartyShopAutoPlaying(true)}
+            >
+              <motion.div
+                className="flex gap-4 md:gap-6 will-change-transform"
+                animate={partyShopControls}
+                style={{
+                  width: "fit-content",
+                  WebkitTransform: "translate3d(0,0,0)",
+                  transform: "translate3d(0,0,0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+              >
+                {[...productsParty.slice(0, 6), ...productsParty.slice(0, 6)].map((product, idx) => {
+                  const productId = String(product.id);
+                  const inCart = isProductInCart(productId);
+                  const cartQuantity = getProductQuantity(productId);
+                  const selectedQuantity = quantities[productId] || 1;
+                  const productImages = Array.isArray(product.image)
+                    ? product.image
+                    : [product.image || PLACEHOLDER_IMAGE];
+
+                  const currentImageIndex = currentImage[productId] || 0;
+                  const hasError = imageErrors[productId];
+
+                  return (
+                    <div
+                      key={`${product.id}-${idx}`}
+                      className="w-[240px] min-w-[240px] max-w-[240px] md:w-[280px] md:min-w-[280px] md:max-w-[280px] lg:w-[320px] lg:min-w-[320px] lg:max-w-[320px] group flex-shrink-0"
+                    >
+                      <Link
+                        href={`/${locale}/partyshop`}
+                        className="group block rounded-xl md:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 bg-white"
+                      >
+                        <div className="relative w-full aspect-square overflow-hidden">
+                          <img
+                            src={productImages[currentImageIndex] || PLACEHOLDER_IMAGE}
+                            alt={product.name || "Շան ծննդյան տորթ"}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            sizes="(max-width: 768px) 240px, (max-width: 1024px) 280px, 320px"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" />
+
+                          {productImages.length > 1 && !hasError && (
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                              {productImages.map((_: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className={`w-2 h-2 rounded-full transition-colors ${currentImageIndex === index
+                                    ? "bg-white"
+                                    : "bg-white/50"
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {product.name && (
+                          <div className="p-3 md:p-4 text-center bg-white">
+                            <h3 className="font-semibold text-gray-800 text-base md:text-lg group-hover:text-[#69429a] transition-colors">
+                              {product.name}
+                            </h3>
+                            {product.price && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                {product.price} AMD
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </motion.div>
+            </div>
+
+            <ScrollReveal direction="up" delay={0.3}>
+              <div className="flex justify-center mt-8 md:mt-12">
+                <Link href={`/${locale}/partyshop`}>
+                  <button className="px-6 md:px-8 py-2.5 md:py-3 rounded-full bg-[#69429a] text-white font-semibold text-base md:text-lg transition-all hover:bg-[#7c4fb3] hover:scale-105 shadow-lg">
+                    {t('viewAllProductsLabel')} →
+                  </button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* FAQ SECTION */}
+        <section className="py-12 md:py-20 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <ScrollReveal direction="up">
+              <div className="text-center mb-8 md:mb-12">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a]">{t('faqLabel')}</h2>
+                <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto mt-3 md:mt-4 rounded-full" />
+              </div>
+            </ScrollReveal>
+
+            <StaggerContainer className="flex flex-col gap-5 md:gap-8 max-w-5xl mx-auto">
+              {faqError && <p role="alert">{faqError}</p>}
+              {Array.from({ length: Math.ceil(faqs.length / 5) }, (_, groupIndex) => {
+                const group = faqs.slice(groupIndex * 5, groupIndex * 5 + 5);
+                return (
+                  <div key={groupIndex} className="flex flex-col gap-5 md:gap-8">
+                    <div className="grid md:grid-cols-2 gap-5 md:gap-8">
+                      {group.slice(0, 2).map((faq) => renderFaqCard(faq))}
+                    </div>
+                    {group[2] && <div className="flex justify-center">{renderFaqCard(group[2], true)}</div>}
+                    {group.length > 3 && <div className="grid md:grid-cols-2 gap-5 md:gap-8">
+                      {group.slice(3, 5).map((faq) => renderFaqCard(faq))}
+                    </div>}
+                  </div>
+                );
+              })}
+            </StaggerContainer>
+
+            <ScrollReveal direction="up" delay={0.4}>
+              <div className="text-center mt-8 md:mt-12">
+                <p className="text-sm md:text-base text-gray-500">
+                  {t('stillHaveQuestions')}
+                  <a href={`/${locale}/contact`} className="text-[#69429a] font-semibold hover:underline ml-1">
+                    {t('contactUs')}
+                  </a>
+                </p>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* FEATURES SECTION */}
+        <section className="bg-white py-12 md:py-20">
+          <div className="container mx-auto px-4">
+            <StaggerContainer className="grid gap-5 md:gap-8 grid-cols-1 md:grid-cols-3">
+              {features.map((feature, index) => (
+                <StaggerItem key={index}>
+                  <div className="group flex flex-col items-center gap-3 md:gap-5 rounded-xl md:rounded-2xl bg-gray-50 p-6 md:p-8 text-center shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+                    <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#69429a] to-[#8b5fcf] shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon className="h-7 w-7 md:h-8 md:w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg md:text-xl font-bold text-gray-800">{feature.title}</h3>
+                    <p className="text-sm md:text-base text-gray-600 leading-relaxed">{feature.description}</p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </section>
+      </div>
+
+      {/* AD SLIDER - using sessionStorage */}
+      {isAdVisible && currentAd && !isAdClosedInSession && (
+        <div
+          key={currentAd.id}
+          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out`}
+          style={{
+            transform: isClosing ? "translateY(100%)" : "translateY(0)",
+            opacity: isClosing ? 0 : 1,
+          }}
+        >
+          <div className="px-2 pb-2 sm:px-4 sm:pb-4">
+            <div
+              className={`relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-r ${currentAd.bgColor}`}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseAd();
+                }}
+                className="absolute top-1 right-1 md:top-2 md:right-2 z-20 bg-black/50 hover:bg-black/70 rounded-full p-1 md:p-1.5 transition-all hover:scale-110"
+                aria-label="Close ad"
+              >
+                <X className="h-3 w-3 md:h-4 md:w-4 text-white" />
+              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-2 p-3 pr-5 md:p-4 md:pr-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-14 md:h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-xl md:text-3xl">{currentAd.icon}</span>
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <p className="text-white text-xs md:text-sm lg:text-base font-semibold">{currentAd.title}</p>
+                  <p className="text-white/70 text-xs md:text-sm hidden sm:block">{currentAd.description}</p>
+                </div>
+                <button
+                  onClick={() => window.open(currentAd.ctaLink, "_blank")}
+                  className="bg-white text-[#69429a] px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap hover:bg-gray-100 transition-all hover:scale-105 shadow-md flex-shrink-0"
+                >
+                  {currentAd.ctaText}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          .animate-float-center,
+          .animate-float-left,
+          .animate-float-right {
+            animation: none !important;
+            transform: translate(-50%, -50%) !important;
+            transition: none !important;
+          }
+        }
+
+        @media (min-width: 768px) {
+          @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+
+          @keyframes floatCenter {
+            0%, 100% {
+              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+            }
+            20% {
+              transform: translate(-50%, -50%) translateY(-30px) rotate(6deg) scale(1.03);
+            }
+            40% {
+              transform: translate(-50%, -50%) translateY(0px) rotate(0deg) scale(1);
+            }
+            60% {
+              transform: translate(-50%, -50%) translateY(25px) rotate(-5deg) scale(0.97);
+            }
+            80% {
+              transform: translate(-50%, -50%) translateY(-15px) rotate(3deg) scale(1.01);
+            }
+          }
+
+          @keyframes floatLeft {
+            0%, 100% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+            }
+            15% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-35px) translateY(-15px) rotate(-10deg) scale(0.96);
+            }
+            35% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(0px) translateY(-25px) rotate(0deg) scale(1);
+            }
+            55% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(30px) translateY(15px) rotate(8deg) scale(1.04);
+            }
+            75% {
+              transform: translate(calc(-50% - min(600px, 45vw)), -50%) translateX(-20px) translateY(20px) rotate(-6deg) scale(0.98);
+            }
+          }
+
+          @keyframes floatRight {
+            0%, 100% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1);
+            }
+            18% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(30px) translateY(-20px) rotate(8deg) scale(1.03);
+            }
+            38% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-25px) translateY(15px) rotate(-7deg) scale(0.97);
+            }
+            58% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(20px) translateY(-30px) rotate(6deg) scale(1.02);
+            }
+            78% {
+              transform: translate(calc(-50% + min(600px, 45vw)), -50%) translateX(-30px) translateY(-10px) rotate(-8deg) scale(0.96);
+            }
+          }
+
+          .animate-float-center {
+            animation: floatCenter 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
+
+          .animate-float-left {
+            animation: floatLeft 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
+
+          .animate-float-right {
+            animation: floatRight 11s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
+        }
+
+        @media (max-width: 767px) {
+          @keyframes floatCenterMobile {
+            0%, 100% {
+              transform: translate(-50%, -50%) translateY(10px) scale(1);
+            }
+            50% {
+              transform: translate(-50%, -50%) translateY(-10px) scale(1.03);
+            }
+          }
+
+          @keyframes floatLeftMobile {
+            0%, 100% {
+              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(10px) translateY(10px);
+            }
+            50% {
+              transform: translate(calc(-50% - min(400px, 40vw)), -50%) translateX(-10px) translateY(-6px);
+            }
+          }
+
+          @keyframes floatRightMobile {
+            0%, 100% {
+              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(17px) translateY(5px);
+            }
+            50% {
+              transform: translate(calc(-50% + min(400px, 40vw)), -50%) translateX(5px) translateY(-3px);
+            }
+          }
+
+          .animate-float-center {
+            animation: floatCenterMobile 6s ease-in-out infinite;
+          }
+
+          .animate-float-left {
+            animation: floatLeftMobile 7s ease-in-out infinite;
+          }
+
+          .animate-float-right {
+            animation: floatRightMobile 7s ease-in-out infinite;
+          }
+        }
+
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .carousel-track {
+          animation: scroll 20s linear infinite;
+        }
+      `}</style>
+    </>
+  );
+}
