@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import { Analytics } from "@vercel/analytics/next"
 import { RootLayoutContent } from "@/components/RootLayoutContent"
+import StructuredData from "@/components/StructuredData"
 
 const SITE_URL = "https://www.chupaboo.com"
 
@@ -202,6 +203,7 @@ export default async function LocaleLayout({
 
   return (
     <RootLayoutContent params={{ locale }}>
+      <StructuredData />
       {children}
       <Analytics />
     </RootLayoutContent>
