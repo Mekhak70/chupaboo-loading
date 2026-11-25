@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import { Analytics } from "@vercel/analytics/next"
@@ -144,14 +145,19 @@ export async function generateMetadata({
 
   return {
     metadataBase: new URL(SITE_URL),
+
     title: lang.title,
+
     description: lang.description,
+
     keywords: lang.keywords,
+
     icons: {
       icon: "/logo.png",
       shortcut: "/logo.png",
       apple: "/logo.png",
     },
+
     openGraph: {
       title: lang.title,
       description: lang.description,
@@ -168,13 +174,16 @@ export async function generateMetadata({
       ],
       locale: openGraphLocales[locale],
     },
+
     twitter: {
       card: "summary_large_image",
       title: lang.title,
       description: lang.description,
       images: ["/logo-1.png"],
     },
+
     alternates: {
+      canonical: `${SITE_URL}/${locale}`,
       languages: {
         en: `${SITE_URL}/en`,
         hy: `${SITE_URL}/hy`,
