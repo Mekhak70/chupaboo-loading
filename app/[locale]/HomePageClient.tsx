@@ -740,7 +740,7 @@ ${type} ${creamType}։ ${t("imageLabel")} ${SITE_URL}${pendingImage.startsWith("
             <ScrollReveal direction="up">
               <Link href={`/${locale}/cakes`}>
                 <div className="text-center mb-8 md:mb-12">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h2>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-[#69429a] mb-2 md:mb-3">{t('ourCakesLabel')}</h1>
                   <div className="w-20 md:w-24 h-0.5 md:h-1 bg-[#aed137] mx-auto rounded-full" />
                 </div>
               </Link>
