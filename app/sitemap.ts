@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://chupaboo.com";
+  const baseUrl = "https://www.chupaboo.com";
   const locales = ["hy", "en", "ru", "pl"];
 
   return locales.map((locale) => ({
