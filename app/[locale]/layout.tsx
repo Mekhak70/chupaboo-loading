@@ -202,10 +202,13 @@ export default async function LocaleLayout({
   const { locale } = await params
 
   return (
-    <RootLayoutContent params={{ locale }}>
+    <>
       <StructuredData />
-      {children}
-      <Analytics />
-    </RootLayoutContent>
+
+      <RootLayoutContent params={{ locale }}>
+        {children}
+        <Analytics />
+      </RootLayoutContent>
+    </>
   )
 }
